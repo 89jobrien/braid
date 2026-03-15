@@ -39,6 +39,21 @@ fn verify_text_completion(provider: &impl Provider) -> Result<()> {
     Ok(())
 }
 
+fn verify_error_on_empty_messages(provider: &impl Provider) -> Result<()> {
+    let request = ProviderRequest {
+        messages: vec![],
+        tools: vec![],
+    };
+
+    let result = provider.complete(request);
+    assert!(
+        result.is_err(),
+        "provider must return Err for empty messages"
+    );
+
+    Ok(())
+}
+
 fn verify_tool_calling(provider: &impl Provider) -> Result<()> {
     let tool = ToolDefinition {
         name: "get_weather".into(),
@@ -126,6 +141,7 @@ fn ollama_provider_satisfies_contract() {
     let provider = OpenAiProvider::ollama("qwen2.5:3b");
     verify_text_completion(&provider).unwrap();
     verify_tool_calling(&provider).unwrap();
+    verify_error_on_empty_messages(&provider).unwrap();
 }
 
 #[test]
@@ -138,4 +154,15 @@ fn openai_provider_satisfies_contract() {
     let provider = OpenAiProvider::default_model().expect("OPENAI_API_KEY must be set");
     verify_text_completion(&provider).unwrap();
     verify_tool_calling(&provider).unwrap();
+    verify_error_on_empty_messages(&provider).unwrap();
+}
+
+#[test]
+fn empty_messages_returns_error() {
+    let provider = OpenAiProvider::ollama("any-model");
+    let request = ProviderRequest {
+        messages: vec![],
+        tools: vec![],
+    };
+    assert!(provider.complete(request).is_err());
 }
