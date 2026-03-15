@@ -8,3 +8,6 @@ rust-version.workspace = true
 [dependencies]
 anyhow.workspace = true
 braid-model = { path = "../braid-model" }
+
+[dev-dependencies]
+serde_json.workspace = true

@@ -55,11 +55,18 @@ impl Planner for SimpleLoopPlanner {
             });
         }
 
-        // 3. Provider responded with no tool calls — done
+        // 3. Provider responded — finish only if it was a pure text response
+        //    (no tool calls). If the last response contained tool calls and all
+        //    have been executed, we fall through to call the provider again.
         if let Some(response) = &state.last_provider_response {
-            return Ok(Action::Finish {
-                response: response.clone(),
+            let had_tool_calls = response.message.content.iter().any(|part| {
+                matches!(part, braid_model::ContentPart::ToolUse { .. })
             });
+            if !had_tool_calls {
+                return Ok(Action::Finish {
+                    response: response.clone(),
+                });
+            }
         }
 
         // 4. Need to call provider
