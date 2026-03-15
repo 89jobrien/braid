@@ -36,6 +36,12 @@ pub trait Provider {
     fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse>;
 }
 
+impl Provider for Box<dyn Provider> {
+    fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
+        (**self).complete(request)
+    }
+}
+
 impl<T, P> Engine<T, P>
 where
     T: ToolExecutor,
