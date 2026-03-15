@@ -1,9 +1,9 @@
 use anyhow::Result;
 use braid_core::Provider;
 use braid_model::{ContentPart, Message, ProviderRequest, Role};
-use braid_providers::MockProvider;
+use braid_providers::OpenAiProvider;
 
-fn verify_provider_contract(provider: &impl Provider) -> Result<()> {
+fn verify_text_completion(provider: &impl Provider) -> Result<()> {
     let request = ProviderRequest {
         messages: vec![Message {
             role: Role::User,
@@ -40,21 +40,19 @@ fn verify_provider_contract(provider: &impl Provider) -> Result<()> {
 }
 
 #[test]
-fn mock_provider_satisfies_contract() {
-    let provider = MockProvider;
-    verify_provider_contract(&provider).unwrap();
+#[ignore = "requires Ollama running locally"]
+fn ollama_provider_satisfies_contract() {
+    let provider = OpenAiProvider::ollama("qwen2.5:3b");
+    verify_text_completion(&provider).unwrap();
 }
 
 #[test]
 #[ignore = "requires OPENAI_API_KEY"]
 fn openai_provider_satisfies_contract() {
-    use braid_providers::OpenAiProvider;
-
+    if std::env::var("OPENAI_API_KEY").is_err() {
+        eprintln!("skipping: OPENAI_API_KEY not set");
+        return;
+    }
     let provider = OpenAiProvider::default_model().expect("OPENAI_API_KEY must be set");
-    let result = verify_provider_contract(&provider);
-    assert!(
-        result.is_ok(),
-        "OpenAI contract failed: {}",
-        result.unwrap_err()
-    );
+    verify_text_completion(&provider).unwrap();
 }

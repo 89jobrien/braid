@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 
 use braid_core::{Engine, Provider, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_model::{ContentPart, Message, Role, SessionId};
-use braid_providers::{MockProvider, OpenAiProvider};
+use braid_providers::OpenAiProvider;
 
 #[derive(Parser)]
 #[command(name = "braid")]
@@ -20,7 +20,7 @@ enum Command {
     Run {
         /// Prompt text (reads stdin if omitted)
         prompt: Option<String>,
-        /// Provider to use (mock or openai; default: auto-detect)
+        /// Provider to use (ollama or openai; default: auto-detect)
         #[arg(long)]
         provider: Option<String>,
         /// Model name
@@ -38,15 +38,15 @@ fn resolve_provider(flag: Option<&str>, model: &str) -> Result<Box<dyn Provider>
             if std::env::var("OPENAI_API_KEY").is_ok() {
                 "openai".into()
             } else {
-                "mock".into()
+                "ollama".into()
             }
         }
     };
 
     match provider_name.as_str() {
-        "mock" => Ok(Box::new(MockProvider)),
+        "ollama" => Ok(Box::new(OpenAiProvider::ollama(model))),
         "openai" => Ok(Box::new(OpenAiProvider::new(model)?)),
-        other => bail!("unknown provider: {other} (expected 'mock' or 'openai')"),
+        other => bail!("unknown provider: {other} (expected 'ollama' or 'openai')"),
     }
 }
 
@@ -112,9 +112,20 @@ mod doctor {
     pub fn run_checks() -> Result<()> {
         check_rust_toolchain();
         check_openai_key();
+        check_ollama_connectivity();
         check_openai_connectivity();
         check_workspace_health();
         Ok(())
+    }
+
+    fn check_ollama_connectivity() {
+        let output = ProcessCommand::new("curl")
+            .args(["-sf", "http://localhost:11434/api/tags"])
+            .output();
+        match output {
+            Ok(out) if out.status.success() => println!("ollama ... ok"),
+            _ => println!("ollama ... not reachable (http://localhost:11434)"),
+        }
     }
 
     fn check_rust_toolchain() {
