@@ -31,8 +31,8 @@ Braid is a **personal agent platform** built as a Rust workspace. It consolidate
 | Crate | Role |
 |---|---|
 | `braid-model` | Canonical domain types — single source of truth. No other crate invents parallel domain models. |
-| `braid-core` | Runtime engine (`Engine<T, P>`), `Provider` trait, `ToolExecutor` trait. No provider logic lives here. |
-| `braid-providers` | Provider adapters (currently `MockProvider`). Real adapters go here, not in core or CLI. |
+| `braid-core` | Runtime engine (`Engine<T, P>`), `Provider`/`Planner`/`ToolExecutor` traits, `SimpleLoopPlanner`. No provider logic lives here. |
+| `braid-providers` | Provider adapters (`MockProvider`, `OpenAiProvider`). Real adapters go here, not in core or CLI. |
 | `braid-cli` | Thin operator entrypoint. Delegates to core, not vice versa. |
 
 **Crate dependency graph**: `braid-cli → braid-providers → braid-core → braid-model`. Model is the leaf; CLI is the root. All domain types live in `braid-model`; all traits (`Provider`, `ToolExecutor`) live in `braid-core`.
@@ -42,12 +42,18 @@ Braid is a **personal agent platform** built as a Rust workspace. It consolidate
 ### Data Flow
 
 ```
-CLI → Engine::run(RunInput)
-        ├─ Provider::complete(ProviderRequest) → ProviderResponse
-        ├─ ToolExecutor::execute(ToolCall) → ToolResult
-        └─ Emits 4 Events: SessionStarted, ProviderResponded, ToolCalled, ToolCompleted
-      → RunOutput { provider_response, tool_result, events }
+CLI → Engine::run(RunInput { session_id, messages, max_turns }, &SimpleLoopPlanner)
+        Loop (driven by Planner::next_action → Action):
+          ├─ CallProvider  → Provider::complete(ProviderRequest) → extract tool calls
+          ├─ ExecuteTool   → ToolExecutor::execute(ToolCall) → tool result as message
+          └─ Finish        → return RunOutput
+        Emits: SessionStarted, ProviderResponded, ToolCalled, ToolCompleted, SessionCompleted
+      → RunOutput { provider_response, events }
 ```
+
+### Core Message Types
+
+`braid-model` defines the conversation model: `Message` (role + content parts), `ContentPart` (Text/Image/ToolUse/ToolResult), `Role` (System/User/Assistant/Tool), `ToolCall` (id/name/input), `TokenCount`, `Transcript`, `SessionPhase`. Provider types use `Message` — not plain strings.
 
 ### Hard Boundaries (from design docs)
 
@@ -59,7 +65,7 @@ CLI → Engine::run(RunInput)
 
 ### Workspace Dependencies
 
-All crates share: `anyhow`, `serde` (with derive), `thiserror`, `tracing` (declared, not yet used).
+All crates share: `anyhow`, `serde` (with derive), `serde_json`, `thiserror`, `tracing` (declared, not yet used). `braid-providers` also uses `reqwest` (blocking).
 
 ## Design Principles
 
@@ -68,6 +74,8 @@ All crates share: `anyhow`, `serde` (with derive), `thiserror`, `tracing` (decla
 - **Bounded context**: Extractors should be selective, not endless ingestion frameworks.
 
 ## Planning Docs
+
+Implementation specs and plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
 Comprehensive design documents live in `docs/planning/`:
 - `Braid - Rust Workspace Spec.md` — most detailed architecture spec
