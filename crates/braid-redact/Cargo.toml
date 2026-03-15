@@ -1,0 +1,11 @@
+[package]
+name = "braid-redact"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+braid-model = { path = "../braid-model" }
+regex.workspace = true
+serde_json.workspace = true

@@ -29,6 +29,8 @@ enum Command {
     },
     /// Check environment health
     Doctor,
+    /// Start MCP server over stdio
+    Mcp,
 }
 
 fn resolve_provider(flag: Option<&str>, model: &str) -> Result<Box<dyn Provider>> {
@@ -212,5 +214,24 @@ fn main() -> Result<()> {
             model,
         } => cmd_run(prompt, provider, model),
         Command::Doctor => cmd_doctor(),
+        Command::Mcp => cmd_mcp(),
     }
+}
+
+fn cmd_mcp() -> Result<()> {
+    use braid_mcp::{McpToolRegistry, echo_tool, run_mcp_server};
+
+    let registry = McpToolRegistry::new(|call| {
+        let input: serde_json::Value =
+            serde_json::from_str(&call.input).unwrap_or(serde_json::Value::Null);
+        let message = input["message"].as_str().unwrap_or(&call.input).to_string();
+        Ok(braid_model::ToolResult {
+            name: call.name,
+            output: message,
+        })
+    })
+    .register(echo_tool());
+
+    let rt = tokio::runtime::Runtime::new()?;
+    rt.block_on(run_mcp_server(registry))
 }

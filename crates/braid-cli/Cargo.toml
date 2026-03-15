@@ -11,3 +11,6 @@ clap.workspace = true
 braid-core = { path = "../braid-core" }
 braid-model = { path = "../braid-model" }
 braid-providers = { path = "../braid-providers" }
+braid-mcp = { path = "../braid-mcp" }
+serde_json.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread"] }
