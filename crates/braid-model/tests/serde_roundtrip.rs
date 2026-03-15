@@ -16,11 +16,11 @@ fn session_id_roundtrip() {
 }
 
 #[test]
-fn session_state_roundtrip() {
-    roundtrip(&SessionState::Planned);
-    roundtrip(&SessionState::Running);
-    roundtrip(&SessionState::WaitingForTool);
-    roundtrip(&SessionState::Completed);
+fn session_phase_roundtrip() {
+    roundtrip(&SessionPhase::Planned);
+    roundtrip(&SessionPhase::Running);
+    roundtrip(&SessionPhase::WaitingForTool);
+    roundtrip(&SessionPhase::Completed);
 }
 
 #[test]

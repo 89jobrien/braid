@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct SessionId(pub String);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum SessionState {
+pub enum SessionPhase {
     Planned,
     Running,
     WaitingForTool,
