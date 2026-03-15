@@ -11,6 +11,7 @@ fn verify_provider_contract(provider: &impl Provider) -> Result<()> {
                 text: "Say hello.".into(),
             }],
         }],
+        tools: vec![],
     };
 
     let response = provider.complete(request)?;

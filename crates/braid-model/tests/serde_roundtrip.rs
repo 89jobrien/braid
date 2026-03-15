@@ -42,12 +42,28 @@ fn tool_result_roundtrip() {
 
 #[test]
 fn provider_request_roundtrip() {
+    // Without tools
     roundtrip(&ProviderRequest {
         messages: vec![Message {
             role: Role::User,
             content: vec![ContentPart::Text {
                 text: "hello".into(),
             }],
+        }],
+        tools: vec![],
+    });
+    // With tools
+    roundtrip(&ProviderRequest {
+        messages: vec![Message {
+            role: Role::User,
+            content: vec![ContentPart::Text {
+                text: "hello".into(),
+            }],
+        }],
+        tools: vec![ToolDefinition {
+            name: "get_weather".into(),
+            description: "Get weather".into(),
+            parameters: serde_json::json!({"type": "object"}),
         }],
     });
 }

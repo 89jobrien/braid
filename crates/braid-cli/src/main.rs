@@ -168,6 +168,7 @@ mod doctor {
                         role: Role::User,
                         content: vec![ContentPart::Text { text: "hi".into() }],
                     }],
+                    tools: vec![],
                 };
                 match provider.complete(request) {
                     Ok(_) => println!("openai connectivity ... ok"),

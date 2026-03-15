@@ -99,7 +99,7 @@ where
 
             match action {
                 Action::CallProvider { messages } => {
-                    let response = self.provider.complete(ProviderRequest { messages })?;
+                    let response = self.provider.complete(ProviderRequest { messages, tools: vec![] })?;
 
                     // Add assistant message to conversation
                     state.messages.push(response.message.clone());
