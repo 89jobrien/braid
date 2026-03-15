@@ -9,3 +9,5 @@ rust-version.workspace = true
 anyhow.workspace = true
 braid-core = { path = "../braid-core" }
 braid-model = { path = "../braid-model" }
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+serde_json.workspace = true

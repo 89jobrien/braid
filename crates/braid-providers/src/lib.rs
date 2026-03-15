@@ -1,3 +1,6 @@
+pub mod openai;
+pub use openai::OpenAiProvider;
+
 use anyhow::Result;
 use braid_core::engine::Provider;
 use braid_model::{ContentPart, Message, ProviderRequest, ProviderResponse, Role};
