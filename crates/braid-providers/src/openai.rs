@@ -133,6 +133,31 @@ impl OpenAiProvider {
         msg_json
     }
 
+    fn build_request_body(&self, messages: &[Message], tools: &[braid_model::ToolDefinition]) -> Value {
+        let openai_messages = self.to_openai_messages(messages);
+        let mut body = json!({
+            "model": self.model,
+            "messages": openai_messages,
+        });
+
+        if !tools.is_empty() {
+            let tools_json: Vec<Value> = tools
+                .iter()
+                .map(|t| json!({
+                    "type": "function",
+                    "function": {
+                        "name": t.name,
+                        "description": t.description,
+                        "parameters": t.parameters,
+                    }
+                }))
+                .collect();
+            body["tools"] = json!(tools_json);
+        }
+
+        body
+    }
+
     fn parse_response(&self, body: Value) -> Result<ProviderResponse> {
         let choices = body["choices"]
             .as_array()
@@ -198,12 +223,7 @@ impl Provider for OpenAiProvider {
             bail!("cannot complete with empty messages");
         }
 
-        let openai_messages = self.to_openai_messages(&request.messages);
-
-        let body = json!({
-            "model": self.model,
-            "messages": openai_messages,
-        });
+        let body = self.build_request_body(&request.messages, &request.tools);
 
         let response = self
             .client
@@ -258,5 +278,48 @@ mod tests {
         };
         let err = provider.complete(request).unwrap_err();
         assert!(err.to_string().contains("empty"), "expected empty messages error, got: {err}");
+    }
+
+    #[test]
+    fn serializes_tool_definitions_in_request_body() {
+        use braid_model::ToolDefinition;
+
+        let provider = OpenAiProvider::ollama("test-model");
+        let tools = vec![ToolDefinition {
+            name: "get_weather".into(),
+            description: "Get weather for a city".into(),
+            parameters: serde_json::json!({
+                "type": "object",
+                "properties": { "city": { "type": "string" } },
+                "required": ["city"]
+            }),
+        }];
+
+        let body = provider.build_request_body(
+            &[Message {
+                role: Role::User,
+                content: vec![ContentPart::Text { text: "test".into() }],
+            }],
+            &tools,
+        );
+
+        let tools_json = body["tools"].as_array().expect("tools should be an array");
+        assert_eq!(tools_json.len(), 1);
+        assert_eq!(tools_json[0]["type"], "function");
+        assert_eq!(tools_json[0]["function"]["name"], "get_weather");
+    }
+
+    #[test]
+    fn omits_tools_key_when_empty() {
+        let provider = OpenAiProvider::ollama("test-model");
+        let body = provider.build_request_body(
+            &[Message {
+                role: Role::User,
+                content: vec![ContentPart::Text { text: "test".into() }],
+            }],
+            &[],
+        );
+
+        assert!(body.get("tools").is_none(), "tools key should be absent when empty");
     }
 }
