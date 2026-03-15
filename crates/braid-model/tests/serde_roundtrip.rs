@@ -26,6 +26,7 @@ fn session_phase_roundtrip() {
 #[test]
 fn tool_call_roundtrip() {
     roundtrip(&ToolCall {
+        id: "call_1".into(),
         name: "echo".into(),
         input: "hello".into(),
     });
@@ -97,11 +98,12 @@ fn event_roundtrip() {
         },
     });
     roundtrip(&Event {
-        session_id: sid,
+        session_id: sid.clone(),
         kind: EventKind::ToolCompleted {
             tool_name: "echo".into(),
         },
     });
+    roundtrip(&Event { session_id: sid, kind: EventKind::SessionCompleted });
 }
 
 #[test]

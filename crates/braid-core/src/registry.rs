@@ -55,6 +55,7 @@ mod tests {
         let mut registry = ToolRegistry::new();
         registry.register("echo", Box::new(StaticTool::new("echo", "echoed")));
         let result = registry.execute(ToolCall {
+            id: "call_1".into(),
             name: "echo".into(),
             input: "hello".into(),
         }).unwrap();
@@ -66,6 +67,7 @@ mod tests {
     fn execute_unknown_tool_errors() {
         let registry = ToolRegistry::new();
         let err = registry.execute(ToolCall {
+            id: "call_1".into(),
             name: "missing".into(),
             input: "".into(),
         }).unwrap_err();
