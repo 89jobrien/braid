@@ -41,18 +41,17 @@ impl OpenAiProvider {
         };
 
         // Check for tool_call_id (Tool role messages)
-        if msg.role == Role::Tool {
-            if let Some(ContentPart::ToolResult {
+        if msg.role == Role::Tool
+            && let Some(ContentPart::ToolResult {
                 tool_use_id,
                 content,
             }) = msg.content.first()
-            {
-                return json!({
-                    "role": "tool",
-                    "tool_call_id": tool_use_id,
-                    "content": content,
-                });
-            }
+        {
+            return json!({
+                "role": "tool",
+                "tool_call_id": tool_use_id,
+                "content": content,
+            });
         }
 
         // Check for tool_calls (Assistant messages with ToolUse parts)
