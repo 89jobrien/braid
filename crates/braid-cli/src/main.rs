@@ -4,7 +4,7 @@ use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
 
 use braid_core::engine::Provider;
-use braid_core::{Engine, RunInput, ToolRegistry};
+use braid_core::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_model::{ContentPart, Message, Role, SessionId};
 use braid_providers::{MockProvider, OpenAiProvider};
 
@@ -83,7 +83,8 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
             role: Role::User,
             content: vec![ContentPart::Text { text: prompt }],
         }],
-    })?;
+        max_turns: None,
+    }, &SimpleLoopPlanner)?;
 
     let response_text = match output.provider_response.message.content.first() {
         Some(ContentPart::Text { text }) => text.clone(),
