@@ -1,6 +1,6 @@
 use anyhow::Result;
 use braid_core::Provider;
-use braid_model::{ContentPart, Message, ProviderRequest, Role};
+use braid_model::{ContentPart, Message, ProviderRequest, Role, ToolDefinition};
 use braid_providers::OpenAiProvider;
 
 fn verify_text_completion(provider: &impl Provider) -> Result<()> {
@@ -39,11 +39,93 @@ fn verify_text_completion(provider: &impl Provider) -> Result<()> {
     Ok(())
 }
 
+fn verify_tool_calling(provider: &impl Provider) -> Result<()> {
+    let tool = ToolDefinition {
+        name: "get_weather".into(),
+        description: "Get the current weather for a given city".into(),
+        parameters: serde_json::json!({
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "The city name"
+                }
+            },
+            "required": ["city"]
+        }),
+    };
+
+    // Step 1: Send a message that should trigger the tool
+    let request = ProviderRequest {
+        messages: vec![Message {
+            role: Role::User,
+            content: vec![ContentPart::Text {
+                text: "What is the current weather in Paris? Use the get_weather tool.".into(),
+            }],
+        }],
+        tools: vec![tool.clone()],
+    };
+
+    let response = provider.complete(request)?;
+
+    // Verify response contains a ToolUse part
+    let tool_use = response
+        .message
+        .content
+        .iter()
+        .find_map(|part| match part {
+            ContentPart::ToolUse { id, name, input } => Some((id.clone(), name.clone(), input.clone())),
+            _ => None,
+        });
+
+    let (tool_call_id, tool_name, _tool_input) =
+        tool_use.expect("response must contain a ToolUse content part");
+
+    assert!(!tool_call_id.is_empty(), "tool call id must not be empty");
+    assert_eq!(tool_name, "get_weather", "tool name must match requested tool");
+
+    // Step 2: Send the tool result back and get final response
+    let follow_up = ProviderRequest {
+        messages: vec![
+            Message {
+                role: Role::User,
+                content: vec![ContentPart::Text {
+                    text: "What is the current weather in Paris? Use the get_weather tool.".into(),
+                }],
+            },
+            response.message.clone(),
+            Message {
+                role: Role::Tool,
+                content: vec![ContentPart::ToolResult {
+                    tool_use_id: tool_call_id,
+                    content: "Sunny, 22°C".into(),
+                }],
+            },
+        ],
+        tools: vec![tool],
+    };
+
+    let final_response = provider.complete(follow_up)?;
+
+    let has_text = final_response
+        .message
+        .content
+        .iter()
+        .any(|part| matches!(part, ContentPart::Text { text } if !text.is_empty()));
+    assert!(
+        has_text,
+        "final response after tool result must contain text"
+    );
+
+    Ok(())
+}
+
 #[test]
 #[ignore = "requires Ollama running locally"]
 fn ollama_provider_satisfies_contract() {
     let provider = OpenAiProvider::ollama("qwen2.5:3b");
     verify_text_completion(&provider).unwrap();
+    verify_tool_calling(&provider).unwrap();
 }
 
 #[test]
@@ -55,4 +137,5 @@ fn openai_provider_satisfies_contract() {
     }
     let provider = OpenAiProvider::default_model().expect("OPENAI_API_KEY must be set");
     verify_text_completion(&provider).unwrap();
+    verify_tool_calling(&provider).unwrap();
 }
