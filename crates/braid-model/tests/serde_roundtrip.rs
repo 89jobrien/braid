@@ -159,6 +159,21 @@ fn message_roundtrip() {
 }
 
 #[test]
+fn tool_definition_roundtrip() {
+    roundtrip(&ToolDefinition {
+        name: "get_weather".into(),
+        description: "Get current weather for a city".into(),
+        parameters: serde_json::json!({
+            "type": "object",
+            "properties": {
+                "city": { "type": "string" }
+            },
+            "required": ["city"]
+        }),
+    });
+}
+
+#[test]
 fn token_count_roundtrip() {
     roundtrip(&TokenCount {
         input: 100,

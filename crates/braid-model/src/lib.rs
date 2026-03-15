@@ -11,5 +11,5 @@ pub use message::{ContentPart, Message, Role};
 pub use provider::{ProviderRequest, ProviderResponse};
 pub use session::{SessionId, SessionPhase};
 pub use task::TaskContext;
-pub use tool::{ToolCall, ToolResult};
+pub use tool::{ToolCall, ToolDefinition, ToolResult};
 pub use transcript::{TokenCount, Transcript};
