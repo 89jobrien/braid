@@ -42,14 +42,28 @@ fn tool_result_roundtrip() {
 #[test]
 fn provider_request_roundtrip() {
     roundtrip(&ProviderRequest {
-        prompt: "test prompt".into(),
+        messages: vec![Message {
+            role: Role::User,
+            content: vec![ContentPart::Text { text: "hello".into() }],
+        }],
     });
 }
 
 #[test]
 fn provider_response_roundtrip() {
     roundtrip(&ProviderResponse {
-        message: "test response".into(),
+        message: Message {
+            role: Role::Assistant,
+            content: vec![ContentPart::Text { text: "hi".into() }],
+        },
+        token_count: None,
+    });
+    roundtrip(&ProviderResponse {
+        message: Message {
+            role: Role::Assistant,
+            content: vec![ContentPart::Text { text: "hi".into() }],
+        },
+        token_count: Some(TokenCount { input: 10, output: 5 }),
     });
 }
 
@@ -87,5 +101,68 @@ fn event_roundtrip() {
         kind: EventKind::ToolCompleted {
             tool_name: "echo".into(),
         },
+    });
+}
+
+#[test]
+fn role_roundtrip() {
+    roundtrip(&Role::System);
+    roundtrip(&Role::User);
+    roundtrip(&Role::Assistant);
+    roundtrip(&Role::Tool);
+}
+
+#[test]
+fn content_part_roundtrip() {
+    roundtrip(&ContentPart::Text { text: "hello".into() });
+    roundtrip(&ContentPart::Image {
+        media_type: "image/png".into(),
+        data: "base64data".into(),
+    });
+    roundtrip(&ContentPart::ToolUse {
+        id: "call_1".into(),
+        name: "echo".into(),
+        input: serde_json::json!({"key": "value"}),
+    });
+    roundtrip(&ContentPart::ToolResult {
+        tool_use_id: "call_1".into(),
+        content: "result".into(),
+    });
+}
+
+#[test]
+fn message_roundtrip() {
+    roundtrip(&Message {
+        role: Role::User,
+        content: vec![
+            ContentPart::Text { text: "look at this".into() },
+            ContentPart::Image {
+                media_type: "image/png".into(),
+                data: "abc123".into(),
+            },
+        ],
+    });
+}
+
+#[test]
+fn token_count_roundtrip() {
+    roundtrip(&TokenCount { input: 100, output: 50 });
+}
+
+#[test]
+fn transcript_roundtrip() {
+    roundtrip(&Transcript {
+        session_id: SessionId("s1".into()),
+        messages: vec![
+            Message {
+                role: Role::User,
+                content: vec![ContentPart::Text { text: "hi".into() }],
+            },
+            Message {
+                role: Role::Assistant,
+                content: vec![ContentPart::Text { text: "hello".into() }],
+            },
+        ],
+        token_count: Some(TokenCount { input: 5, output: 3 }),
     });
 }

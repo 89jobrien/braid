@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+use crate::message::Message;
+use crate::transcript::TokenCount;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ProviderRequest {
-    pub prompt: String,
+    pub messages: Vec<Message>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ProviderResponse {
-    pub message: String,
+    pub message: Message,
+    pub token_count: Option<TokenCount>,
 }

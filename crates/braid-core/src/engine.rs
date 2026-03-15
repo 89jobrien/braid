@@ -1,6 +1,6 @@
 use anyhow::Result;
 use braid_model::{
-    Event, EventKind, ProviderRequest, ProviderResponse, SessionId, ToolCall, ToolResult,
+    Event, EventKind, Message, ProviderRequest, ProviderResponse, SessionId,
 };
 
 use crate::tools::ToolExecutor;
@@ -8,14 +8,12 @@ use crate::tools::ToolExecutor;
 #[derive(Debug, Clone)]
 pub struct RunInput {
     pub session_id: SessionId,
-    pub prompt: String,
-    pub tool: ToolCall,
+    pub messages: Vec<Message>,
 }
 
 #[derive(Debug, Clone)]
 pub struct RunOutput {
     pub provider_response: ProviderResponse,
-    pub tool_result: ToolResult,
     pub events: Vec<Event>,
 }
 
@@ -45,35 +43,21 @@ where
 {
     pub fn run(&self, input: RunInput) -> Result<RunOutput> {
         let provider_response = self.provider.complete(ProviderRequest {
-            prompt: input.prompt,
+            messages: input.messages,
         })?;
-        let tool_result = self.tool_executor.execute(input.tool.clone())?;
         let events = vec![
             Event {
                 session_id: input.session_id.clone(),
                 kind: EventKind::SessionStarted,
             },
             Event {
-                session_id: input.session_id.clone(),
-                kind: EventKind::ProviderResponded,
-            },
-            Event {
-                session_id: input.session_id.clone(),
-                kind: EventKind::ToolCalled {
-                    tool_name: input.tool.name.clone(),
-                },
-            },
-            Event {
                 session_id: input.session_id,
-                kind: EventKind::ToolCompleted {
-                    tool_name: tool_result.name.clone(),
-                },
+                kind: EventKind::ProviderResponded,
             },
         ];
 
         Ok(RunOutput {
             provider_response,
-            tool_result,
             events,
         })
     }
@@ -82,34 +66,54 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tools::StaticTool;
+    use braid_model::{ContentPart, Role};
 
     struct TestProvider;
 
     impl Provider for TestProvider {
         fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
+            let first_text = request.messages.iter()
+                .flat_map(|m| &m.content)
+                .find_map(|c| match c {
+                    ContentPart::Text { text } => Some(text.clone()),
+                    _ => None,
+                })
+                .unwrap_or_default();
             Ok(ProviderResponse {
-                message: format!("provider saw: {}", request.prompt),
+                message: Message {
+                    role: Role::Assistant,
+                    content: vec![ContentPart::Text {
+                        text: format!("provider saw: {}", first_text),
+                    }],
+                },
+                token_count: None,
             })
         }
     }
 
     #[test]
     fn runs_a_minimal_session() {
-        let engine = Engine::new(StaticTool::new("echo", "tool output"), TestProvider);
+        let engine = Engine::new(
+            crate::tools::StaticTool::new("echo", "tool output"),
+            TestProvider,
+        );
         let output = engine
             .run(RunInput {
                 session_id: SessionId("session-1".into()),
-                prompt: "hello".into(),
-                tool: ToolCall {
-                    name: "echo".into(),
-                    input: "run".into(),
-                },
+                messages: vec![Message {
+                    role: Role::User,
+                    content: vec![ContentPart::Text {
+                        text: "hello".into(),
+                    }],
+                }],
             })
             .unwrap();
 
-        assert_eq!(output.provider_response.message, "provider saw: hello");
-        assert_eq!(output.tool_result.output, "tool output");
-        assert_eq!(output.events.len(), 4);
+        let response_text = match &output.provider_response.message.content[0] {
+            ContentPart::Text { text } => text.clone(),
+            _ => panic!("expected text"),
+        };
+        assert_eq!(response_text, "provider saw: hello");
+        assert_eq!(output.events.len(), 2);
     }
 }
