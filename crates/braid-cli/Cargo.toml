@@ -1,0 +1,12 @@
+[package]
+name = "braid-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+braid-core = { path = "../braid-core" }
+braid-model = { path = "../braid-model" }
+braid-providers = { path = "../braid-providers" }

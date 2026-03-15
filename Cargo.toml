@@ -1,0 +1,22 @@
+[workspace]
+members = [
+  "crates/braid-model",
+  "crates/braid-core",
+  "crates/braid-providers",
+  "crates/braid-cli",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+version = "0.1.0"
+authors = ["Joe"]
+rust-version = "1.88"
+
+[workspace.dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tracing = "0.1"
