@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use braid_model::{Message, ProviderResponse, ToolCall};
 
 /// The current state of an in-progress session, inspected by the planner.
@@ -50,18 +50,18 @@ impl Planner for SimpleLoopPlanner {
 
         // 2. Pending tool calls — execute next one
         if let Some(call) = state.pending_tool_calls.first() {
-            return Ok(Action::ExecuteTool {
-                call: call.clone(),
-            });
+            return Ok(Action::ExecuteTool { call: call.clone() });
         }
 
         // 3. Provider responded — finish only if it was a pure text response
         //    (no tool calls). If the last response contained tool calls and all
         //    have been executed, we fall through to call the provider again.
         if let Some(response) = &state.last_provider_response {
-            let had_tool_calls = response.message.content.iter().any(|part| {
-                matches!(part, braid_model::ContentPart::ToolUse { .. })
-            });
+            let had_tool_calls = response
+                .message
+                .content
+                .iter()
+                .any(|part| matches!(part, braid_model::ContentPart::ToolUse { .. }));
             if !had_tool_calls {
                 return Ok(Action::Finish {
                     response: response.clone(),
@@ -85,9 +85,7 @@ mod tests {
         ProviderResponse {
             message: Message {
                 role: Role::Assistant,
-                content: vec![ContentPart::Text {
-                    text: text.into(),
-                }],
+                content: vec![ContentPart::Text { text: text.into() }],
             },
             token_count: None,
         }

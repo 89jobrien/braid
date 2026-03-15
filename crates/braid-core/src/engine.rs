@@ -1,7 +1,7 @@
 use anyhow::Result;
 use braid_model::{
-    ContentPart, Event, EventKind, Message, ProviderRequest, ProviderResponse,
-    Role, SessionId, ToolCall, ToolResult,
+    ContentPart, Event, EventKind, Message, ProviderRequest, ProviderResponse, Role, SessionId,
+    ToolCall, ToolResult,
 };
 
 use crate::planner::{Action, Planner, SessionState};
@@ -128,9 +128,7 @@ where
                     state.messages.push(tool_result_to_message(&call, &result));
 
                     // Remove executed call from pending
-                    state
-                        .pending_tool_calls
-                        .retain(|c| c.id != call.id);
+                    state.pending_tool_calls.retain(|c| c.id != call.id);
 
                     events.push(Event {
                         session_id: input.session_id.clone(),
@@ -158,8 +156,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use braid_model::ContentPart;
     use crate::planner::SimpleLoopPlanner;
+    use braid_model::ContentPart;
 
     struct TestProvider;
 
@@ -262,7 +260,10 @@ mod tests {
         // SessionStarted, ProviderResponded, SessionCompleted
         assert_eq!(output.events.len(), 3);
         assert!(matches!(output.events[0].kind, EventKind::SessionStarted));
-        assert!(matches!(output.events[1].kind, EventKind::ProviderResponded));
+        assert!(matches!(
+            output.events[1].kind,
+            EventKind::ProviderResponded
+        ));
         assert!(matches!(output.events[2].kind, EventKind::SessionCompleted));
     }
 
@@ -296,8 +297,14 @@ mod tests {
         // SessionStarted, ProviderResponded (1st), ToolCalled, ToolCompleted,
         // ProviderResponded (2nd), SessionCompleted
         assert_eq!(output.events.len(), 6);
-        assert!(matches!(output.events[2].kind, EventKind::ToolCalled { .. }));
-        assert!(matches!(output.events[3].kind, EventKind::ToolCompleted { .. }));
+        assert!(matches!(
+            output.events[2].kind,
+            EventKind::ToolCalled { .. }
+        ));
+        assert!(matches!(
+            output.events[3].kind,
+            EventKind::ToolCompleted { .. }
+        ));
     }
 
     #[test]
@@ -330,9 +337,7 @@ mod tests {
                     session_id: SessionId("session-3".into()),
                     messages: vec![Message {
                         role: Role::User,
-                        content: vec![ContentPart::Text {
-                            text: "go".into(),
-                        }],
+                        content: vec![ContentPart::Text { text: "go".into() }],
                     }],
                     max_turns: Some(2),
                 },
@@ -357,19 +362,14 @@ mod tests {
             }
         }
 
-        let engine = Engine::new(
-            crate::tools::StaticTool::new("echo", "out"),
-            NeverProvider,
-        );
+        let engine = Engine::new(crate::tools::StaticTool::new("echo", "out"), NeverProvider);
         let err = engine
             .run(
                 RunInput {
                     session_id: SessionId("session-4".into()),
                     messages: vec![Message {
                         role: Role::User,
-                        content: vec![ContentPart::Text {
-                            text: "go".into(),
-                        }],
+                        content: vec![ContentPart::Text { text: "go".into() }],
                     }],
                     max_turns: Some(0),
                 },

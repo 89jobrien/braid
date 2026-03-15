@@ -15,13 +15,25 @@ fn verify_provider_contract(provider: &impl Provider) -> Result<()> {
 
     let response = provider.complete(request)?;
 
-    assert_eq!(response.message.role, Role::Assistant, "response role must be Assistant");
-    assert!(!response.message.content.is_empty(), "response content must not be empty");
+    assert_eq!(
+        response.message.role,
+        Role::Assistant,
+        "response role must be Assistant"
+    );
+    assert!(
+        !response.message.content.is_empty(),
+        "response content must not be empty"
+    );
 
-    let has_text = response.message.content.iter().any(|part| {
-        matches!(part, ContentPart::Text { text } if !text.is_empty())
-    });
-    assert!(has_text, "response must contain at least one non-empty Text part");
+    let has_text = response
+        .message
+        .content
+        .iter()
+        .any(|part| matches!(part, ContentPart::Text { text } if !text.is_empty()));
+    assert!(
+        has_text,
+        "response must contain at least one non-empty Text part"
+    );
 
     Ok(())
 }
@@ -37,8 +49,11 @@ fn mock_provider_satisfies_contract() {
 fn openai_provider_satisfies_contract() {
     use braid_providers::OpenAiProvider;
 
-    let provider = OpenAiProvider::default_model()
-        .expect("OPENAI_API_KEY must be set");
+    let provider = OpenAiProvider::default_model().expect("OPENAI_API_KEY must be set");
     let result = verify_provider_contract(&provider);
-    assert!(result.is_ok(), "OpenAI contract failed: {}", result.unwrap_err());
+    assert!(
+        result.is_ok(),
+        "OpenAI contract failed: {}",
+        result.unwrap_err()
+    );
 }

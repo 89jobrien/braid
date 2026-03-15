@@ -45,7 +45,9 @@ fn provider_request_roundtrip() {
     roundtrip(&ProviderRequest {
         messages: vec![Message {
             role: Role::User,
-            content: vec![ContentPart::Text { text: "hello".into() }],
+            content: vec![ContentPart::Text {
+                text: "hello".into(),
+            }],
         }],
     });
 }
@@ -64,7 +66,10 @@ fn provider_response_roundtrip() {
             role: Role::Assistant,
             content: vec![ContentPart::Text { text: "hi".into() }],
         },
-        token_count: Some(TokenCount { input: 10, output: 5 }),
+        token_count: Some(TokenCount {
+            input: 10,
+            output: 5,
+        }),
     });
 }
 
@@ -103,7 +108,10 @@ fn event_roundtrip() {
             tool_name: "echo".into(),
         },
     });
-    roundtrip(&Event { session_id: sid, kind: EventKind::SessionCompleted });
+    roundtrip(&Event {
+        session_id: sid,
+        kind: EventKind::SessionCompleted,
+    });
 }
 
 #[test]
@@ -116,7 +124,9 @@ fn role_roundtrip() {
 
 #[test]
 fn content_part_roundtrip() {
-    roundtrip(&ContentPart::Text { text: "hello".into() });
+    roundtrip(&ContentPart::Text {
+        text: "hello".into(),
+    });
     roundtrip(&ContentPart::Image {
         media_type: "image/png".into(),
         data: "base64data".into(),
@@ -137,7 +147,9 @@ fn message_roundtrip() {
     roundtrip(&Message {
         role: Role::User,
         content: vec![
-            ContentPart::Text { text: "look at this".into() },
+            ContentPart::Text {
+                text: "look at this".into(),
+            },
             ContentPart::Image {
                 media_type: "image/png".into(),
                 data: "abc123".into(),
@@ -148,7 +160,10 @@ fn message_roundtrip() {
 
 #[test]
 fn token_count_roundtrip() {
-    roundtrip(&TokenCount { input: 100, output: 50 });
+    roundtrip(&TokenCount {
+        input: 100,
+        output: 50,
+    });
 }
 
 #[test]
@@ -162,9 +177,14 @@ fn transcript_roundtrip() {
             },
             Message {
                 role: Role::Assistant,
-                content: vec![ContentPart::Text { text: "hello".into() }],
+                content: vec![ContentPart::Text {
+                    text: "hello".into(),
+                }],
             },
         ],
-        token_count: Some(TokenCount { input: 5, output: 3 }),
+        token_count: Some(TokenCount {
+            input: 5,
+            output: 3,
+        }),
     });
 }

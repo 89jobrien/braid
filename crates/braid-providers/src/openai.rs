@@ -1,9 +1,7 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use braid_core::Provider;
-use braid_model::{
-    ContentPart, Message, ProviderRequest, ProviderResponse, Role, TokenCount,
-};
-use serde_json::{json, Value};
+use braid_model::{ContentPart, Message, ProviderRequest, ProviderResponse, Role, TokenCount};
+use serde_json::{Value, json};
 
 #[derive(Debug, Clone)]
 pub struct OpenAiProvider {
@@ -28,7 +26,10 @@ impl OpenAiProvider {
     }
 
     fn to_openai_messages(&self, messages: &[Message]) -> Vec<Value> {
-        messages.iter().map(|msg| self.to_openai_message(msg)).collect()
+        messages
+            .iter()
+            .map(|msg| self.to_openai_message(msg))
+            .collect()
     }
 
     fn to_openai_message(&self, msg: &Message) -> Value {
@@ -41,7 +42,11 @@ impl OpenAiProvider {
 
         // Check for tool_call_id (Tool role messages)
         if msg.role == Role::Tool {
-            if let Some(ContentPart::ToolResult { tool_use_id, content }) = msg.content.first() {
+            if let Some(ContentPart::ToolResult {
+                tool_use_id,
+                content,
+            }) = msg.content.first()
+            {
                 return json!({
                     "role": "tool",
                     "tool_call_id": tool_use_id,
@@ -51,8 +56,10 @@ impl OpenAiProvider {
         }
 
         // Check for tool_calls (Assistant messages with ToolUse parts)
-        let tool_calls: Vec<Value> = msg.content.iter().filter_map(|part| {
-            match part {
+        let tool_calls: Vec<Value> = msg
+            .content
+            .iter()
+            .filter_map(|part| match part {
                 ContentPart::ToolUse { id, name, input } => Some(json!({
                     "id": id,
                     "type": "function",
@@ -62,12 +69,14 @@ impl OpenAiProvider {
                     }
                 })),
                 _ => None,
-            }
-        }).collect();
+            })
+            .collect();
 
         // Build content array from non-tool parts
-        let content_parts: Vec<Value> = msg.content.iter().filter_map(|part| {
-            match part {
+        let content_parts: Vec<Value> = msg
+            .content
+            .iter()
+            .filter_map(|part| match part {
                 ContentPart::Text { text } => Some(json!({
                     "type": "text",
                     "text": text,
@@ -80,8 +89,8 @@ impl OpenAiProvider {
                 })),
                 ContentPart::ToolUse { .. } => None,
                 ContentPart::ToolResult { .. } => None,
-            }
-        }).collect();
+            })
+            .collect();
 
         let mut msg_json = json!({ "role": role });
 
@@ -123,9 +132,7 @@ impl OpenAiProvider {
     }
 
     fn parse_message(&self, msg: &Value) -> Result<Message> {
-        let role_str = msg["role"]
-            .as_str()
-            .context("message missing role")?;
+        let role_str = msg["role"].as_str().context("message missing role")?;
         let role = match role_str {
             "system" => Role::System,
             "user" => Role::User,
@@ -138,7 +145,9 @@ impl OpenAiProvider {
 
         // Parse text content
         if let Some(text) = msg.get("content").and_then(|c| c.as_str()) {
-            content.push(ContentPart::Text { text: text.to_string() });
+            content.push(ContentPart::Text {
+                text: text.to_string(),
+            });
         }
 
         // Parse tool_calls
@@ -148,8 +157,8 @@ impl OpenAiProvider {
                 let func = &tc["function"];
                 let name = func["name"].as_str().unwrap_or_default().to_string();
                 let arguments_str = func["arguments"].as_str().unwrap_or("{}");
-                let input: serde_json::Value = serde_json::from_str(arguments_str)
-                    .unwrap_or(json!({}));
+                let input: serde_json::Value =
+                    serde_json::from_str(arguments_str).unwrap_or(json!({}));
                 content.push(ContentPart::ToolUse { id, name, input });
             }
         }
@@ -167,7 +176,8 @@ impl Provider for OpenAiProvider {
             "messages": openai_messages,
         });
 
-        let response = self.client
+        let response = self
+            .client
             .post("https://api.openai.com/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", self.api_key))
             .json(&body)
@@ -180,11 +190,7 @@ impl Provider for OpenAiProvider {
             .context("failed to parse OpenAI response as JSON")?;
 
         if !status.is_success() {
-            bail!(
-                "OpenAI API error ({}): {}",
-                status,
-                response_body
-            );
+            bail!("OpenAI API error ({}): {}", status, response_body);
         }
 
         self.parse_response(response_body)

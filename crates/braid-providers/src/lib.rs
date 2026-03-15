@@ -10,7 +10,9 @@ pub struct MockProvider;
 
 impl Provider for MockProvider {
     fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
-        let first_text = request.messages.iter()
+        let first_text = request
+            .messages
+            .iter()
             .flat_map(|m| &m.content)
             .find_map(|c| match c {
                 ContentPart::Text { text } => Some(text.clone()),

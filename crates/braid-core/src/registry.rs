@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use crate::tools::ToolExecutor;
 use anyhow::Result;
 use braid_model::{ToolCall, ToolResult};
-use crate::tools::ToolExecutor;
+use std::collections::HashMap;
 
 pub struct ToolRegistry {
     tools: HashMap<String, Box<dyn ToolExecutor>>,
@@ -31,7 +31,9 @@ impl ToolRegistry {
 
 impl ToolExecutor for ToolRegistry {
     fn execute(&self, call: ToolCall) -> Result<ToolResult> {
-        let tool = self.tools.get(&call.name)
+        let tool = self
+            .tools
+            .get(&call.name)
             .ok_or_else(|| anyhow::anyhow!("tool not found: {}", call.name))?;
         tool.execute(call)
     }
@@ -54,11 +56,13 @@ mod tests {
     fn execute_dispatches_by_name() {
         let mut registry = ToolRegistry::new();
         registry.register("echo", Box::new(StaticTool::new("echo", "echoed")));
-        let result = registry.execute(ToolCall {
-            id: "call_1".into(),
-            name: "echo".into(),
-            input: "hello".into(),
-        }).unwrap();
+        let result = registry
+            .execute(ToolCall {
+                id: "call_1".into(),
+                name: "echo".into(),
+                input: "hello".into(),
+            })
+            .unwrap();
         assert_eq!(result.name, "echo");
         assert_eq!(result.output, "echoed");
     }
@@ -66,11 +70,13 @@ mod tests {
     #[test]
     fn execute_unknown_tool_errors() {
         let registry = ToolRegistry::new();
-        let err = registry.execute(ToolCall {
-            id: "call_1".into(),
-            name: "missing".into(),
-            input: "".into(),
-        }).unwrap_err();
+        let err = registry
+            .execute(ToolCall {
+                id: "call_1".into(),
+                name: "missing".into(),
+                input: "".into(),
+            })
+            .unwrap_err();
         assert!(err.to_string().contains("tool not found: missing"));
     }
 

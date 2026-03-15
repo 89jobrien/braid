@@ -10,10 +10,22 @@ pub enum Role {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ContentPart {
-    Text { text: String },
-    Image { media_type: String, data: String },
-    ToolUse { id: String, name: String, input: serde_json::Value },
-    ToolResult { tool_use_id: String, content: String },
+    Text {
+        text: String,
+    },
+    Image {
+        media_type: String,
+        data: String,
+    },
+    ToolUse {
+        id: String,
+        name: String,
+        input: serde_json::Value,
+    },
+    ToolResult {
+        tool_use_id: String,
+        content: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -1,6 +1,6 @@
 use std::io::{self, IsTerminal, Read};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
 use braid_core::{Engine, Provider, RunInput, SimpleLoopPlanner, ToolRegistry};
@@ -61,7 +61,9 @@ fn resolve_prompt(arg: Option<String>) -> Result<String> {
     }
 
     let mut buf = String::new();
-    stdin.lock().read_to_string(&mut buf)
+    stdin
+        .lock()
+        .read_to_string(&mut buf)
         .context("failed to read from stdin")?;
 
     if buf.trim().is_empty() {
@@ -76,14 +78,17 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     let prompt = resolve_prompt(prompt_arg)?;
 
     let engine = Engine::new(ToolRegistry::new(), provider);
-    let output = engine.run(RunInput {
-        session_id: SessionId("session".into()),
-        messages: vec![Message {
-            role: Role::User,
-            content: vec![ContentPart::Text { text: prompt }],
-        }],
-        max_turns: None,
-    }, &SimpleLoopPlanner)?;
+    let output = engine.run(
+        RunInput {
+            session_id: SessionId("session".into()),
+            messages: vec![Message {
+                role: Role::User,
+                content: vec![ContentPart::Text { text: prompt }],
+            }],
+            max_turns: None,
+        },
+        &SimpleLoopPlanner,
+    )?;
 
     let response_text = match output.provider_response.message.content.first() {
         Some(ContentPart::Text { text }) => text.clone(),
@@ -117,7 +122,10 @@ mod doctor {
         match output {
             Ok(out) if out.status.success() => {
                 let version_str = String::from_utf8_lossy(&out.stdout);
-                let version = version_str.trim().strip_prefix("rustc ").unwrap_or(version_str.trim());
+                let version = version_str
+                    .trim()
+                    .strip_prefix("rustc ")
+                    .unwrap_or(version_str.trim());
                 let parts: Vec<&str> = version.split('.').collect();
                 if parts.len() >= 2 {
                     let major: u32 = parts[0].parse().unwrap_or(0);
@@ -128,7 +136,10 @@ mod doctor {
                         println!("rust toolchain ... FAIL (found {}, need >= 1.88)", version);
                     }
                 } else {
-                    println!("rust toolchain ... FAIL (could not parse version: {})", version);
+                    println!(
+                        "rust toolchain ... FAIL (could not parse version: {})",
+                        version
+                    );
                 }
             }
             _ => println!("rust toolchain ... FAIL (rustc not found)"),
@@ -158,9 +169,7 @@ mod doctor {
                 let request = ProviderRequest {
                     messages: vec![Message {
                         role: Role::User,
-                        content: vec![ContentPart::Text {
-                            text: "hi".into(),
-                        }],
+                        content: vec![ContentPart::Text { text: "hi".into() }],
                     }],
                 };
                 match provider.complete(request) {
@@ -188,7 +197,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Run { prompt, provider, model } => cmd_run(prompt, provider, model),
+        Command::Run {
+            prompt,
+            provider,
+            model,
+        } => cmd_run(prompt, provider, model),
         Command::Doctor => cmd_doctor(),
     }
 }
