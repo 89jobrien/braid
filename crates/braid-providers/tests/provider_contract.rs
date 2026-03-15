@@ -84,20 +84,19 @@ fn verify_tool_calling(provider: &impl Provider) -> Result<()> {
     let response = provider.complete(request)?;
 
     // Verify response contains a ToolUse part
-    let tool_use = response
-        .message
-        .content
-        .iter()
-        .find_map(|part| match part {
-            ContentPart::ToolUse { id, name, input } => Some((id.clone(), name.clone(), input.clone())),
-            _ => None,
-        });
+    let tool_use = response.message.content.iter().find_map(|part| match part {
+        ContentPart::ToolUse { id, name, input } => Some((id.clone(), name.clone(), input.clone())),
+        _ => None,
+    });
 
     let (tool_call_id, tool_name, _tool_input) =
         tool_use.expect("response must contain a ToolUse content part");
 
     assert!(!tool_call_id.is_empty(), "tool call id must not be empty");
-    assert_eq!(tool_name, "get_weather", "tool name must match requested tool");
+    assert_eq!(
+        tool_name, "get_weather",
+        "tool name must match requested tool"
+    );
 
     // Step 2: Send the tool result back and get final response
     let follow_up = ProviderRequest {

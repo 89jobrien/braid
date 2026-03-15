@@ -133,7 +133,11 @@ impl OpenAiProvider {
         msg_json
     }
 
-    fn build_request_body(&self, messages: &[Message], tools: &[braid_model::ToolDefinition]) -> Value {
+    fn build_request_body(
+        &self,
+        messages: &[Message],
+        tools: &[braid_model::ToolDefinition],
+    ) -> Value {
         let openai_messages = self.to_openai_messages(messages);
         let mut body = json!({
             "model": self.model,
@@ -143,14 +147,16 @@ impl OpenAiProvider {
         if !tools.is_empty() {
             let tools_json: Vec<Value> = tools
                 .iter()
-                .map(|t| json!({
-                    "type": "function",
-                    "function": {
-                        "name": t.name,
-                        "description": t.description,
-                        "parameters": t.parameters,
-                    }
-                }))
+                .map(|t| {
+                    json!({
+                        "type": "function",
+                        "function": {
+                            "name": t.name,
+                            "description": t.description,
+                            "parameters": t.parameters,
+                        }
+                    })
+                })
                 .collect();
             body["tools"] = json!(tools_json);
         }
@@ -259,11 +265,7 @@ mod tests {
 
     #[test]
     fn with_base_url_constructor() {
-        let provider = OpenAiProvider::with_base_url(
-            "http://custom:8080/v1",
-            "my-model",
-            "my-key",
-        );
+        let provider = OpenAiProvider::with_base_url("http://custom:8080/v1", "my-model", "my-key");
         assert_eq!(provider.base_url, "http://custom:8080/v1");
         assert_eq!(provider.model, "my-model");
         assert_eq!(provider.api_key, "my-key");
@@ -277,7 +279,10 @@ mod tests {
             tools: vec![],
         };
         let err = provider.complete(request).unwrap_err();
-        assert!(err.to_string().contains("empty"), "expected empty messages error, got: {err}");
+        assert!(
+            err.to_string().contains("empty"),
+            "expected empty messages error, got: {err}"
+        );
     }
 
     #[test]
@@ -298,7 +303,9 @@ mod tests {
         let body = provider.build_request_body(
             &[Message {
                 role: Role::User,
-                content: vec![ContentPart::Text { text: "test".into() }],
+                content: vec![ContentPart::Text {
+                    text: "test".into(),
+                }],
             }],
             &tools,
         );
@@ -315,11 +322,16 @@ mod tests {
         let body = provider.build_request_body(
             &[Message {
                 role: Role::User,
-                content: vec![ContentPart::Text { text: "test".into() }],
+                content: vec![ContentPart::Text {
+                    text: "test".into(),
+                }],
             }],
             &[],
         );
 
-        assert!(body.get("tools").is_none(), "tools key should be absent when empty");
+        assert!(
+            body.get("tools").is_none(),
+            "tools key should be absent when empty"
+        );
     }
 }

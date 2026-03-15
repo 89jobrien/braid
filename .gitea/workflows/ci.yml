@@ -11,6 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check Ollama
+        run: |
+          curl -sf http://localhost:11434/api/tags || { echo "Ollama not running"; exit 1; }
+
       - name: Check formatting
         run: |
           source ~/.cargo/env
@@ -24,4 +28,4 @@ jobs:
       - name: Test
         run: |
           source ~/.cargo/env
-          cargo test --workspace
+          cargo test --workspace --include-ignored
