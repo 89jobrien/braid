@@ -7,6 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+clap.workspace = true
 braid-core = { path = "../braid-core" }
 braid-model = { path = "../braid-model" }
 braid-providers = { path = "../braid-providers" }
