@@ -7,7 +7,15 @@ use serde_json::{Value, json};
 pub struct OpenAiProvider {
     api_key: String,
     model: String,
+    base_url: String,
     client: reqwest::blocking::Client,
+}
+
+fn build_client() -> reqwest::blocking::Client {
+    reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .expect("failed to build HTTP client")
 }
 
 impl OpenAiProvider {
@@ -17,12 +25,30 @@ impl OpenAiProvider {
         Ok(Self {
             api_key,
             model: model.into(),
-            client: reqwest::blocking::Client::new(),
+            base_url: "https://api.openai.com/v1".into(),
+            client: build_client(),
         })
     }
 
     pub fn default_model() -> Result<Self> {
         Self::new("gpt-4o")
+    }
+
+    pub fn with_base_url(
+        base_url: impl Into<String>,
+        model: impl Into<String>,
+        api_key: impl Into<String>,
+    ) -> Self {
+        Self {
+            api_key: api_key.into(),
+            model: model.into(),
+            base_url: base_url.into(),
+            client: build_client(),
+        }
+    }
+
+    pub fn ollama(model: impl Into<String>) -> Self {
+        Self::with_base_url("http://localhost:11434/v1", model, "ollama")
     }
 
     fn to_openai_messages(&self, messages: &[Message]) -> Vec<Value> {
@@ -168,6 +194,10 @@ impl OpenAiProvider {
 
 impl Provider for OpenAiProvider {
     fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
+        if request.messages.is_empty() {
+            bail!("cannot complete with empty messages");
+        }
+
         let openai_messages = self.to_openai_messages(&request.messages);
 
         let body = json!({
@@ -177,11 +207,11 @@ impl Provider for OpenAiProvider {
 
         let response = self
             .client
-            .post("https://api.openai.com/v1/chat/completions")
+            .post(format!("{}/chat/completions", self.base_url))
             .header("Authorization", format!("Bearer {}", self.api_key))
             .json(&body)
             .send()
-            .context("failed to send request to OpenAI")?;
+            .context("failed to send request")?;
 
         let status = response.status();
         let response_body: Value = response
@@ -193,5 +223,40 @@ impl Provider for OpenAiProvider {
         }
 
         self.parse_response(response_body)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ollama_constructor_sets_base_url() {
+        let provider = OpenAiProvider::ollama("qwen2.5:3b");
+        assert_eq!(provider.base_url, "http://localhost:11434/v1");
+        assert_eq!(provider.model, "qwen2.5:3b");
+    }
+
+    #[test]
+    fn with_base_url_constructor() {
+        let provider = OpenAiProvider::with_base_url(
+            "http://custom:8080/v1",
+            "my-model",
+            "my-key",
+        );
+        assert_eq!(provider.base_url, "http://custom:8080/v1");
+        assert_eq!(provider.model, "my-model");
+        assert_eq!(provider.api_key, "my-key");
+    }
+
+    #[test]
+    fn rejects_empty_messages() {
+        let provider = OpenAiProvider::ollama("qwen2.5:3b");
+        let request = ProviderRequest {
+            messages: vec![],
+            tools: vec![],
+        };
+        let err = provider.complete(request).unwrap_err();
+        assert!(err.to_string().contains("empty"), "expected empty messages error, got: {err}");
     }
 }
