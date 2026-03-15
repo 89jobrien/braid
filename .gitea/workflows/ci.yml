@@ -28,4 +28,4 @@ jobs:
       - name: Test
         run: |
           source ~/.cargo/env
-          cargo test --workspace --include-ignored
+          cargo test --workspace -- --include-ignored
