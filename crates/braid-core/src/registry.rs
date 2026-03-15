@@ -3,15 +3,14 @@ use anyhow::Result;
 use braid_model::{ToolCall, ToolResult};
 use std::collections::HashMap;
 
+#[derive(Default)]
 pub struct ToolRegistry {
     tools: HashMap<String, Box<dyn ToolExecutor>>,
 }
 
 impl ToolRegistry {
     pub fn new() -> Self {
-        Self {
-            tools: HashMap::new(),
-        }
+        Self::default()
     }
 
     pub fn register(&mut self, name: impl Into<String>, tool: Box<dyn ToolExecutor>) {

@@ -46,7 +46,7 @@ fn resolve_provider(flag: Option<&str>, model: &str) -> Result<Box<dyn Provider>
     match provider_name.as_str() {
         "mock" => Ok(Box::new(MockProvider)),
         "openai" => Ok(Box::new(OpenAiProvider::new(model)?)),
-        other => bail!("unknown provider: {} (expected 'mock' or 'openai')", other),
+        other => bail!("unknown provider: {other} (expected 'mock' or 'openai')"),
     }
 }
 
@@ -94,7 +94,7 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
         Some(ContentPart::Text { text }) => text.clone(),
         _ => "non-text response".into(),
     };
-    println!("{}", response_text);
+    println!("{response_text}");
     if let Some(tc) = &output.provider_response.token_count {
         eprintln!("tokens: {} in, {} out", tc.input, tc.output);
     }
@@ -131,15 +131,12 @@ mod doctor {
                     let major: u32 = parts[0].parse().unwrap_or(0);
                     let minor: u32 = parts[1].parse().unwrap_or(0);
                     if major >= 1 && minor >= 88 {
-                        println!("rust toolchain ... ok ({})", version);
+                        println!("rust toolchain ... ok ({version})");
                     } else {
-                        println!("rust toolchain ... FAIL (found {}, need >= 1.88)", version);
+                        println!("rust toolchain ... FAIL (found {version}, need >= 1.88)");
                     }
                 } else {
-                    println!(
-                        "rust toolchain ... FAIL (could not parse version: {})",
-                        version
-                    );
+                    println!("rust toolchain ... FAIL (could not parse version: {version})");
                 }
             }
             _ => println!("rust toolchain ... FAIL (rustc not found)"),
@@ -174,10 +171,10 @@ mod doctor {
                 };
                 match provider.complete(request) {
                     Ok(_) => println!("openai connectivity ... ok"),
-                    Err(e) => println!("openai connectivity ... FAIL ({})", e),
+                    Err(e) => println!("openai connectivity ... FAIL ({e})"),
                 }
             }
-            Err(e) => println!("openai connectivity ... FAIL ({})", e),
+            Err(e) => println!("openai connectivity ... FAIL ({e})"),
         }
     }
 

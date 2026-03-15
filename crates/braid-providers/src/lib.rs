@@ -23,7 +23,7 @@ impl Provider for MockProvider {
             message: Message {
                 role: Role::Assistant,
                 content: vec![ContentPart::Text {
-                    text: format!("mock response to: {}", first_text),
+                    text: format!("mock response to: {first_text}"),
                 }],
             },
             token_count: None,

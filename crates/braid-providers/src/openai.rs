@@ -138,7 +138,7 @@ impl OpenAiProvider {
             "user" => Role::User,
             "assistant" => Role::Assistant,
             "tool" => Role::Tool,
-            other => bail!("unknown role: {}", other),
+            other => bail!("unknown role: {other}"),
         };
 
         let mut content = Vec::new();
@@ -190,7 +190,7 @@ impl Provider for OpenAiProvider {
             .context("failed to parse OpenAI response as JSON")?;
 
         if !status.is_success() {
-            bail!("OpenAI API error ({}): {}", status, response_body);
+            bail!("OpenAI API error ({status}): {response_body}");
         }
 
         self.parse_response(response_body)
