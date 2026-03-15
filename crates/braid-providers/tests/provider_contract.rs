@@ -1,5 +1,5 @@
 use anyhow::Result;
-use braid_core::engine::Provider;
+use braid_core::Provider;
 use braid_model::{ContentPart, Message, ProviderRequest, Role};
 use braid_providers::MockProvider;
 

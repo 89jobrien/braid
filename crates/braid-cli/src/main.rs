@@ -3,8 +3,7 @@ use std::io::{self, IsTerminal, Read};
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
 
-use braid_core::engine::Provider;
-use braid_core::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
+use braid_core::{Engine, Provider, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_model::{ContentPart, Message, Role, SessionId};
 use braid_providers::{MockProvider, OpenAiProvider};
 
