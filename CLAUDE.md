@@ -26,7 +26,7 @@ Braid is a **personal agent platform** built as a Rust workspace. It consolidate
 
 ### Four-Phase Build Order
 
-**Phase 1 (active)**: Four foundational crates forming a minimal runnable vertical slice:
+**Phase 1 (complete)**: Four foundational crates forming a minimal runnable vertical slice:
 
 | Crate | Role |
 |---|---|
@@ -37,7 +37,15 @@ Braid is a **personal agent platform** built as a Rust workspace. It consolidate
 
 **Crate dependency graph**: `braid-cli → braid-providers → braid-core → braid-model`. Model is the leaf; CLI is the root. All domain types live in `braid-model`; all traits (`Provider`, `ToolExecutor`) live in `braid-core`.
 
-**Phases 2–4 (planned, not started)**: `braid-hooks`, `braid-mcp`, `braid-redact`, `braid-observe`, `braid-context`, `braid-bootstrap`, `braid-components`.
+**Phase 2 (complete)**: Safety and tool-exposure layer:
+
+| Crate | Role |
+|---|---|
+| `braid-redact` | `RedactionPipeline` with ordered `RedactionRule` chain. Built-in rules: `SecretPatternRule`, `EnvVarRule`, `HomePathRule`. Walks `Message`/`Event` types. |
+| `braid-hooks` | `Hook` trait with `HookVerdict` (Allow/Deny). `HookedExecutor<T: ToolExecutor>` wraps any executor with pre/post hook gating. Built-in: `DestructiveCommandGuard`, `FreshnessGuard` (placeholder). Engine/Planner unchanged. |
+| `braid-mcp` | MCP server over stdio (JSON-RPC). `McpToolRegistry` for tool registration/dispatch. Echo tool. Only async crate (tokio). CLI `mcp` subcommand. |
+
+**Phases 3–4 (planned, not started)**: `braid-observe`, `braid-context`, `braid-bootstrap`, `braid-components`.
 
 ### Data Flow
 
@@ -65,11 +73,11 @@ CLI → Engine::run(RunInput { session_id, messages, max_turns }, &SimpleLoopPla
 
 ### Workspace Dependencies
 
-All crates share: `anyhow`, `serde` (with derive), `serde_json`, `thiserror`, `tracing` (declared, not yet used). `braid-providers` also uses `reqwest` (blocking).
+All crates share: `anyhow`, `serde` (with derive), `serde_json`, `thiserror`, `tracing` (declared, not yet used). `braid-providers` also uses `reqwest` (blocking). `braid-redact` uses `regex`. `braid-mcp` uses `tokio`.
 
 ## Design Principles
 
-- **Minimal vertical slice first**: Complete Phase 1 fully before adding hooks, MCP, or observability.
+- **Minimal vertical slice first**: Complete each phase fully before starting the next.
 - **No cargo-cult porting**: Only rebuild subsystems that serve the final platform shape.
 - **Bounded context**: Extractors should be selective, not endless ingestion frameworks.
 
