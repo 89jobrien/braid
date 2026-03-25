@@ -5,9 +5,12 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[features]
+test-support = []
+
 [dependencies]
 anyhow.workspace = true
-braid-core = { path = "../braid-core" }
 braid-model = { path = "../braid-model" }
+braid-ports = { path = "../braid-ports" }
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde_json.workspace = true
