@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "crates/braid-model",
+  "crates/braid-ports",
   "crates/braid-core",
   "crates/braid-providers",
   "crates/braid-cli",

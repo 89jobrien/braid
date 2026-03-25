@@ -158,6 +158,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "braid-ports"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "braid-model",
+]
+
+[[package]]
 name = "braid-providers"
 version = "0.1.0"
 dependencies = [
