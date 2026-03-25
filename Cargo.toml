@@ -7,6 +7,7 @@ members = [
   "crates/braid-redact",
   "crates/braid-hooks",
   "crates/braid-mcp",
+  "crates/braid-observe",
 ]
 resolver = "2"
 
