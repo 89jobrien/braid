@@ -5,6 +5,7 @@ use clap::{Parser, Subcommand};
 
 use braid_core::{Engine, Provider, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_model::{ContentPart, Message, Role, SessionId};
+use braid_observe::SessionStore;
 use braid_providers::OpenAiProvider;
 use braid_redact::{EnvVarRule, HomePathRule, RedactionPipeline, SecretPatternRule};
 
@@ -32,6 +33,28 @@ enum Command {
     Doctor,
     /// Start MCP server over stdio
     Mcp,
+    /// Manage stored sessions
+    Sessions {
+        #[command(subcommand)]
+        action: SessionsCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum SessionsCommand {
+    /// List session IDs, newest first
+    List,
+    /// Print a session's event timeline
+    Show {
+        /// Session ID to display
+        id: String,
+    },
+    /// Delete oldest sessions, keeping N most recent
+    Prune {
+        /// Number of sessions to keep
+        #[arg(long, default_value = "50")]
+        keep: usize,
+    },
 }
 
 fn resolve_provider(flag: Option<&str>, model: &str) -> Result<Box<dyn Provider>> {
@@ -76,6 +99,13 @@ fn resolve_prompt(arg: Option<String>) -> Result<String> {
     Ok(buf)
 }
 
+fn default_store_dir() -> Result<std::path::PathBuf> {
+    let home = std::env::var("HOME").context("HOME not set")?;
+    Ok(std::path::PathBuf::from(home)
+        .join(".braid")
+        .join("sessions"))
+}
+
 fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: String) -> Result<()> {
     let provider = resolve_provider(provider_flag.as_deref(), &model)?;
     let prompt = resolve_prompt(prompt_arg)?;
@@ -85,11 +115,21 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
         .with_rule(EnvVarRule::new())
         .with_rule(HomePathRule::new());
 
+    // Generate a unique session ID based on current time
+    let session_id = {
+        let secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        SessionId(format!("{secs}"))
+    };
+
     let engine = Engine::new(ToolRegistry::new(), provider)
         .with_redactor(move |msg| pipeline.redact_message(msg));
+
     let output = engine.run(
         RunInput {
-            session_id: SessionId("session".into()),
+            session_id: session_id.clone(),
             messages: vec![Message {
                 role: Role::User,
                 content: vec![ContentPart::Text { text: prompt }],
@@ -98,6 +138,24 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
         },
         &SimpleLoopPlanner,
     )?;
+
+    // Persist events (non-fatal on failure)
+    if let Ok(store_dir) = default_store_dir() {
+        if let Ok(store) = SessionStore::open(store_dir) {
+            let event_pipeline = RedactionPipeline::new()
+                .with_rule(SecretPatternRule::new())
+                .with_rule(EnvVarRule::new())
+                .with_rule(HomePathRule::new());
+            let redacted_events: Vec<_> = output
+                .events
+                .iter()
+                .map(|e| event_pipeline.redact_event(e))
+                .collect();
+            if let Err(e) = store.write(&session_id, &redacted_events) {
+                eprintln!("warn: could not persist session: {e}");
+            }
+        }
+    }
 
     let response_text = match output.provider_response.message.content.first() {
         Some(ContentPart::Text { text }) => text.clone(),
@@ -222,7 +280,39 @@ fn main() -> Result<()> {
         } => cmd_run(prompt, provider, model),
         Command::Doctor => cmd_doctor(),
         Command::Mcp => cmd_mcp(),
+        Command::Sessions { action } => cmd_sessions(action),
     }
+}
+
+fn cmd_sessions(action: SessionsCommand) -> Result<()> {
+    use braid_observe::render_session;
+
+    let store_dir = default_store_dir()?;
+    let store = SessionStore::open(store_dir)?;
+
+    match action {
+        SessionsCommand::List => {
+            let ids = store.list()?;
+            if ids.is_empty() {
+                println!("no sessions found");
+            } else {
+                for id in ids {
+                    println!("{}", id.0);
+                }
+            }
+        }
+        SessionsCommand::Show { id } => {
+            let sid = SessionId(id);
+            let events = store.load(&sid)?;
+            let meta = store.load_meta(&sid)?;
+            render_session(&events, meta.as_ref(), &mut std::io::stdout())?;
+        }
+        SessionsCommand::Prune { keep } => {
+            let deleted = store.prune(keep)?;
+            println!("deleted {deleted} session(s)");
+        }
+    }
+    Ok(())
 }
 
 fn cmd_mcp() -> Result<()> {

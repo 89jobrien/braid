@@ -93,7 +93,9 @@ dependencies = [
  "braid-core",
  "braid-mcp",
  "braid-model",
+ "braid-observe",
  "braid-providers",
+ "braid-redact",
  "clap",
  "serde_json",
  "tokio",
@@ -134,6 +136,18 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "braid-observe"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "braid-model",
+ "serde",
+ "serde_json",
+ "tempfile",
  "thiserror",
 ]
 
