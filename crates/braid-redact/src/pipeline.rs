@@ -98,6 +98,12 @@ impl Default for RedactionPipeline {
     }
 }
 
+impl braid_ports::Redactor for RedactionPipeline {
+    fn redact_message(&self, msg: &braid_model::Message) -> braid_model::Message {
+        self.redact_message(msg)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -254,5 +260,30 @@ mod tests {
 
         let redacted = pipeline.redact_event(&event);
         assert_eq!(redacted.kind, EventKind::SessionStarted);
+    }
+
+    #[test]
+    fn redaction_pipeline_implements_redactor_port() {
+        use crate::patterns::SecretPatternRule;
+        use braid_model::{ContentPart, Message, Role};
+        use braid_ports::Redactor;
+
+        let pipeline = RedactionPipeline::new().with_rule(SecretPatternRule::new());
+
+        // Redactor trait method
+        let msg = Message {
+            role: Role::User,
+            content: vec![ContentPart::Text {
+                text: "key: sk-abcdefghijklmnopqrstuvwxyz".into(),
+            }],
+        };
+        let redacted = <RedactionPipeline as Redactor>::redact_message(&pipeline, &msg);
+        match &redacted.content[0] {
+            ContentPart::Text { text } => {
+                assert!(text.contains("[REDACTED:api-key]"));
+                assert!(!text.contains("sk-"));
+            }
+            _ => panic!("expected Text"),
+        }
     }
 }
