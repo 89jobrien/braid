@@ -1,9 +1,7 @@
 use anyhow::Result;
 use braid_model::{ToolCall, ToolResult};
 
-pub trait ToolExecutor {
-    fn execute(&self, call: ToolCall) -> Result<ToolResult>;
-}
+pub use braid_ports::ToolExecutor;
 
 #[derive(Debug, Clone)]
 pub struct StaticTool {
