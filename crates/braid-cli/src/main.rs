@@ -140,20 +140,20 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     )?;
 
     // Persist events (non-fatal on failure)
-    if let Ok(store_dir) = default_store_dir() {
-        if let Ok(store) = SessionStore::open(store_dir) {
-            let event_pipeline = RedactionPipeline::new()
-                .with_rule(SecretPatternRule::new())
-                .with_rule(EnvVarRule::new())
-                .with_rule(HomePathRule::new());
-            let redacted_events: Vec<_> = output
-                .events
-                .iter()
-                .map(|e| event_pipeline.redact_event(e))
-                .collect();
-            if let Err(e) = store.write(&session_id, &redacted_events) {
-                eprintln!("warn: could not persist session: {e}");
-            }
+    if let Ok(store_dir) = default_store_dir()
+        && let Ok(store) = SessionStore::open(store_dir)
+    {
+        let event_pipeline = RedactionPipeline::new()
+            .with_rule(SecretPatternRule::new())
+            .with_rule(EnvVarRule::new())
+            .with_rule(HomePathRule::new());
+        let redacted_events: Vec<_> = output
+            .events
+            .iter()
+            .map(|e| event_pipeline.redact_event(e))
+            .collect();
+        if let Err(e) = store.write(&session_id, &redacted_events) {
+            eprintln!("warn: could not persist session: {e}");
         }
     }
 

@@ -9,6 +9,8 @@ use crate::tools::ToolExecutor;
 
 const DEFAULT_MAX_TURNS: u32 = 10;
 
+type Redactor = Box<dyn Fn(&Message) -> Message + Send + Sync + 'static>;
+
 #[derive(Debug, Clone)]
 pub struct RunInput {
     pub session_id: SessionId,
@@ -25,7 +27,7 @@ pub struct RunOutput {
 pub struct Engine<T, P> {
     tool_executor: T,
     provider: P,
-    redactor: Option<Box<dyn Fn(&Message) -> Message + Send + Sync>>,
+    redactor: Option<Redactor>,
 }
 
 impl<T, P> Engine<T, P> {
@@ -110,7 +112,7 @@ where
             match action {
                 Action::CallProvider { messages } => {
                     let messages = match &self.redactor {
-                        Some(r) => messages.iter().map(|m| r(m)).collect(),
+                        Some(r) => messages.iter().map(r).collect(),
                         None => messages,
                     };
                     let response = self.provider.complete(ProviderRequest {

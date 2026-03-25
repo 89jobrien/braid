@@ -35,9 +35,8 @@ pub fn render_session(
         }
     }
 
-    // Separator: ASCII hyphens, capped at 72 chars
-    let sep_len = 72.min(50);
-    writeln!(out, "{}", "-".repeat(sep_len))?;
+    // Separator: ASCII hyphens, 50 chars wide
+    writeln!(out, "{}", "-".repeat(50))?;
 
     // Event rows: right-aligned index (2 chars), kind (20 chars), optional detail
     for (i, event) in events.iter().enumerate() {
