@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 use braid_core::{Engine, Provider, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_model::{ContentPart, Message, Role, SessionId};
 use braid_providers::OpenAiProvider;
+use braid_redact::{EnvVarRule, HomePathRule, RedactionPipeline, SecretPatternRule};
 
 #[derive(Parser)]
 #[command(name = "braid")]
@@ -79,7 +80,13 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     let provider = resolve_provider(provider_flag.as_deref(), &model)?;
     let prompt = resolve_prompt(prompt_arg)?;
 
-    let engine = Engine::new(ToolRegistry::new(), provider);
+    let pipeline = RedactionPipeline::new()
+        .with_rule(SecretPatternRule::new())
+        .with_rule(EnvVarRule::new())
+        .with_rule(HomePathRule::new());
+
+    let engine = Engine::new(ToolRegistry::new(), provider)
+        .with_redactor(move |msg| pipeline.redact_message(msg));
     let output = engine.run(
         RunInput {
             session_id: SessionId("session".into()),

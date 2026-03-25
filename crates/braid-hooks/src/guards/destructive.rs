@@ -1,4 +1,5 @@
 use crate::contract::{Hook, HookContext, HookVerdict};
+use anyhow::Result;
 
 /// Guards against destructive commands by checking tool call input against blocked patterns.
 pub struct DestructiveCommandGuard {
@@ -35,22 +36,30 @@ impl Default for DestructiveCommandGuard {
     }
 }
 
+/// Normalize input for matching: collapse whitespace runs, lowercase.
+fn normalize(s: &str) -> String {
+    s.split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_ascii_lowercase()
+}
+
 impl Hook for DestructiveCommandGuard {
     fn name(&self) -> &str {
         "destructive-command-guard"
     }
 
-    fn pre_execute(&self, ctx: &HookContext) -> HookVerdict {
-        let input = &ctx.tool_call.input;
+    fn pre_execute(&self, ctx: &HookContext) -> Result<HookVerdict> {
+        let normalized = normalize(&ctx.tool_call.input);
         for (pattern, remediation) in &self.patterns {
-            if input.contains(pattern) {
-                return HookVerdict::Deny {
+            if normalized.contains(&normalize(pattern)) {
+                return Ok(HookVerdict::Deny {
                     reason: format!("blocked destructive pattern: {pattern}"),
                     remediation: remediation.to_string(),
-                };
+                });
             }
         }
-        HookVerdict::Allow
+        Ok(HookVerdict::Allow)
     }
 }
 
@@ -73,8 +82,7 @@ mod tests {
     #[test]
     fn blocks_rm_rf() {
         let guard = DestructiveCommandGuard::new();
-        let verdict = guard.pre_execute(&make_ctx("rm -rf /"));
-        match verdict {
+        match guard.pre_execute(&make_ctx("rm -rf /")).unwrap() {
             HookVerdict::Deny {
                 reason,
                 remediation,
@@ -89,19 +97,25 @@ mod tests {
     #[test]
     fn blocks_drop_table() {
         let guard = DestructiveCommandGuard::new();
-        let verdict = guard.pre_execute(&make_ctx("DROP TABLE users;"));
-        assert!(matches!(verdict, HookVerdict::Deny { .. }));
+        assert!(matches!(
+            guard.pre_execute(&make_ctx("DROP TABLE users;")).unwrap(),
+            HookVerdict::Deny { .. }
+        ));
     }
 
     #[test]
     fn blocks_force_push() {
         let guard = DestructiveCommandGuard::new();
         assert!(matches!(
-            guard.pre_execute(&make_ctx("git push --force origin main")),
+            guard
+                .pre_execute(&make_ctx("git push --force origin main"))
+                .unwrap(),
             HookVerdict::Deny { .. }
         ));
         assert!(matches!(
-            guard.pre_execute(&make_ctx("git push -f origin main")),
+            guard
+                .pre_execute(&make_ctx("git push -f origin main"))
+                .unwrap(),
             HookVerdict::Deny { .. }
         ));
     }
@@ -109,13 +123,16 @@ mod tests {
     #[test]
     fn allows_safe_commands() {
         let guard = DestructiveCommandGuard::new();
-        assert_eq!(guard.pre_execute(&make_ctx("ls -la")), HookVerdict::Allow);
         assert_eq!(
-            guard.pre_execute(&make_ctx("git status")),
+            guard.pre_execute(&make_ctx("ls -la")).unwrap(),
             HookVerdict::Allow
         );
         assert_eq!(
-            guard.pre_execute(&make_ctx("cat README.md")),
+            guard.pre_execute(&make_ctx("git status")).unwrap(),
+            HookVerdict::Allow
+        );
+        assert_eq!(
+            guard.pre_execute(&make_ctx("cat README.md")).unwrap(),
             HookVerdict::Allow
         );
     }
@@ -123,7 +140,10 @@ mod tests {
     #[test]
     fn deny_includes_reason_and_remediation() {
         let guard = DestructiveCommandGuard::new();
-        match guard.pre_execute(&make_ctx("git reset --hard HEAD~3")) {
+        match guard
+            .pre_execute(&make_ctx("git reset --hard HEAD~3"))
+            .unwrap()
+        {
             HookVerdict::Deny {
                 reason,
                 remediation,
@@ -133,5 +153,39 @@ mod tests {
             }
             HookVerdict::Allow => panic!("should have been denied"),
         }
+    }
+
+    #[test]
+    fn blocks_extra_whitespace_variants() {
+        let guard = DestructiveCommandGuard::new();
+        assert!(matches!(
+            guard.pre_execute(&make_ctx("rm  -rf /")).unwrap(),
+            HookVerdict::Deny { .. }
+        ));
+        assert!(matches!(
+            guard
+                .pre_execute(&make_ctx("git  push  --force origin main"))
+                .unwrap(),
+            HookVerdict::Deny { .. }
+        ));
+    }
+
+    #[test]
+    fn blocks_case_variants() {
+        let guard = DestructiveCommandGuard::new();
+        assert!(matches!(
+            guard.pre_execute(&make_ctx("drop table users")).unwrap(),
+            HookVerdict::Deny { .. }
+        ));
+        assert!(matches!(
+            guard.pre_execute(&make_ctx("Drop Table users")).unwrap(),
+            HookVerdict::Deny { .. }
+        ));
+        assert!(matches!(
+            guard
+                .pre_execute(&make_ctx("truncate table events"))
+                .unwrap(),
+            HookVerdict::Deny { .. }
+        ));
     }
 }

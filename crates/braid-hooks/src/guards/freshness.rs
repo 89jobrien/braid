@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use crate::contract::{Hook, HookContext, HookVerdict};
+use anyhow::Result;
 
 /// Placeholder guard for context freshness checking.
 /// Ready for when context carries timestamps.
@@ -19,10 +20,10 @@ impl Hook for FreshnessGuard {
         "freshness-guard"
     }
 
-    fn pre_execute(&self, _ctx: &HookContext) -> HookVerdict {
+    fn pre_execute(&self, _ctx: &HookContext) -> Result<HookVerdict> {
         // Placeholder: always allows. When context carries timestamps,
         // this will check if the context is within max_age.
-        HookVerdict::Allow
+        Ok(HookVerdict::Allow)
     }
 }
 
@@ -42,6 +43,6 @@ mod tests {
                 input: "file.txt".into(),
             },
         };
-        assert_eq!(guard.pre_execute(&ctx), HookVerdict::Allow);
+        assert_eq!(guard.pre_execute(&ctx).unwrap(), HookVerdict::Allow);
     }
 }

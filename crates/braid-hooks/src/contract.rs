@@ -1,3 +1,4 @@
+use anyhow::Result;
 use braid_model::{SessionId, ToolCall, ToolResult};
 
 /// Context passed to hooks for evaluation.
@@ -21,7 +22,9 @@ pub trait Hook: Send + Sync {
     fn name(&self) -> &str;
 
     /// Evaluate whether a tool call should proceed.
-    fn pre_execute(&self, ctx: &HookContext) -> HookVerdict;
+    /// Return `Err` if the hook itself fails (e.g. config unavailable).
+    /// When the registry is `fail_closed`, any `Err` becomes a Deny.
+    fn pre_execute(&self, ctx: &HookContext) -> Result<HookVerdict>;
 
     /// Called after successful tool execution (for logging/auditing).
     fn post_execute(&self, _ctx: &HookContext, _result: &ToolResult) {}

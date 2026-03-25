@@ -8,13 +8,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 just              # Default: cargo check
 just fmt          # Format: cargo fmt --all
 just check        # Check workspace: cargo check --workspace
-just test         # Run tests: cargo test --workspace
+just clippy       # Lint: cargo clippy --workspace -- -D warnings
+just test         # Run tests: cargo nextest run --workspace
 
 cargo run -p braid-cli                       # Run the CLI
 cargo test -p braid-core                     # Test a single crate
 cargo test -p braid-core -- test_name        # Run a single test by name
 cargo clippy --workspace                     # Lint
 ```
+
+## CI / Workflows
+
+`.github/workflows/ci.yml` — fmt → clippy → test (nextest), plus independent `audit` (cargo-deny + cargo-audit) and `lint` (cargo-machete) jobs.
+`.github/workflows/nightly.yml` — cargo-geiger unsafe audit at 2am UTC.
+`deny.toml` — license/ban/advisory policy (mirrors minibox).
 
 ## Rust Toolchain
 

@@ -32,11 +32,27 @@ impl HookRegistry {
     }
 
     /// Evaluate all hooks. Returns the first Deny verdict, or Allow if all pass.
+    /// Hook errors are treated as Deny when `fail_closed` is true, ignored otherwise.
     pub fn evaluate(&self, ctx: &HookContext) -> HookVerdict {
         for hook in &self.hooks {
-            let verdict = hook.pre_execute(ctx);
-            if let HookVerdict::Deny { .. } = &verdict {
-                return verdict;
+            match hook.pre_execute(ctx) {
+                Ok(HookVerdict::Deny {
+                    reason,
+                    remediation,
+                }) => {
+                    return HookVerdict::Deny {
+                        reason,
+                        remediation,
+                    };
+                }
+                Ok(HookVerdict::Allow) => {}
+                Err(e) if self.fail_closed => {
+                    return HookVerdict::Deny {
+                        reason: format!("hook '{}' failed: {e}", hook.name()),
+                        remediation: "check hook configuration".into(),
+                    };
+                }
+                Err(_) => {} // fail open: log and continue
             }
         }
         HookVerdict::Allow
@@ -66,8 +82,8 @@ mod tests {
         fn name(&self) -> &str {
             "allow"
         }
-        fn pre_execute(&self, _ctx: &HookContext) -> HookVerdict {
-            HookVerdict::Allow
+        fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
+            Ok(HookVerdict::Allow)
         }
     }
 
@@ -76,11 +92,11 @@ mod tests {
         fn name(&self) -> &str {
             self.0
         }
-        fn pre_execute(&self, _ctx: &HookContext) -> HookVerdict {
-            HookVerdict::Deny {
+        fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
+            Ok(HookVerdict::Deny {
                 reason: format!("denied by {}", self.0),
                 remediation: "none".into(),
-            }
+            })
         }
     }
 
@@ -131,5 +147,33 @@ mod tests {
             }
             HookVerdict::Allow => panic!("should have been denied"),
         }
+    }
+
+    struct ErrorHook;
+    impl Hook for ErrorHook {
+        fn name(&self) -> &str {
+            "error-hook"
+        }
+        fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
+            Err(anyhow::anyhow!("hook evaluation failed"))
+        }
+    }
+
+    #[test]
+    fn fail_closed_denies_on_hook_error() {
+        let registry = HookRegistry::fail_closed().register(ErrorHook);
+        match registry.evaluate(&make_ctx()) {
+            HookVerdict::Deny { reason, .. } => {
+                assert!(reason.contains("error-hook"));
+                assert!(reason.contains("hook evaluation failed"));
+            }
+            HookVerdict::Allow => panic!("fail_closed registry should deny on hook error"),
+        }
+    }
+
+    #[test]
+    fn fail_open_allows_on_hook_error() {
+        let registry = HookRegistry::new().register(ErrorHook);
+        assert_eq!(registry.evaluate(&make_ctx()), HookVerdict::Allow);
     }
 }

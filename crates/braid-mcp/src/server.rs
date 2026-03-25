@@ -1,7 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 
 use crate::tools::McpToolRegistry;
 
@@ -111,27 +111,54 @@ fn handle_request(registry: &McpToolRegistry, req: &JsonRpcRequest) -> JsonRpcRe
     }
 }
 
-/// Run the MCP server over stdio, reading JSON-RPC requests line by line.
+/// Send a JSON-RPC response with Content-Length framing.
+async fn send_response(stdout: &mut tokio::io::Stdout, resp: &JsonRpcResponse) -> Result<()> {
+    let json = serde_json::to_string(resp)?;
+    let header = format!("Content-Length: {}\r\n\r\n", json.len());
+    stdout.write_all(header.as_bytes()).await?;
+    stdout.write_all(json.as_bytes()).await?;
+    stdout.flush().await?;
+    Ok(())
+}
+
+/// Run the MCP server over stdio using Content-Length framed JSON-RPC (MCP spec).
 pub async fn run_mcp_server(registry: McpToolRegistry) -> Result<()> {
     let stdin = tokio::io::stdin();
     let mut stdout = tokio::io::stdout();
-    let reader = BufReader::new(stdin);
-    let mut lines = reader.lines();
+    let mut reader = BufReader::new(stdin);
 
-    while let Some(line) = lines.next_line().await? {
-        let line = line.trim().to_string();
-        if line.is_empty() {
-            continue;
+    loop {
+        // Read headers until blank line, extract Content-Length
+        let mut content_length: Option<usize> = None;
+        loop {
+            let mut line = String::new();
+            let n = reader.read_line(&mut line).await?;
+            if n == 0 {
+                return Ok(()); // EOF
+            }
+            let trimmed = line.trim_end_matches(['\r', '\n']);
+            if trimmed.is_empty() {
+                break; // end of headers
+            }
+            if let Some(rest) = trimmed.to_ascii_lowercase().strip_prefix("content-length:") {
+                content_length = rest.trim().parse().ok();
+            }
         }
 
-        let req: JsonRpcRequest = match serde_json::from_str(&line) {
+        let len = match content_length {
+            Some(n) => n,
+            None => continue, // no Content-Length header, skip
+        };
+
+        // Read exactly len bytes for the body
+        let mut body = vec![0u8; len];
+        reader.read_exact(&mut body).await?;
+
+        let req: JsonRpcRequest = match serde_json::from_slice(&body) {
             Ok(r) => r,
             Err(e) => {
                 let resp = JsonRpcResponse::error(Value::Null, -32700, format!("parse error: {e}"));
-                let out = serde_json::to_string(&resp)?;
-                stdout.write_all(out.as_bytes()).await?;
-                stdout.write_all(b"\n").await?;
-                stdout.flush().await?;
+                send_response(&mut stdout, &resp).await?;
                 continue;
             }
         };
@@ -142,13 +169,8 @@ pub async fn run_mcp_server(registry: McpToolRegistry) -> Result<()> {
         }
 
         let resp = handle_request(&registry, &req);
-        let out = serde_json::to_string(&resp)?;
-        stdout.write_all(out.as_bytes()).await?;
-        stdout.write_all(b"\n").await?;
-        stdout.flush().await?;
+        send_response(&mut stdout, &resp).await?;
     }
-
-    Ok(())
 }
 
 #[cfg(test)]

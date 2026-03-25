@@ -7,5 +7,8 @@ fmt:
 check:
     cargo check --workspace
 
+clippy:
+    cargo clippy --workspace -- -D warnings
+
 test:
-    cargo test --workspace
+    cargo nextest run --workspace

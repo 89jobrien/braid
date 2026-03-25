@@ -22,10 +22,10 @@ pub struct RunOutput {
     pub events: Vec<Event>,
 }
 
-#[derive(Debug)]
 pub struct Engine<T, P> {
     tool_executor: T,
     provider: P,
+    redactor: Option<Box<dyn Fn(&Message) -> Message + Send + Sync>>,
 }
 
 impl<T, P> Engine<T, P> {
@@ -33,7 +33,17 @@ impl<T, P> Engine<T, P> {
         Self {
             tool_executor,
             provider,
+            redactor: None,
         }
+    }
+
+    /// Attach a message redactor applied to all messages before each provider call.
+    pub fn with_redactor(
+        mut self,
+        f: impl Fn(&Message) -> Message + Send + Sync + 'static,
+    ) -> Self {
+        self.redactor = Some(Box::new(f));
+        self
     }
 }
 
@@ -99,6 +109,10 @@ where
 
             match action {
                 Action::CallProvider { messages } => {
+                    let messages = match &self.redactor {
+                        Some(r) => messages.iter().map(|m| r(m)).collect(),
+                        None => messages,
+                    };
                     let response = self.provider.complete(ProviderRequest {
                         messages,
                         tools: vec![],
@@ -353,6 +367,79 @@ mod tests {
             output.events.last().unwrap().kind,
             EventKind::SessionCompleted
         ));
+    }
+
+    #[test]
+    fn with_redactor_transforms_messages_before_provider() {
+        // Provider echoes back what it receives; redactor replaces "secret" with "[R]"
+        struct EchoProvider;
+        impl Provider for EchoProvider {
+            fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
+                let text = request
+                    .messages
+                    .iter()
+                    .flat_map(|m| &m.content)
+                    .find_map(|c| match c {
+                        ContentPart::Text { text } => Some(text.clone()),
+                        _ => None,
+                    })
+                    .unwrap_or_default();
+                Ok(ProviderResponse {
+                    message: Message {
+                        role: Role::Assistant,
+                        content: vec![ContentPart::Text {
+                            text: format!("saw: {text}"),
+                        }],
+                    },
+                    token_count: None,
+                })
+            }
+        }
+
+        let engine = Engine::new(crate::tools::StaticTool::new("echo", "out"), EchoProvider)
+            .with_redactor(|msg| {
+                let redacted_content = msg
+                    .content
+                    .iter()
+                    .map(|part| match part {
+                        ContentPart::Text { text } => ContentPart::Text {
+                            text: text.replace("secret", "[R]"),
+                        },
+                        other => other.clone(),
+                    })
+                    .collect();
+                Message {
+                    role: msg.role.clone(),
+                    content: redacted_content,
+                }
+            });
+
+        let output = engine
+            .run(
+                RunInput {
+                    session_id: SessionId("session-r".into()),
+                    messages: vec![Message {
+                        role: Role::User,
+                        content: vec![ContentPart::Text {
+                            text: "my secret key".into(),
+                        }],
+                    }],
+                    max_turns: None,
+                },
+                &SimpleLoopPlanner,
+            )
+            .unwrap();
+
+        let response_text = match &output.provider_response.message.content[0] {
+            ContentPart::Text { text } => text.clone(),
+            _ => panic!("expected text"),
+        };
+        // Provider should have seen "[R]" not "secret"
+        assert!(response_text.contains("[R]"), "redactor should have fired");
+        assert!(
+            !response_text.contains("secret"),
+            "raw secret should not reach provider"
+        );
     }
 
     #[test]

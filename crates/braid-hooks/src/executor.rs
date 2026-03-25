@@ -59,11 +59,11 @@ mod tests {
         fn name(&self) -> &str {
             "block-all"
         }
-        fn pre_execute(&self, _ctx: &HookContext) -> HookVerdict {
-            HookVerdict::Deny {
+        fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
+            Ok(HookVerdict::Deny {
                 reason: "blocked".into(),
                 remediation: "don't".into(),
-            }
+            })
         }
     }
 
