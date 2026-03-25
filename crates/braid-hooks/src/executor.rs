@@ -1,6 +1,6 @@
 use anyhow::Result;
-use braid_core::ToolExecutor;
 use braid_model::{SessionId, ToolCall, ToolResult};
+use braid_ports::ToolExecutor;
 
 use crate::contract::{HookContext, HookVerdict};
 use crate::registry::HookRegistry;
@@ -52,7 +52,16 @@ impl<T: ToolExecutor> ToolExecutor for HookedExecutor<T> {
 mod tests {
     use super::*;
     use crate::contract::{Hook, HookContext, HookVerdict};
-    use braid_core::StaticTool;
+
+    struct FixedTool(&'static str);
+    impl ToolExecutor for FixedTool {
+        fn execute(&self, call: braid_model::ToolCall) -> anyhow::Result<braid_model::ToolResult> {
+            Ok(braid_model::ToolResult {
+                name: call.name,
+                output: self.0.into(),
+            })
+        }
+    }
 
     struct BlockAllHook;
     impl Hook for BlockAllHook {
@@ -69,7 +78,7 @@ mod tests {
 
     #[test]
     fn hooked_executor_allows_when_no_hooks() {
-        let inner = StaticTool::new("echo", "hello");
+        let inner = FixedTool("hello");
         let executor = HookedExecutor::new(inner, HookRegistry::new(), SessionId("test".into()));
         let result = executor
             .execute(ToolCall {
@@ -83,7 +92,7 @@ mod tests {
 
     #[test]
     fn hooked_executor_denies_blocked_call() {
-        let inner = StaticTool::new("echo", "hello");
+        let inner = FixedTool("hello");
         let registry = HookRegistry::new().register(BlockAllHook);
         let executor = HookedExecutor::new(inner, registry, SessionId("test".into()));
         let err = executor
@@ -101,7 +110,7 @@ mod tests {
     fn hooked_executor_with_destructive_guard() {
         use crate::guards::DestructiveCommandGuard;
 
-        let inner = StaticTool::new("shell", "output");
+        let inner = FixedTool("output");
         let registry = HookRegistry::new().register(DestructiveCommandGuard::new());
         let executor = HookedExecutor::new(inner, registry, SessionId("test".into()));
 
