@@ -52,6 +52,12 @@ impl<T: Redactor + ?Sized> Redactor for Arc<T> {
     }
 }
 
+impl<T: Redactor + ?Sized> Redactor for Box<T> {
+    fn redact_message(&self, msg: &Message) -> Message {
+        (**self).redact_message(msg)
+    }
+}
+
 // ── EventSink ────────────────────────────────────────────────────────────────
 
 pub trait EventSink {
@@ -62,6 +68,15 @@ pub trait EventSink {
 }
 
 impl<T: EventSink + ?Sized> EventSink for Arc<T> {
+    fn record(&self, event: &Event) -> Result<()> {
+        (**self).record(event)
+    }
+    fn flush(&self) -> Result<()> {
+        (**self).flush()
+    }
+}
+
+impl<T: EventSink + ?Sized> EventSink for Box<T> {
     fn record(&self, event: &Event) -> Result<()> {
         (**self).record(event)
     }

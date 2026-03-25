@@ -44,6 +44,12 @@ where
     }
 
     pub fn run(&self, input: RunInput, planner: &impl Planner) -> Result<RunOutput> {
+        let result = self.run_inner(input, planner);
+        let _ = self.event_sink.flush(); // best-effort on error path
+        result
+    }
+
+    fn run_inner(&self, input: RunInput, planner: &impl Planner) -> Result<RunOutput> {
         let max_turns = input.max_turns.unwrap_or(DEFAULT_MAX_TURNS);
         let mut state = SessionState {
             messages: input.messages,
@@ -91,7 +97,9 @@ where
                     })?;
 
                     let result = self.tool_executor.execute(call.clone())?;
-                    state.messages.push(tool_result_to_message(&call, &result));
+                    let result_msg = tool_result_to_message(&call, &result);
+                    let redacted_msg = self.redactor.redact_message(&result_msg);
+                    state.messages.push(redacted_msg);
                     state.pending_tool_calls.retain(|c| c.id != call.id);
 
                     self.event_sink.record(&Event {
