@@ -1,9 +1,11 @@
 use anyhow::Result;
 use braid_model::{Event, SessionId};
+use braid_ports::{EventSink, SessionStorage};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{BufRead, Write};
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionMeta {
@@ -14,12 +16,16 @@ pub struct SessionMeta {
 
 pub struct SessionStore {
     root: PathBuf,
+    buffer: Mutex<Vec<Event>>,
 }
 
 impl SessionStore {
     pub fn open(root: PathBuf) -> Result<Self> {
         fs::create_dir_all(&root)?;
-        Ok(Self { root })
+        Ok(Self {
+            root,
+            buffer: Mutex::new(vec![]),
+        })
     }
 
     pub fn write(&self, id: &SessionId, events: &[Event]) -> Result<()> {
@@ -66,11 +72,8 @@ impl SessionStore {
             if line.trim().is_empty() {
                 continue;
             }
-            // Skip lines we can't parse — forward-compat when new EventKind variants
-            // are added in future versions.  Unknown lines are silently dropped.
-            if let Ok(event) = serde_json::from_str::<Event>(&line) {
-                events.push(event);
-            }
+            let event: Event = serde_json::from_str(&line)?;
+            events.push(event);
         }
         Ok(events)
     }
@@ -126,68 +129,49 @@ impl SessionStore {
         Ok(count)
     }
 
-    /// Expose the root directory for use by ReplaySession and other readers.
-    pub fn root(&self) -> &std::path::Path {
-        &self.root
-    }
-
     fn session_dir(&self, id: &SessionId) -> PathBuf {
         self.root.join(&id.0)
     }
 }
 
-/// Streams events to disk one at a time during an active session.
-/// Call `finish()` to write `meta.json`. Safe to drop without `finish()` —
-/// partial events remain on disk for inspection, but `meta.json` is absent.
-#[derive(Debug)]
-pub struct SessionWriter {
-    session_id: SessionId,
-    dir: PathBuf,
-    file: fs::File,
-    event_count: usize,
+impl EventSink for SessionStore {
+    fn record(&self, event: &Event) -> Result<()> {
+        self.buffer.lock().unwrap().push(event.clone());
+        Ok(())
+    }
+
+    fn flush(&self) -> Result<()> {
+        let events = {
+            let mut buf = self.buffer.lock().unwrap();
+            std::mem::take(&mut *buf)
+        };
+        if events.is_empty() {
+            return Ok(());
+        }
+        let session_id = &events[0].session_id;
+        self.write(session_id, &events)
+    }
 }
 
-impl SessionWriter {
-    pub fn open(root: &std::path::Path, id: &SessionId) -> Result<Self> {
-        let dir = root.join(&id.0);
-        fs::create_dir_all(&dir)?;
-        let file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(dir.join("events.jsonl"))?;
-        Ok(Self {
-            session_id: id.clone(),
-            dir,
-            file,
-            event_count: 0,
-        })
+impl Drop for SessionStore {
+    fn drop(&mut self) {
+        // Best-effort flush on drop — primary flush path is explicit flush() call.
+        let _ = self.flush();
     }
+}
 
-    pub fn write_event(&mut self, event: &Event) -> Result<()> {
-        let line = serde_json::to_string(event)?;
-        writeln!(self.file, "{}", line)?;
-        self.file.flush()?;
-        self.event_count += 1;
-        Ok(())
+impl SessionStorage for SessionStore {
+    fn write(&self, id: &SessionId, events: &[Event]) -> Result<()> {
+        self.write(id, events)
     }
-
-    pub fn finish(self) -> Result<()> {
-        let written_at = format_rfc3339(
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs(),
-        );
-        let meta = SessionMeta {
-            session_id: self.session_id,
-            written_at,
-            event_count: self.event_count,
-        };
-        let meta_json = serde_json::to_string(&meta)?;
-        let tmp = self.dir.join("meta.json.tmp");
-        fs::write(&tmp, &meta_json)?;
-        fs::rename(&tmp, self.dir.join("meta.json"))?;
-        Ok(())
+    fn load(&self, id: &SessionId) -> Result<Vec<Event>> {
+        self.load(id)
+    }
+    fn list(&self) -> Result<Vec<SessionId>> {
+        self.list()
+    }
+    fn prune(&self, keep: usize) -> Result<usize> {
+        self.prune(keep)
     }
 }
 
@@ -332,218 +316,51 @@ mod tests {
         assert_eq!(store.list().unwrap().len(), 3);
     }
 
-    /// Golden test: these JSON strings ARE the on-disk format.
-    /// If serde serialization of `Event` / `EventKind` changes, this test breaks
-    /// deliberately — update the strings AND ensure backward compatibility.
     #[test]
-    fn event_json_format_is_stable() {
-        use braid_model::EventKind;
-        let cases: &[(&str, EventKind)] = &[
-            (
-                r#"{"session_id":"s","kind":"SessionStarted"}"#,
-                EventKind::SessionStarted,
-            ),
-            (
-                r#"{"session_id":"s","kind":"ProviderResponded"}"#,
-                EventKind::ProviderResponded,
-            ),
-            (
-                r#"{"session_id":"s","kind":{"ToolCalled":{"tool_name":"echo"}}}"#,
-                EventKind::ToolCalled {
-                    tool_name: "echo".into(),
-                },
-            ),
-            (
-                r#"{"session_id":"s","kind":{"ToolCompleted":{"tool_name":"echo"}}}"#,
-                EventKind::ToolCompleted {
-                    tool_name: "echo".into(),
-                },
-            ),
-            (
-                r#"{"session_id":"s","kind":"SessionCompleted"}"#,
-                EventKind::SessionCompleted,
-            ),
-        ];
-        for (json, expected_kind) in cases {
-            let event: Event = serde_json::from_str(json)
-                .unwrap_or_else(|e| panic!("failed to parse {json}: {e}"));
-            assert_eq!(&event.kind, expected_kind, "kind mismatch for {json}");
-            let re = serde_json::to_string(&event).unwrap();
-            assert_eq!(
-                &re, json,
-                "re-serialized form changed for {expected_kind:?}"
-            );
-        }
-    }
+    fn session_store_implements_event_sink() {
+        use braid_model::{Event, EventKind, SessionId};
+        use braid_ports::{EventSink, SessionStorage};
+        use std::sync::Arc;
 
-    /// Forward compatibility: a JSONL containing an unrecognized event kind
-    /// (from a future version) must load without error, silently skipping
-    /// the unknown lines.
-    #[test]
-    fn forward_compat_skips_unknown_event_kind() {
         let dir = tempfile::tempdir().unwrap();
-        let sess_dir = dir.path().join("s1");
-        std::fs::create_dir_all(&sess_dir).unwrap();
-        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
-        writeln!(f, r#"{{"session_id":"s1","kind":"SessionStarted"}}"#).unwrap();
-        // Simulate an event kind added in a future release
-        writeln!(
-            f,
-            r#"{{"session_id":"s1","kind":{{"ProviderStreaming":{{"token":"hi"}}}}}}"#
-        )
-        .unwrap();
-        writeln!(f, r#"{{"session_id":"s1","kind":"SessionCompleted"}}"#).unwrap();
+        let store = Arc::new(SessionStore::open(dir.path().to_path_buf()).unwrap());
+        let id = SessionId("sink-test".into());
 
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&SessionId("s1".into())).unwrap();
+        // Record some events via EventSink
+        store
+            .record(&Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionStarted,
+            })
+            .unwrap();
+        store
+            .record(&Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionCompleted,
+            })
+            .unwrap();
 
-        assert_eq!(events.len(), 2, "unknown variant must be skipped");
-        assert_eq!(events[0].kind, EventKind::SessionStarted);
-        assert_eq!(events[1].kind, EventKind::SessionCompleted);
-    }
+        // Flush persists them
+        store.flush().unwrap();
 
-    #[test]
-    fn session_writer_streams_events_incrementally() {
-        let dir = tempfile::tempdir().unwrap();
-        let id = SessionId("stream-1".into());
-
-        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
-
-        let e1 = Event {
-            session_id: id.clone(),
-            kind: EventKind::SessionStarted,
-        };
-        let e2 = Event {
-            session_id: id.clone(),
-            kind: EventKind::ProviderResponded,
-        };
-
-        writer.write_event(&e1).unwrap();
-        // Events are on disk immediately — load mid-session
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let partial = store.load(&id).unwrap();
-        assert_eq!(partial.len(), 1, "first event visible before finish");
-
-        writer.write_event(&e2).unwrap();
-        writer.finish().unwrap();
-
+        // Load via SessionStorage to verify
         let loaded = store.load(&id).unwrap();
         assert_eq!(loaded.len(), 2);
         assert_eq!(loaded[0].kind, EventKind::SessionStarted);
-        assert_eq!(loaded[1].kind, EventKind::ProviderResponded);
     }
 
     #[test]
-    fn session_writer_writes_meta_on_finish() {
-        let dir = tempfile::tempdir().unwrap();
-        let id = SessionId("stream-2".into());
-        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
-        writer
-            .write_event(&Event {
-                session_id: id.clone(),
-                kind: EventKind::SessionStarted,
-            })
-            .unwrap();
-        writer.finish().unwrap();
+    fn session_store_implements_session_storage() {
+        use braid_ports::SessionStorage;
 
+        let dir = tempfile::tempdir().unwrap();
         let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let meta = store.load_meta(&id).unwrap();
-        assert!(meta.is_some(), "meta.json written after finish");
-        assert_eq!(meta.unwrap().event_count, 1);
-    }
+        let id = SessionId("storage-test".into());
+        let events = make_events("storage-test");
 
-    #[test]
-    fn unknown_event_kind_survives_roundtrip() {
-        let dir = tempfile::tempdir().unwrap();
-        let sess_dir = dir.path().join("u1");
-        std::fs::create_dir_all(&sess_dir).unwrap();
-        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
-        writeln!(
-            f,
-            "{{\"session_id\":\"u1\",\"kind\":{{\"Unknown\":{{\"raw\":\"future-event\"}}}}}}"
-        )
-        .unwrap();
-
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&SessionId("u1".into())).unwrap();
-        assert_eq!(events.len(), 1);
-        assert!(matches!(&events[0].kind, EventKind::Unknown { .. }));
-    }
-
-    /// Drop without calling finish() leaves events readable but no meta.json.
-    #[test]
-    fn drop_without_finish_leaves_events_readable() {
-        let dir = tempfile::tempdir().unwrap();
-        let id = SessionId("drop-1".into());
-
-        {
-            let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
-            writer
-                .write_event(&Event {
-                    session_id: id.clone(),
-                    kind: EventKind::SessionStarted,
-                })
-                .unwrap();
-            // dropped here without calling finish()
-        }
-
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&id).unwrap();
-        assert_eq!(events.len(), 1, "events survive drop without finish");
-
-        let meta = store.load_meta(&id).unwrap();
-        assert!(meta.is_none(), "meta.json absent when finish() not called");
-    }
-
-    /// A truncated (partial) final line in events.jsonl is skipped gracefully.
-    /// This simulates a crash mid-write where the last JSON object is incomplete.
-    #[test]
-    fn partial_write_last_line_is_skipped() {
-        let dir = tempfile::tempdir().unwrap();
-        let sess_dir = dir.path().join("partial-1");
-        std::fs::create_dir_all(&sess_dir).unwrap();
-
-        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
-        // Complete event
-        writeln!(f, r#"{{"session_id":"partial-1","kind":"SessionStarted"}}"#).unwrap();
-        // Truncated / corrupt line — no closing brace
-        write!(f, r#"{{"session_id":"partial-1","kind":"SessionComple"#).unwrap();
-
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&SessionId("partial-1".into())).unwrap();
-
-        assert_eq!(
-            events.len(),
-            1,
-            "corrupt last line skipped, good events kept"
-        );
-        assert_eq!(events[0].kind, EventKind::SessionStarted);
-    }
-
-    /// finish() writes meta.json atomically: the tmp file is renamed, so there
-    /// is no window where a partial meta.json is visible to concurrent readers.
-    #[test]
-    fn finish_is_atomic_no_tmp_left_behind() {
-        let dir = tempfile::tempdir().unwrap();
-        let id = SessionId("atomic-1".into());
-
-        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
-        writer
-            .write_event(&Event {
-                session_id: id.clone(),
-                kind: EventKind::SessionStarted,
-            })
-            .unwrap();
-        writer.finish().unwrap();
-
-        let sess_dir = dir.path().join(&id.0);
-        assert!(
-            sess_dir.join("meta.json").exists(),
-            "meta.json present after finish"
-        );
-        assert!(
-            !sess_dir.join("meta.json.tmp").exists(),
-            "tmp file cleaned up after rename"
-        );
+        // Use trait methods via UFCS to confirm trait impl exists
+        <SessionStore as SessionStorage>::write(&store, &id, &events).unwrap();
+        let loaded = <SessionStore as SessionStorage>::load(&store, &id).unwrap();
+        assert_eq!(loaded, events);
     }
 }

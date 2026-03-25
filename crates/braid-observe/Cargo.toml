@@ -5,12 +5,16 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[features]
+test-support = []
+
 [dependencies]
 anyhow.workspace = true
+braid-model = { path = "../braid-model" }
+braid-ports = { path = "../braid-ports" }
 serde.workspace = true
 serde_json.workspace = true
-braid-model = { path = "../braid-model" }
+thiserror.workspace = true
 
 [dev-dependencies]
 tempfile = "3"
-braid-core = { path = "../braid-core" }

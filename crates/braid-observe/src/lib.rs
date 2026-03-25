@@ -1,10 +1,11 @@
-pub mod e2e_streaming_tests;
-pub mod ingest;
 pub mod render;
-pub mod replay;
 pub mod store;
 
-pub use ingest::{BraidIngester, ClaudeCodeIngester, DevloopIngester, Ingester};
+#[cfg(feature = "test-support")]
+pub mod memory;
+
 pub use render::render_session;
-pub use replay::{ReplayEvent, ReplaySession};
-pub use store::{SessionMeta, SessionStore, SessionWriter};
+pub use store::{SessionMeta, SessionStore};
+
+#[cfg(feature = "test-support")]
+pub use memory::InMemorySessionStorage;
