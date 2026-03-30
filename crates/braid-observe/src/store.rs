@@ -341,4 +341,22 @@ mod tests {
         assert_eq!(events[0].kind, EventKind::SessionStarted);
         assert_eq!(events[1].kind, EventKind::SessionCompleted);
     }
+
+    #[test]
+    fn unknown_event_kind_survives_roundtrip() {
+        let dir = tempfile::tempdir().unwrap();
+        let sess_dir = dir.path().join("u1");
+        std::fs::create_dir_all(&sess_dir).unwrap();
+        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
+        writeln!(
+            f,
+            "{{\"session_id\":\"u1\",\"kind\":{{\"Unknown\":{{\"raw\":\"future-event\"}}}}}}"
+        )
+        .unwrap();
+
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let events = store.load(&SessionId("u1".into())).unwrap();
+        assert_eq!(events.len(), 1);
+        assert!(matches!(&events[0].kind, EventKind::Unknown { .. }));
+    }
 }

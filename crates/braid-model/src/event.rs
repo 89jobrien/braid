@@ -15,4 +15,5 @@ pub enum EventKind {
     ToolCompleted { tool_name: String },
     ProviderResponded,
     SessionCompleted,
+    Unknown { raw: String },
 }

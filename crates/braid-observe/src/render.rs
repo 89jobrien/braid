@@ -46,6 +46,7 @@ pub fn render_session(
             EventKind::ToolCalled { tool_name } => ("ToolCalled", Some(tool_name.as_str())),
             EventKind::ToolCompleted { tool_name } => ("ToolCompleted", Some(tool_name.as_str())),
             EventKind::SessionCompleted => ("SessionCompleted", None),
+            EventKind::Unknown { raw } => ("Unknown", Some(raw.as_str())),
         };
         match detail {
             Some(d) => writeln!(out, "  {:>2}  {:<20}{}", i + 1, kind_str, d)?,
