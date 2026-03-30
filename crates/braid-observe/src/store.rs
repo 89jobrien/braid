@@ -66,8 +66,11 @@ impl SessionStore {
             if line.trim().is_empty() {
                 continue;
             }
-            let event: Event = serde_json::from_str(&line)?;
-            events.push(event);
+            // Skip lines we can't parse — forward-compat when new EventKind variants
+            // are added in future versions.  Unknown lines are silently dropped.
+            if let Ok(event) = serde_json::from_str::<Event>(&line) {
+                events.push(event);
+            }
         }
         Ok(events)
     }
@@ -267,5 +270,75 @@ mod tests {
         let deleted = store.prune(10).unwrap();
         assert_eq!(deleted, 0);
         assert_eq!(store.list().unwrap().len(), 3);
+    }
+
+    /// Golden test: these JSON strings ARE the on-disk format.
+    /// If serde serialization of `Event` / `EventKind` changes, this test breaks
+    /// deliberately — update the strings AND ensure backward compatibility.
+    #[test]
+    fn event_json_format_is_stable() {
+        use braid_model::EventKind;
+        let cases: &[(&str, EventKind)] = &[
+            (
+                r#"{"session_id":"s","kind":"SessionStarted"}"#,
+                EventKind::SessionStarted,
+            ),
+            (
+                r#"{"session_id":"s","kind":"ProviderResponded"}"#,
+                EventKind::ProviderResponded,
+            ),
+            (
+                r#"{"session_id":"s","kind":{"ToolCalled":{"tool_name":"echo"}}}"#,
+                EventKind::ToolCalled {
+                    tool_name: "echo".into(),
+                },
+            ),
+            (
+                r#"{"session_id":"s","kind":{"ToolCompleted":{"tool_name":"echo"}}}"#,
+                EventKind::ToolCompleted {
+                    tool_name: "echo".into(),
+                },
+            ),
+            (
+                r#"{"session_id":"s","kind":"SessionCompleted"}"#,
+                EventKind::SessionCompleted,
+            ),
+        ];
+        for (json, expected_kind) in cases {
+            let event: Event = serde_json::from_str(json)
+                .unwrap_or_else(|e| panic!("failed to parse {json}: {e}"));
+            assert_eq!(&event.kind, expected_kind, "kind mismatch for {json}");
+            let re = serde_json::to_string(&event).unwrap();
+            assert_eq!(
+                &re, json,
+                "re-serialized form changed for {expected_kind:?}"
+            );
+        }
+    }
+
+    /// Forward compatibility: a JSONL containing an unrecognized event kind
+    /// (from a future version) must load without error, silently skipping
+    /// the unknown lines.
+    #[test]
+    fn forward_compat_skips_unknown_event_kind() {
+        let dir = tempfile::tempdir().unwrap();
+        let sess_dir = dir.path().join("s1");
+        std::fs::create_dir_all(&sess_dir).unwrap();
+        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
+        writeln!(f, r#"{{"session_id":"s1","kind":"SessionStarted"}}"#).unwrap();
+        // Simulate an event kind added in a future release
+        writeln!(
+            f,
+            r#"{{"session_id":"s1","kind":{{"ProviderStreaming":{{"token":"hi"}}}}}}"#
+        )
+        .unwrap();
+        writeln!(f, r#"{{"session_id":"s1","kind":"SessionCompleted"}}"#).unwrap();
+
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let events = store.load(&SessionId("s1".into())).unwrap();
+
+        assert_eq!(events.len(), 2, "unknown variant must be skipped");
+        assert_eq!(events[0].kind, EventKind::SessionStarted);
+        assert_eq!(events[1].kind, EventKind::SessionCompleted);
     }
 }

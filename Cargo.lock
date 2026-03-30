@@ -91,6 +91,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "braid-core",
+ "braid-hooks",
  "braid-mcp",
  "braid-model",
  "braid-observe",

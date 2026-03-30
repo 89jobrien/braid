@@ -16,3 +16,6 @@ braid-observe = { path = "../braid-observe" }
 braid-redact = { path = "../braid-redact" }
 serde_json.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[dev-dependencies]
+braid-hooks = { path = "../braid-hooks" }

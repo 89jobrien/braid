@@ -334,4 +334,159 @@ mod tests {
             "tools key should be absent when empty"
         );
     }
+
+    // -------------------------------------------------------------------------
+    // Request serialization contracts (Ollama-compatible wire format)
+    // These tests verify the exact JSON the provider sends on the wire.
+    // They run without a live server and must pass in CI.
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn serializes_text_message_as_string_content() {
+        let provider = OpenAiProvider::ollama("test");
+        let msg = Message {
+            role: Role::User,
+            content: vec![ContentPart::Text {
+                text: "hello".into(),
+            }],
+        };
+        let j = provider.to_openai_message(&msg);
+        assert_eq!(j["role"], "user");
+        assert_eq!(
+            j["content"], "hello",
+            "single text part must serialize as a plain string"
+        );
+    }
+
+    #[test]
+    fn serializes_assistant_tool_use_message() {
+        let provider = OpenAiProvider::ollama("test");
+        let msg = Message {
+            role: Role::Assistant,
+            content: vec![ContentPart::ToolUse {
+                id: "tc-1".into(),
+                name: "echo".into(),
+                input: serde_json::json!({ "msg": "hi" }),
+            }],
+        };
+        let j = provider.to_openai_message(&msg);
+        assert_eq!(j["role"], "assistant");
+        let calls = j["tool_calls"]
+            .as_array()
+            .expect("tool_calls should be present");
+        assert_eq!(calls.len(), 1);
+        assert_eq!(calls[0]["id"], "tc-1");
+        assert_eq!(calls[0]["type"], "function");
+        assert_eq!(calls[0]["function"]["name"], "echo");
+        let args: Value =
+            serde_json::from_str(calls[0]["function"]["arguments"].as_str().unwrap()).unwrap();
+        assert_eq!(args["msg"], "hi");
+    }
+
+    #[test]
+    fn serializes_tool_result_message() {
+        let provider = OpenAiProvider::ollama("test");
+        let msg = Message {
+            role: Role::Tool,
+            content: vec![ContentPart::ToolResult {
+                tool_use_id: "tc-1".into(),
+                content: "42".into(),
+            }],
+        };
+        let j = provider.to_openai_message(&msg);
+        assert_eq!(j["role"], "tool");
+        assert_eq!(j["tool_call_id"], "tc-1");
+        assert_eq!(j["content"], "42");
+    }
+
+    // -------------------------------------------------------------------------
+    // Response parsing contracts
+    // -------------------------------------------------------------------------
+
+    fn mock_text_response(text: &str) -> Value {
+        serde_json::json!({
+            "choices": [{ "message": { "role": "assistant", "content": text } }],
+            "usage": { "prompt_tokens": 10, "completion_tokens": 5 }
+        })
+    }
+
+    fn mock_tool_call_response(tool_name: &str, args_json: &str) -> Value {
+        serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [{
+                        "id": "tc-1",
+                        "type": "function",
+                        "function": { "name": tool_name, "arguments": args_json }
+                    }]
+                }
+            }]
+        })
+    }
+
+    #[test]
+    fn parses_text_response_with_token_count() {
+        let provider = OpenAiProvider::ollama("test");
+        let resp = provider
+            .parse_response(mock_text_response("hello"))
+            .unwrap();
+        assert_eq!(resp.message.role, Role::Assistant);
+        assert_eq!(
+            resp.message.content,
+            vec![ContentPart::Text {
+                text: "hello".into()
+            }]
+        );
+        let tc = resp.token_count.expect("token_count should be present");
+        assert_eq!(tc.input, 10);
+        assert_eq!(tc.output, 5);
+    }
+
+    #[test]
+    fn parses_response_without_usage_field() {
+        let provider = OpenAiProvider::ollama("test");
+        let body = serde_json::json!({
+            "choices": [{ "message": { "role": "assistant", "content": "hi" } }]
+        });
+        let resp = provider.parse_response(body).unwrap();
+        assert!(
+            resp.token_count.is_none(),
+            "token_count should be None when usage absent"
+        );
+    }
+
+    #[test]
+    fn parses_tool_call_response() {
+        let provider = OpenAiProvider::ollama("test");
+        let resp = provider
+            .parse_response(mock_tool_call_response("echo", r#"{"msg":"hi"}"#))
+            .unwrap();
+        assert_eq!(resp.message.role, Role::Assistant);
+        match &resp.message.content[0] {
+            ContentPart::ToolUse { id, name, input } => {
+                assert_eq!(id, "tc-1");
+                assert_eq!(name, "echo");
+                assert_eq!(input["msg"], "hi");
+            }
+            other => panic!("expected ToolUse, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_response_errors_on_missing_choices() {
+        let provider = OpenAiProvider::ollama("test");
+        let err = provider.parse_response(serde_json::json!({})).unwrap_err();
+        assert!(err.to_string().contains("choices"));
+    }
+
+    #[test]
+    fn parse_response_errors_on_empty_choices() {
+        let provider = OpenAiProvider::ollama("test");
+        let err = provider
+            .parse_response(serde_json::json!({ "choices": [] }))
+            .unwrap_err();
+        assert!(err.to_string().contains("empty"));
+    }
 }

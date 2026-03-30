@@ -134,6 +134,34 @@ mod tests {
         );
     }
 
+    /// Golden test: exact byte-level render output.
+    /// If the format changes, update this string AND any downstream consumers.
+    #[test]
+    fn render_output_is_stable() {
+        let events = all_event_kinds("abc");
+        let meta = SessionMeta {
+            session_id: SessionId("abc".into()),
+            written_at: "2026-03-24T05:00:00Z".into(),
+            event_count: 5,
+        };
+        let mut out = Vec::new();
+        render_session(&events, Some(&meta), &mut out).unwrap();
+        let actual = String::from_utf8(out).unwrap();
+
+        // Each line: "  {index:>2}  {kind:<20}{detail}" for tool events,
+        //            "  {index:>2}  {kind}"              for others.
+        let expected = concat!(
+            "Session: abc  (2026-03-24 05:00:00 UTC)  5 events\n",
+            "--------------------------------------------------\n",
+            "   1  SessionStarted\n",
+            "   2  ProviderResponded\n",
+            "   3  ToolCalled          echo\n",
+            "   4  ToolCompleted       echo\n",
+            "   5  SessionCompleted\n",
+        );
+        assert_eq!(actual, expected);
+    }
+
     #[test]
     fn separator_is_ascii_only() {
         let events = all_event_kinds("s");
