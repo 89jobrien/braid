@@ -10,6 +10,7 @@ use crate::tools::ToolExecutor;
 const DEFAULT_MAX_TURNS: u32 = 10;
 
 type Redactor = Box<dyn Fn(&Message) -> Message + Send + Sync + 'static>;
+type EventCallback = Box<dyn Fn(&Event) + Send + Sync + 'static>;
 
 #[derive(Debug, Clone)]
 pub struct RunInput {
@@ -28,6 +29,7 @@ pub struct Engine<T, P> {
     tool_executor: T,
     provider: P,
     redactor: Option<Redactor>,
+    event_callback: Option<EventCallback>,
 }
 
 impl<T, P> Engine<T, P> {
@@ -36,6 +38,7 @@ impl<T, P> Engine<T, P> {
             tool_executor,
             provider,
             redactor: None,
+            event_callback: None,
         }
     }
 
@@ -45,6 +48,12 @@ impl<T, P> Engine<T, P> {
         f: impl Fn(&Message) -> Message + Send + Sync + 'static,
     ) -> Self {
         self.redactor = Some(Box::new(f));
+        self
+    }
+
+    /// Attach an event callback invoked for each event as it is emitted.
+    pub fn with_event_callback(mut self, f: impl Fn(&Event) + Send + Sync + 'static) -> Self {
+        self.event_callback = Some(Box::new(f));
         self
     }
 }
@@ -101,7 +110,17 @@ where
             max_turns,
         };
 
-        events.push(Event {
+        macro_rules! emit {
+            ($event:expr) => {{
+                let event = $event;
+                if let Some(cb) = &self.event_callback {
+                    cb(&event);
+                }
+                events.push(event);
+            }};
+        }
+
+        emit!(Event {
             session_id: input.session_id.clone(),
             kind: EventKind::SessionStarted,
         });
@@ -128,13 +147,13 @@ where
                     state.last_provider_response = Some(response);
                     state.turn_count += 1;
 
-                    events.push(Event {
+                    emit!(Event {
                         session_id: input.session_id.clone(),
                         kind: EventKind::ProviderResponded,
                     });
                 }
                 Action::ExecuteTool { call } => {
-                    events.push(Event {
+                    emit!(Event {
                         session_id: input.session_id.clone(),
                         kind: EventKind::ToolCalled {
                             tool_name: call.name.clone(),
@@ -149,7 +168,7 @@ where
                     // Remove executed call from pending
                     state.pending_tool_calls.retain(|c| c.id != call.id);
 
-                    events.push(Event {
+                    emit!(Event {
                         session_id: input.session_id.clone(),
                         kind: EventKind::ToolCompleted {
                             tool_name: call.name.clone(),
@@ -157,7 +176,7 @@ where
                     });
                 }
                 Action::Finish { response } => {
-                    events.push(Event {
+                    emit!(Event {
                         session_id: input.session_id.clone(),
                         kind: EventKind::SessionCompleted,
                     });
@@ -442,6 +461,37 @@ mod tests {
             !response_text.contains("secret"),
             "raw secret should not reach provider"
         );
+    }
+
+    #[test]
+    fn event_callback_fires_for_each_event() {
+        use std::sync::{Arc, Mutex};
+
+        let fired: Arc<Mutex<Vec<EventKind>>> = Arc::new(Mutex::new(vec![]));
+        let fired_clone = Arc::clone(&fired);
+
+        let engine = Engine::new(crate::tools::StaticTool::new("echo", "out"), TestProvider)
+            .with_event_callback(move |e: &Event| {
+                fired_clone.lock().unwrap().push(e.kind.clone());
+            });
+
+        engine
+            .run(
+                RunInput {
+                    session_id: SessionId("cb-1".into()),
+                    messages: vec![Message {
+                        role: Role::User,
+                        content: vec![ContentPart::Text { text: "hi".into() }],
+                    }],
+                    max_turns: None,
+                },
+                &SimpleLoopPlanner,
+            )
+            .unwrap();
+
+        let kinds = fired.lock().unwrap();
+        assert!(kinds.contains(&EventKind::SessionStarted));
+        assert!(kinds.contains(&EventKind::SessionCompleted));
     }
 
     #[test]
