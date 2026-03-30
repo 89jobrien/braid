@@ -1,0 +1,5 @@
+{"type":"summary","summary":"session started","session_id":"cc-abc"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"hello"}]},"session_id":"cc-abc"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"hi there"}]},"session_id":"cc-abc"}
+{"type":"tool_use","tool_name":"read_file","session_id":"cc-abc"}
+{"type":"tool_result","tool_name":"read_file","session_id":"cc-abc"}
