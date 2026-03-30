@@ -1,0 +1,5 @@
+{"session_id":"fix-1","kind":"SessionStarted"}
+{"session_id":"fix-1","kind":"ProviderResponded"}
+{"session_id":"fix-1","kind":{"ToolCalled":{"tool_name":"echo"}}}
+{"session_id":"fix-1","kind":{"ToolCompleted":{"tool_name":"echo"}}}
+{"session_id":"fix-1","kind":"SessionCompleted"}
