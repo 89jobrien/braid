@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 
 use braid_core::{Engine, Provider, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_model::{ContentPart, Message, Role, SessionId};
-use braid_observe::SessionStore;
+use braid_observe::{SessionStore, SessionWriter};
 use braid_providers::OpenAiProvider;
 use braid_redact::{EnvVarRule, HomePathRule, RedactionPipeline, SecretPatternRule};
 
@@ -107,15 +107,16 @@ fn default_store_dir() -> Result<std::path::PathBuf> {
 }
 
 fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: String) -> Result<()> {
+    use std::sync::{Arc, Mutex};
+
     let provider = resolve_provider(provider_flag.as_deref(), &model)?;
     let prompt = resolve_prompt(prompt_arg)?;
 
-    let pipeline = RedactionPipeline::new()
+    let msg_pipeline = RedactionPipeline::new()
         .with_rule(SecretPatternRule::new())
         .with_rule(EnvVarRule::new())
         .with_rule(HomePathRule::new());
 
-    // Generate a unique session ID based on current time
     let session_id = {
         let secs = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -124,8 +125,28 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
         SessionId(format!("{secs}"))
     };
 
+    let writer: Arc<Mutex<Option<SessionWriter>>> = Arc::new(Mutex::new(
+        default_store_dir()
+            .ok()
+            .and_then(|dir| SessionWriter::open(&dir, &session_id).ok()),
+    ));
+    let writer_cb = Arc::clone(&writer);
+
+    let event_pipeline = RedactionPipeline::new()
+        .with_rule(SecretPatternRule::new())
+        .with_rule(EnvVarRule::new())
+        .with_rule(HomePathRule::new());
+
     let engine = Engine::new(ToolRegistry::new(), provider)
-        .with_redactor(move |msg| pipeline.redact_message(msg));
+        .with_redactor(move |msg| msg_pipeline.redact_message(msg))
+        .with_event_callback(move |event| {
+            let redacted = event_pipeline.redact_event(event);
+            if let Ok(mut guard) = writer_cb.lock()
+                && let Some(w) = guard.as_mut()
+            {
+                let _ = w.write_event(&redacted);
+            }
+        });
 
     let output = engine.run(
         RunInput {
@@ -139,22 +160,12 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
         &SimpleLoopPlanner,
     )?;
 
-    // Persist events (non-fatal on failure)
-    if let Ok(store_dir) = default_store_dir()
-        && let Ok(store) = SessionStore::open(store_dir)
+    // Finalize meta.json
+    if let Ok(mut guard) = writer.lock()
+        && let Some(w) = guard.take()
+        && let Err(e) = w.finish()
     {
-        let event_pipeline = RedactionPipeline::new()
-            .with_rule(SecretPatternRule::new())
-            .with_rule(EnvVarRule::new())
-            .with_rule(HomePathRule::new());
-        let redacted_events: Vec<_> = output
-            .events
-            .iter()
-            .map(|e| event_pipeline.redact_event(e))
-            .collect();
-        if let Err(e) = store.write(&session_id, &redacted_events) {
-            eprintln!("warn: could not persist session: {e}");
-        }
+        eprintln!("warn: could not finalize session: {e}");
     }
 
     let response_text = match output.provider_response.message.content.first() {
