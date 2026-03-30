@@ -131,6 +131,60 @@ impl SessionStore {
     }
 }
 
+/// Streams events to disk one at a time during an active session.
+/// Call `finish()` to write `meta.json`. Safe to drop without `finish()` —
+/// partial events remain on disk for inspection, but `meta.json` is absent.
+pub struct SessionWriter {
+    session_id: SessionId,
+    dir: PathBuf,
+    file: fs::File,
+    event_count: usize,
+}
+
+impl SessionWriter {
+    pub fn open(root: &std::path::Path, id: &SessionId) -> Result<Self> {
+        let dir = root.join(&id.0);
+        fs::create_dir_all(&dir)?;
+        let file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(dir.join("events.jsonl"))?;
+        Ok(Self {
+            session_id: id.clone(),
+            dir,
+            file,
+            event_count: 0,
+        })
+    }
+
+    pub fn write_event(&mut self, event: &Event) -> Result<()> {
+        let line = serde_json::to_string(event)?;
+        writeln!(self.file, "{}", line)?;
+        self.file.flush()?;
+        self.event_count += 1;
+        Ok(())
+    }
+
+    pub fn finish(self) -> Result<()> {
+        let written_at = format_rfc3339(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs(),
+        );
+        let meta = SessionMeta {
+            session_id: self.session_id,
+            written_at,
+            event_count: self.event_count,
+        };
+        let meta_json = serde_json::to_string(&meta)?;
+        let tmp = self.dir.join("meta.json.tmp");
+        fs::write(&tmp, &meta_json)?;
+        fs::rename(&tmp, self.dir.join("meta.json"))?;
+        Ok(())
+    }
+}
+
 /// Format unix seconds as RFC 3339 (UTC, no sub-second, no external deps).
 fn format_rfc3339(secs: u64) -> String {
     let s = secs % 60;
@@ -340,6 +394,56 @@ mod tests {
         assert_eq!(events.len(), 2, "unknown variant must be skipped");
         assert_eq!(events[0].kind, EventKind::SessionStarted);
         assert_eq!(events[1].kind, EventKind::SessionCompleted);
+    }
+
+    #[test]
+    fn session_writer_streams_events_incrementally() {
+        let dir = tempfile::tempdir().unwrap();
+        let id = SessionId("stream-1".into());
+
+        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+
+        let e1 = Event {
+            session_id: id.clone(),
+            kind: EventKind::SessionStarted,
+        };
+        let e2 = Event {
+            session_id: id.clone(),
+            kind: EventKind::ProviderResponded,
+        };
+
+        writer.write_event(&e1).unwrap();
+        // Events are on disk immediately — load mid-session
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let partial = store.load(&id).unwrap();
+        assert_eq!(partial.len(), 1, "first event visible before finish");
+
+        writer.write_event(&e2).unwrap();
+        writer.finish().unwrap();
+
+        let loaded = store.load(&id).unwrap();
+        assert_eq!(loaded.len(), 2);
+        assert_eq!(loaded[0].kind, EventKind::SessionStarted);
+        assert_eq!(loaded[1].kind, EventKind::ProviderResponded);
+    }
+
+    #[test]
+    fn session_writer_writes_meta_on_finish() {
+        let dir = tempfile::tempdir().unwrap();
+        let id = SessionId("stream-2".into());
+        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+        writer
+            .write_event(&Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionStarted,
+            })
+            .unwrap();
+        writer.finish().unwrap();
+
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let meta = store.load_meta(&id).unwrap();
+        assert!(meta.is_some(), "meta.json written after finish");
+        assert_eq!(meta.unwrap().event_count, 1);
     }
 
     #[test]
