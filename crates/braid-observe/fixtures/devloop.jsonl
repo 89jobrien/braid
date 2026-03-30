@@ -1,0 +1,6 @@
+{"event":"run_started","run_id":"dl-xyz","ts":"2026-03-30T03:00:00Z"}
+{"event":"llm_request","run_id":"dl-xyz","ts":"2026-03-30T03:00:01Z"}
+{"event":"llm_response","run_id":"dl-xyz","ts":"2026-03-30T03:00:02Z"}
+{"event":"tool_call","tool":"bash","run_id":"dl-xyz","ts":"2026-03-30T03:00:03Z"}
+{"event":"tool_result","tool":"bash","run_id":"dl-xyz","ts":"2026-03-30T03:00:04Z"}
+{"event":"run_completed","run_id":"dl-xyz","ts":"2026-03-30T03:00:05Z"}
