@@ -145,6 +145,7 @@ name = "braid-observe"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "braid-core",
  "braid-model",
  "serde",
  "serde_json",

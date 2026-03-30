@@ -231,6 +231,67 @@ mod tests {
         assert!(has_tool_called, "expected ToolCalled for read_file");
     }
 
+    /// Forward-compat round-trip: EventKind::Unknown must survive ingestion → storage → replay
+    /// without dropping any fields. BraidIngester accepts native JSONL including the Unknown
+    /// variant; ReplaySession must surface it with its payload intact.
+    #[test]
+    fn unknown_event_kind_round_trips_through_ingestion_and_replay() {
+        use crate::replay::ReplaySession;
+        use braid_model::EventKind;
+        use std::io::Write;
+
+        let dir = tempdir().unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+
+        // Write a JSONL file that mixes known events with an Unknown variant.
+        // EventKind::Unknown serializes as {"Unknown":{"raw":"<payload>"}}.
+        let jsonl_path = dir.path().join("mixed.jsonl");
+        let mut f = std::fs::File::create(&jsonl_path).unwrap();
+        writeln!(f, r#"{{"session_id":"unk-1","kind":"SessionStarted"}}"#).unwrap();
+        writeln!(
+            f,
+            r#"{{"session_id":"unk-1","kind":{{"Unknown":{{"raw":"future-payload-data"}}}}}}"#
+        )
+        .unwrap();
+        writeln!(f, r#"{{"session_id":"unk-1","kind":"SessionCompleted"}}"#).unwrap();
+
+        // Ingest via BraidIngester (the native-JSONL path).
+        let id = BraidIngester.ingest(&jsonl_path, &store).unwrap();
+        assert_eq!(id.0, "unk-1");
+
+        // Verify via store.load() — all three events present, Unknown preserved.
+        let events = store.load(&id).unwrap();
+        assert_eq!(events.len(), 3, "all three events must be loaded");
+        assert_eq!(events[0].kind, EventKind::SessionStarted);
+        assert!(
+            matches!(&events[1].kind, EventKind::Unknown { raw } if raw == "future-payload-data"),
+            "Unknown event must preserve its raw field; got {:?}",
+            events[1].kind
+        );
+        assert_eq!(events[2].kind, EventKind::SessionCompleted);
+
+        // Verify via ReplaySession — same events, indexed 1-based, payload preserved.
+        let replay = ReplaySession::load(&store, &id).unwrap();
+        assert_eq!(replay.len(), 3, "ReplaySession must see all three events");
+
+        let unknown_replay = replay.get(2).unwrap();
+        assert!(
+            matches!(&unknown_replay.event.kind, EventKind::Unknown { raw } if raw == "future-payload-data"),
+            "ReplaySession must preserve Unknown event kind; got {:?}",
+            unknown_replay.event.kind
+        );
+
+        // The raw JSON payload must also be present and contain the raw field value.
+        let payload = unknown_replay
+            .payload
+            .as_ref()
+            .expect("payload must be present");
+        assert_eq!(
+            payload["kind"]["Unknown"]["raw"], "future-payload-data",
+            "ReplayEvent payload must preserve all fields of Unknown event"
+        );
+    }
+
     #[test]
     fn devloop_ingester_normalizes_run_transcript() {
         let dir = tempdir().unwrap();

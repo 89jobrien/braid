@@ -1,3 +1,4 @@
+pub mod e2e_streaming_tests;
 pub mod ingest;
 pub mod render;
 pub mod replay;

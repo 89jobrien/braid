@@ -139,6 +139,7 @@ impl SessionStore {
 /// Streams events to disk one at a time during an active session.
 /// Call `finish()` to write `meta.json`. Safe to drop without `finish()` —
 /// partial events remain on disk for inspection, but `meta.json` is absent.
+#[derive(Debug)]
 pub struct SessionWriter {
     session_id: SessionId,
     dir: PathBuf,
