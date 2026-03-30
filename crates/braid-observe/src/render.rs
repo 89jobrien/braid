@@ -88,6 +88,12 @@ mod tests {
                 session_id: SessionId(session_id.into()),
                 kind: EventKind::SessionCompleted,
             },
+            Event {
+                session_id: SessionId(session_id.into()),
+                kind: EventKind::Unknown {
+                    raw: "test-raw".into(),
+                },
+            },
         ]
     }
 
@@ -97,7 +103,7 @@ mod tests {
         let meta = SessionMeta {
             session_id: SessionId("abc".into()),
             written_at: "2026-03-24T05:00:00Z".into(),
-            event_count: 5,
+            event_count: 6,
         };
         let mut out = Vec::new();
         render_session(&events, Some(&meta), &mut out).unwrap();
@@ -105,7 +111,7 @@ mod tests {
 
         assert!(s.contains("Session: abc"), "should contain session ID");
         assert!(s.contains("2026-03-24"), "should contain date");
-        assert!(s.contains("5 events"), "should contain event count");
+        assert!(s.contains("6 events"), "should contain event count");
         assert!(s.contains("SessionStarted"), "should list SessionStarted");
         assert!(
             s.contains("ProviderResponded"),
@@ -118,8 +124,10 @@ mod tests {
             s.contains("SessionCompleted"),
             "should list SessionCompleted"
         );
+        assert!(s.contains("Unknown"), "should list Unknown");
+        assert!(s.contains("test-raw"), "should show raw value for Unknown");
         assert!(s.contains("  1 "), "should have index 1");
-        assert!(s.contains("  5 "), "should have index 5");
+        assert!(s.contains("  6 "), "should have index 6");
     }
 
     #[test]
@@ -143,7 +151,7 @@ mod tests {
         let meta = SessionMeta {
             session_id: SessionId("abc".into()),
             written_at: "2026-03-24T05:00:00Z".into(),
-            event_count: 5,
+            event_count: 6,
         };
         let mut out = Vec::new();
         render_session(&events, Some(&meta), &mut out).unwrap();
@@ -152,13 +160,14 @@ mod tests {
         // Each line: "  {index:>2}  {kind:<20}{detail}" for tool events,
         //            "  {index:>2}  {kind}"              for others.
         let expected = concat!(
-            "Session: abc  (2026-03-24 05:00:00 UTC)  5 events\n",
+            "Session: abc  (2026-03-24 05:00:00 UTC)  6 events\n",
             "--------------------------------------------------\n",
             "   1  SessionStarted\n",
             "   2  ProviderResponded\n",
             "   3  ToolCalled          echo\n",
             "   4  ToolCompleted       echo\n",
             "   5  SessionCompleted\n",
+            "   6  Unknown             test-raw\n",
         );
         assert_eq!(actual, expected);
     }
