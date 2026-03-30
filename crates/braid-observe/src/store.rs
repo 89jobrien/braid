@@ -126,6 +126,11 @@ impl SessionStore {
         Ok(count)
     }
 
+    /// Expose the root directory for use by ReplaySession and other readers.
+    pub fn root(&self) -> &std::path::Path {
+        &self.root
+    }
+
     fn session_dir(&self, id: &SessionId) -> PathBuf {
         self.root.join(&id.0)
     }
