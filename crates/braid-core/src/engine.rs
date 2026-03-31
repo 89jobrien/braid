@@ -463,6 +463,62 @@ mod tests {
         );
     }
 
+    /// Port-boundary test: Engine accepts any `Fn(&Event)` as its event sink.
+    /// The concrete `SessionStore` / `SessionWriter` types from `braid-observe`
+    /// must never appear here. This test verifies that any type implementing
+    /// `Fn(&Event)` can be wired in — enforcing the hexagonal boundary at the
+    /// type level. If someone tries to add `braid-observe` as a dependency of
+    /// `braid-core`, the `Cargo.toml` constraint will catch it; this test
+    /// documents the *intent* of the port abstraction.
+    #[test]
+    fn event_sink_is_trait_erased_not_concrete_store() {
+        use std::sync::{Arc, Mutex};
+
+        // Any type implementing Fn(&Event) can serve as the event sink.
+        // This struct stands in for what braid-observe::SessionWriter does,
+        // but braid-core has zero knowledge of that concrete type.
+        struct FakeSink {
+            events: Vec<EventKind>,
+        }
+        let sink: Arc<Mutex<FakeSink>> = Arc::new(Mutex::new(FakeSink { events: vec![] }));
+        let sink_ref = Arc::clone(&sink);
+
+        // Engine::with_event_callback accepts Box<dyn Fn(&Event)> — a port, not a
+        // concrete type. This is the key invariant.
+        let engine = Engine::new(crate::tools::StaticTool::new("echo", "out"), TestProvider)
+            .with_event_callback(move |e: &Event| {
+                sink_ref.lock().unwrap().events.push(e.kind.clone());
+            });
+
+        engine
+            .run(
+                RunInput {
+                    session_id: SessionId("port-boundary".into()),
+                    messages: vec![Message {
+                        role: Role::User,
+                        content: vec![ContentPart::Text {
+                            text: "boundary check".into(),
+                        }],
+                    }],
+                    max_turns: None,
+                },
+                &SimpleLoopPlanner,
+            )
+            .unwrap();
+
+        let events = &sink.lock().unwrap().events;
+        assert!(
+            events.contains(&EventKind::SessionStarted),
+            "SessionStarted must flow through the port"
+        );
+        assert!(
+            events.contains(&EventKind::SessionCompleted),
+            "SessionCompleted must flow through the port"
+        );
+        // The engine emits events; the concrete sink (SessionWriter) is wired
+        // only at the CLI composition root — never inside braid-core.
+    }
+
     #[test]
     fn event_callback_fires_for_each_event() {
         use std::sync::{Arc, Mutex};
@@ -492,6 +548,176 @@ mod tests {
         let kinds = fired.lock().unwrap();
         assert!(kinds.contains(&EventKind::SessionStarted));
         assert!(kinds.contains(&EventKind::SessionCompleted));
+    }
+
+    /// Provider that makes N tool calls (one per turn) before returning a final text response.
+    struct MultiToolProvider {
+        tool_calls: u32,
+        call_count: std::cell::Cell<u32>,
+    }
+
+    impl MultiToolProvider {
+        fn new(tool_calls: u32) -> Self {
+            Self {
+                tool_calls,
+                call_count: std::cell::Cell::new(0),
+            }
+        }
+    }
+
+    impl Provider for MultiToolProvider {
+        fn complete(&self, _request: ProviderRequest) -> Result<ProviderResponse> {
+            let count = self.call_count.get();
+            self.call_count.set(count + 1);
+
+            if count < self.tool_calls {
+                Ok(ProviderResponse {
+                    message: Message {
+                        role: Role::Assistant,
+                        content: vec![ContentPart::ToolUse {
+                            id: format!("call_{count}"),
+                            name: "echo".into(),
+                            input: serde_json::json!({"n": count}),
+                        }],
+                    },
+                    token_count: None,
+                })
+            } else {
+                Ok(ProviderResponse {
+                    message: Message {
+                        role: Role::Assistant,
+                        content: vec![ContentPart::Text {
+                            text: "all done".into(),
+                        }],
+                    },
+                    token_count: None,
+                })
+            }
+        }
+    }
+
+    #[test]
+    fn event_callback_emits_in_deterministic_causal_order() {
+        use std::sync::{Arc, Mutex};
+
+        // Collect events from callback into a separate Vec so we can compare
+        // the callback-delivery order against RunOutput.events.
+        let callback_events: Arc<Mutex<Vec<Event>>> = Arc::new(Mutex::new(vec![]));
+        let callback_events_clone = Arc::clone(&callback_events);
+
+        // Use a provider that makes 2 tool calls before finishing (3 provider turns total).
+        let engine = Engine::new(
+            crate::tools::StaticTool::new("echo", "echoed"),
+            MultiToolProvider::new(2),
+        )
+        .with_event_callback(move |e: &Event| {
+            callback_events_clone.lock().unwrap().push(e.clone());
+        });
+
+        let output = engine
+            .run(
+                RunInput {
+                    session_id: SessionId("ordering-test".into()),
+                    messages: vec![Message {
+                        role: Role::User,
+                        content: vec![ContentPart::Text { text: "go".into() }],
+                    }],
+                    max_turns: None,
+                },
+                &SimpleLoopPlanner,
+            )
+            .unwrap();
+
+        let cb = callback_events.lock().unwrap();
+
+        // ── Invariant 1: callback received exactly as many events as RunOutput ──
+        assert_eq!(
+            cb.len(),
+            output.events.len(),
+            "callback event count must match RunOutput.events"
+        );
+
+        // ── Invariant 2: callback order matches RunOutput.events order exactly ──
+        for (i, (cb_evt, out_evt)) in cb.iter().zip(output.events.iter()).enumerate() {
+            assert_eq!(
+                std::mem::discriminant(&cb_evt.kind),
+                std::mem::discriminant(&out_evt.kind),
+                "event at index {i} differs between callback and RunOutput"
+            );
+        }
+
+        // ── Invariant 3: strict causal ordering ──
+        // Expected sequence for 2 tool calls:
+        //   [0] SessionStarted
+        //   [1] ProviderResponded  (turn 1 → tool call 0)
+        //   [2] ToolCalled
+        //   [3] ToolCompleted
+        //   [4] ProviderResponded  (turn 2 → tool call 1)
+        //   [5] ToolCalled
+        //   [6] ToolCompleted
+        //   [7] ProviderResponded  (turn 3 → final)
+        //   [8] SessionCompleted
+        let kinds: Vec<&EventKind> = output.events.iter().map(|e| &e.kind).collect();
+
+        assert!(
+            matches!(kinds[0], EventKind::SessionStarted),
+            "first event must be SessionStarted, got {:?}",
+            kinds[0]
+        );
+        assert!(
+            matches!(kinds.last().unwrap(), EventKind::SessionCompleted),
+            "last event must be SessionCompleted, got {:?}",
+            kinds.last().unwrap()
+        );
+
+        // No duplicate SessionStarted or SessionCompleted
+        let started_count = kinds
+            .iter()
+            .filter(|k| matches!(k, EventKind::SessionStarted))
+            .count();
+        let completed_count = kinds
+            .iter()
+            .filter(|k| matches!(k, EventKind::SessionCompleted))
+            .count();
+        assert_eq!(started_count, 1, "exactly one SessionStarted");
+        assert_eq!(completed_count, 1, "exactly one SessionCompleted");
+
+        // Every ToolCalled must be immediately followed by ToolCompleted (same tool name)
+        let inner = &kinds[1..kinds.len() - 1]; // strip SessionStarted / SessionCompleted
+        let mut i = 0;
+        while i < inner.len() {
+            match inner[i] {
+                EventKind::ToolCalled { tool_name } => {
+                    assert!(
+                        i + 1 < inner.len(),
+                        "ToolCalled at index {i} has no following event"
+                    );
+                    match inner[i + 1] {
+                        EventKind::ToolCompleted {
+                            tool_name: completed_name,
+                        } => {
+                            assert_eq!(
+                                tool_name, completed_name,
+                                "ToolCalled/ToolCompleted tool name mismatch at index {i}"
+                            );
+                        }
+                        other => panic!(
+                            "expected ToolCompleted after ToolCalled at index {i}, got {other:?}"
+                        ),
+                    }
+                    i += 2; // consume both
+                }
+                _ => i += 1,
+            }
+        }
+
+        // Total event count: 1 (start) + 3*ProviderResponded + 2*(ToolCalled+ToolCompleted) + 1 (end)
+        // = 1 + 3 + 4 + 1 = 9
+        assert_eq!(
+            output.events.len(),
+            9,
+            "expected 9 events for 2-tool session"
+        );
     }
 
     #[test]
