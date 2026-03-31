@@ -469,4 +469,81 @@ mod tests {
         assert_eq!(events.len(), 1);
         assert!(matches!(&events[0].kind, EventKind::Unknown { .. }));
     }
+
+    /// Drop without calling finish() leaves events readable but no meta.json.
+    #[test]
+    fn drop_without_finish_leaves_events_readable() {
+        let dir = tempfile::tempdir().unwrap();
+        let id = SessionId("drop-1".into());
+
+        {
+            let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+            writer
+                .write_event(&Event {
+                    session_id: id.clone(),
+                    kind: EventKind::SessionStarted,
+                })
+                .unwrap();
+            // dropped here without calling finish()
+        }
+
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let events = store.load(&id).unwrap();
+        assert_eq!(events.len(), 1, "events survive drop without finish");
+
+        let meta = store.load_meta(&id).unwrap();
+        assert!(meta.is_none(), "meta.json absent when finish() not called");
+    }
+
+    /// A truncated (partial) final line in events.jsonl is skipped gracefully.
+    /// This simulates a crash mid-write where the last JSON object is incomplete.
+    #[test]
+    fn partial_write_last_line_is_skipped() {
+        let dir = tempfile::tempdir().unwrap();
+        let sess_dir = dir.path().join("partial-1");
+        std::fs::create_dir_all(&sess_dir).unwrap();
+
+        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
+        // Complete event
+        writeln!(f, r#"{{"session_id":"partial-1","kind":"SessionStarted"}}"#).unwrap();
+        // Truncated / corrupt line — no closing brace
+        write!(f, r#"{{"session_id":"partial-1","kind":"SessionComple"#).unwrap();
+
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let events = store.load(&SessionId("partial-1".into())).unwrap();
+
+        assert_eq!(
+            events.len(),
+            1,
+            "corrupt last line skipped, good events kept"
+        );
+        assert_eq!(events[0].kind, EventKind::SessionStarted);
+    }
+
+    /// finish() writes meta.json atomically: the tmp file is renamed, so there
+    /// is no window where a partial meta.json is visible to concurrent readers.
+    #[test]
+    fn finish_is_atomic_no_tmp_left_behind() {
+        let dir = tempfile::tempdir().unwrap();
+        let id = SessionId("atomic-1".into());
+
+        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+        writer
+            .write_event(&Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionStarted,
+            })
+            .unwrap();
+        writer.finish().unwrap();
+
+        let sess_dir = dir.path().join(&id.0);
+        assert!(
+            sess_dir.join("meta.json").exists(),
+            "meta.json present after finish"
+        );
+        assert!(
+            !sess_dir.join("meta.json.tmp").exists(),
+            "tmp file cleaned up after rename"
+        );
+    }
 }
