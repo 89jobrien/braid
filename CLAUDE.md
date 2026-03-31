@@ -82,6 +82,13 @@ CLI → Engine::run(RunInput { session_id, messages, max_turns }, &SimpleLoopPla
 
 All crates share: `anyhow`, `serde` (with derive), `serde_json`, `thiserror`, `tracing` (declared, not yet used). `braid-providers` also uses `reqwest` (blocking). `braid-redact` uses `regex`. `braid-mcp` uses `tokio`.
 
+## Git Workflow
+
+- All automated and council-driven work must be done on a **feature branch**, not committed directly to `main`.
+- Branch naming: `council/YYYY-MM-DD-description` for council sessions, `feat/description` for features.
+- Push feature branches to the `github` remote and open a PR targeting `main`.
+- The `gitea` remote (`origin`) is the self-hosted primary; `github` is the GitHub mirror.
+
 ## Design Principles
 
 - **Minimal vertical slice first**: Complete each phase fully before starting the next.
