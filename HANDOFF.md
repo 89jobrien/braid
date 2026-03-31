@@ -1,5 +1,31 @@
 # Braid Handoff Notes
 
+## 2026-03-30 — P2: SessionWriter Durability + Dependency Lint
+
+### What changed
+
+**Commit `9f1d9a1`** — `test(braid-observe): add P2 SessionWriter durability tests + remove unused thiserror deps`
+
+#### SessionWriter durability tests (3 new)
+
+- `drop_without_finish_leaves_events_readable` — events survive unclean shutdown; meta.json absent signals incomplete session
+- `partial_write_last_line_is_skipped` — truncated final line from mid-write crash is skipped; prior events intact
+- `finish_is_atomic_no_tmp_left_behind` — atomic rename leaves no `.tmp` file visible to concurrent readers
+
+#### Dependency lint
+
+Removed unused `thiserror` from `braid-model` and `braid-observe`. Neither crate defines custom error types (both use `anyhow`). `cargo-machete` now clean.
+
+### Test count
+
+Before: 128 tests | After: 132 tests (+4)
+
+### Remaining backlog
+
+None. All P1 and P2 items from council analysis are resolved.
+
+---
+
 ## 2026-03-30 — Council Analysis + P1 Test Coverage
 
 ### What changed
