@@ -4,7 +4,7 @@ use chrono::Duration;
 // Re-export model types as the canonical source
 pub use braid_model::{ContextChunk, ContextSnapshot, ContextSummary};
 
-pub trait ContextSource {
+pub trait ContextSource: Send + Sync {
     fn name(&self) -> &'static str;
     fn staleness_window(&self) -> Duration;
     fn fetch(&self) -> Result<Vec<ContextChunk>>;

@@ -14,7 +14,7 @@ pub const DEFAULT_BUDGET: usize = 2000;
 pub struct ContextAssembler {
     sources: Vec<Box<dyn ContextSource>>,
     budget: usize,
-    provider: Option<Arc<dyn Provider>>,
+    provider: Option<Arc<dyn Provider + Send + Sync>>,
 }
 
 impl ContextAssembler {
@@ -31,7 +31,7 @@ impl ContextAssembler {
         self
     }
 
-    pub fn with_provider(mut self, provider: Arc<dyn Provider>) -> Self {
+    pub fn with_provider(mut self, provider: Arc<dyn Provider + Send + Sync>) -> Self {
         self.provider = Some(provider);
         self
     }

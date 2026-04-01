@@ -4,7 +4,7 @@ use std::sync::Arc;
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
-use braid_context::ContextAssemblerProvider;
+use braid_context::{ContextAssembler, ContextAssemblerProvider, DoobSource, RepoSource};
 use braid_core::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_hooks::{DestructiveCommandGuard, HookRegistry, HookedExecutor};
 use braid_model::{ContentPart, Message, Role, SessionId, ToolCall, ToolResult};
@@ -147,15 +147,24 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     // Arc lets cmd_sessions (and any future caller) share the same store instance.
     let store = Arc::new(SessionStore::open(default_store_dir()?)?);
 
+    let ctx_assembler = ContextAssembler::new(vec![
+        Box::new(DoobSource::new()),
+        Box::new(RepoSource::new()),
+    ]);
+    let ctx_provider = Arc::new(ContextAssemblerProvider::new(ctx_assembler));
+
     let hooks = HookRegistry::fail_closed().register(DestructiveCommandGuard::new());
     let mut registry = ToolRegistry::new();
     registry.register(
         "refresh_context",
-        Box::new(RefreshContextTool { provider: None }),
+        Box::new(RefreshContextTool {
+            provider: Some(ctx_provider.clone()),
+        }),
     );
     let tools = HookedExecutor::new(registry, hooks, session_id.clone());
 
-    let engine = Engine::new(provider, tools, Arc::clone(&store), redactor);
+    let engine =
+        Engine::new(provider, tools, Arc::clone(&store), redactor).with_context(ctx_provider);
     let output = engine.run(
         RunInput {
             session_id,
