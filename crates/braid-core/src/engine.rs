@@ -2,7 +2,7 @@ use anyhow::Result;
 use braid_model::{
     ContentPart, Event, EventKind, Message, ProviderRequest, Role, SessionId, ToolCall, ToolResult,
 };
-use braid_ports::{EventSink, Provider, Redactor, ToolExecutor};
+use braid_ports::{ContextProvider, EventSink, Provider, Redactor, ToolExecutor};
 
 use crate::planner::{Action, Planner, SessionState};
 
@@ -20,11 +20,29 @@ pub struct RunOutput {
     pub provider_response: braid_model::ProviderResponse,
 }
 
-pub struct Engine<P, T, S, R> {
+pub struct NoopContextProvider;
+
+impl ContextProvider for NoopContextProvider {
+    fn assemble(&self) -> anyhow::Result<braid_model::ContextSnapshot> {
+        Ok(braid_model::ContextSnapshot {
+            chunks: vec![],
+            summary: None,
+            assembled_at: chrono::Utc::now(),
+            token_estimate: 0,
+            dropped_chunks: 0,
+        })
+    }
+    fn refresh(&self) -> anyhow::Result<braid_model::ContextSnapshot> {
+        self.assemble()
+    }
+}
+
+pub struct Engine<P, T, S, R, C = NoopContextProvider> {
     provider: P,
     tool_executor: T,
     event_sink: S,
     redactor: R,
+    context_provider: Option<C>,
 }
 
 impl<P, T, S, R> Engine<P, T, S, R>
@@ -40,6 +58,26 @@ where
             tool_executor,
             event_sink,
             redactor,
+            context_provider: None::<NoopContextProvider>,
+        }
+    }
+}
+
+impl<P, T, S, R, C> Engine<P, T, S, R, C>
+where
+    P: Provider,
+    T: ToolExecutor,
+    S: EventSink,
+    R: Redactor,
+    C: ContextProvider,
+{
+    pub fn with_context<C2: ContextProvider>(self, ctx: C2) -> Engine<P, T, S, R, C2> {
+        Engine {
+            provider: self.provider,
+            tool_executor: self.tool_executor,
+            event_sink: self.event_sink,
+            redactor: self.redactor,
+            context_provider: Some(ctx),
         }
     }
 
@@ -49,7 +87,24 @@ where
         result
     }
 
-    fn run_inner(&self, input: RunInput, planner: &impl Planner) -> Result<RunOutput> {
+    fn run_inner(&self, mut input: RunInput, planner: &impl Planner) -> Result<RunOutput> {
+        // Inject context snapshot as leading system message if provider is set
+        if let Some(ctx) = &self.context_provider {
+            match ctx.assemble() {
+                Ok(snap) if !snap.chunks.is_empty() || snap.summary.is_some() => {
+                    let rendered = snap.render();
+                    input.messages.insert(
+                        0,
+                        braid_model::Message {
+                            role: braid_model::Role::System,
+                            content: vec![braid_model::ContentPart::Text { text: rendered }],
+                        },
+                    );
+                }
+                _ => {} // no context or error — proceed without
+            }
+        }
+
         let max_turns = input.max_turns.unwrap_or(DEFAULT_MAX_TURNS);
         let mut state = SessionState {
             messages: input.messages,

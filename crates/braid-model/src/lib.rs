@@ -1,3 +1,4 @@
+pub mod context;
 pub mod event;
 pub mod message;
 pub mod provider;
@@ -6,6 +7,7 @@ pub mod task;
 pub mod tool;
 pub mod transcript;
 
+pub use context::{ContextChunk, ContextSnapshot, ContextSummary};
 pub use event::{Event, EventKind};
 pub use message::{ContentPart, Message, Role};
 pub use provider::{ProviderRequest, ProviderResponse};

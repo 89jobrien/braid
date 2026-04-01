@@ -10,6 +10,7 @@ members = [
   "crates/braid-mcp",
   "crates/braid-observe",
   "crates/braid-tui",
+  "crates/braid-context",
 ]
 resolver = "2"
 
@@ -29,3 +30,4 @@ tracing = "0.1"
 clap = { version = "4", features = ["derive"] }
 regex = "1"
 tokio = { version = "1", features = ["rt", "macros", "io-std", "io-util"] }
+chrono = { version = "0.4", features = ["serde"] }
