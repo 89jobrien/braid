@@ -100,3 +100,21 @@ jobs:
           tool: cargo-machete
       - name: cargo machete
         run: cargo machete
+
+  provider-contract:
+    name: provider contract (OpenAI)
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.secret_source == 'Actions'
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - name: openai provider contract
+        run: cargo nextest run -p braid-providers --run-ignored=ignored-only openai_provider_satisfies_contract
