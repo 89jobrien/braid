@@ -9,7 +9,9 @@ rust-version.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 braid-core = { path = "../braid-core" }
+braid-hooks = { path = "../braid-hooks" }
 braid-model = { path = "../braid-model" }
+braid-ports = { path = "../braid-ports" }
 braid-providers = { path = "../braid-providers" }
 braid-mcp = { path = "../braid-mcp" }
 braid-observe = { path = "../braid-observe" }

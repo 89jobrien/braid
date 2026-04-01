@@ -1,6 +1,6 @@
 use anyhow::Result;
-use braid_core::Provider;
 use braid_model::{ContentPart, Message, ProviderRequest, Role, ToolDefinition};
+use braid_ports::Provider;
 use braid_providers::OpenAiProvider;
 
 fn verify_text_completion(provider: &impl Provider) -> Result<()> {

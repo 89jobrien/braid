@@ -1,9 +1,11 @@
 use anyhow::Result;
 use braid_model::{Event, SessionId};
+use braid_ports::{EventSink, SessionStorage};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{BufRead, Write};
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionMeta {
@@ -14,12 +16,16 @@ pub struct SessionMeta {
 
 pub struct SessionStore {
     root: PathBuf,
+    buffer: Mutex<Vec<Event>>,
 }
 
 impl SessionStore {
     pub fn open(root: PathBuf) -> Result<Self> {
         fs::create_dir_all(&root)?;
-        Ok(Self { root })
+        Ok(Self {
+            root,
+            buffer: Mutex::new(vec![]),
+        })
     }
 
     pub fn write(&self, id: &SessionId, events: &[Event]) -> Result<()> {
@@ -188,6 +194,47 @@ impl SessionWriter {
         fs::write(&tmp, &meta_json)?;
         fs::rename(&tmp, self.dir.join("meta.json"))?;
         Ok(())
+    }
+}
+
+impl EventSink for SessionStore {
+    fn record(&self, event: &Event) -> Result<()> {
+        self.buffer.lock().unwrap().push(event.clone());
+        Ok(())
+    }
+
+    fn flush(&self) -> Result<()> {
+        let events = {
+            let mut buf = self.buffer.lock().unwrap();
+            std::mem::take(&mut *buf)
+        };
+        if events.is_empty() {
+            return Ok(());
+        }
+        let session_id = &events[0].session_id;
+        self.write(session_id, &events)
+    }
+}
+
+impl Drop for SessionStore {
+    fn drop(&mut self) {
+        // Best-effort flush on drop — primary flush path is explicit flush() call.
+        let _ = self.flush();
+    }
+}
+
+impl SessionStorage for SessionStore {
+    fn write(&self, id: &SessionId, events: &[Event]) -> Result<()> {
+        self.write(id, events)
+    }
+    fn load(&self, id: &SessionId) -> Result<Vec<Event>> {
+        self.load(id)
+    }
+    fn list(&self) -> Result<Vec<SessionId>> {
+        self.list()
+    }
+    fn prune(&self, keep: usize) -> Result<usize> {
+        self.prune(keep)
     }
 }
 

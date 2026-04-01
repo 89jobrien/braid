@@ -1,6 +1,6 @@
 use anyhow::{Context, Result, bail};
-use braid_core::Provider;
 use braid_model::{ContentPart, Message, ProviderRequest, ProviderResponse, Role, TokenCount};
+use braid_ports::Provider;
 use serde_json::{Value, json};
 
 #[derive(Debug, Clone)]

@@ -1,6 +1,6 @@
-use crate::tools::ToolExecutor;
 use anyhow::Result;
 use braid_model::{ToolCall, ToolResult};
+use braid_ports::ToolExecutor;
 use std::collections::HashMap;
 
 #[derive(Default)]
