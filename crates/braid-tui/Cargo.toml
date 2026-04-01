@@ -1,0 +1,21 @@
+[package]
+name = "braid-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "braid-tui"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+braid-model = { path = "../braid-model" }
+braid-observe = { path = "../braid-observe" }
+crossterm = "0.28"
+ratatui = "0.29"
+
+[dev-dependencies]
+tempfile = "3"
