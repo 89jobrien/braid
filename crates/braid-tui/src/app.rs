@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn refresh_sessions_updates_list_and_clamps_selection() {
         let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let _store = SessionStore::open(dir.path().to_path_buf()).unwrap();
 
         // Start with 3 sessions
         let (_dir2, store2, ids) = make_store_with_sessions(3);
