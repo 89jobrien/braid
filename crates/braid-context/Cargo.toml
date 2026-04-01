@@ -11,3 +11,6 @@ serde_json.workspace = true
 chrono.workspace = true
 braid-model = { path = "../braid-model" }
 braid-ports = { path = "../braid-ports" }
+
+[lints]
+workspace = true

@@ -8,17 +8,21 @@ impl TerminalRenderer {
     }
 
     pub fn render_plain(results: &[CheckResult]) -> String {
-        results
-            .iter()
-            .map(|r| {
-                let (label, color) = match r.status {
-                    CheckStatus::Pass => ("ok", "\x1b[32m"),
-                    CheckStatus::Warn => ("warn", "\x1b[33m"),
-                    CheckStatus::Fail => ("FAIL", "\x1b[31m"),
-                };
-                format!("{:<22} ... {color}{label}\x1b[0m ({})\n", r.name, r.message)
-            })
-            .collect()
+        use std::fmt::Write as _;
+        let mut out = String::new();
+        for r in results {
+            let (label, color) = match r.status {
+                CheckStatus::Pass => ("ok", "\x1b[32m"),
+                CheckStatus::Warn => ("warn", "\x1b[33m"),
+                CheckStatus::Fail => ("FAIL", "\x1b[31m"),
+            };
+            let _ = writeln!(
+                out,
+                "{:<22} ... {color}{label}\x1b[0m ({})",
+                r.name, r.message
+            );
+        }
+        out
     }
 }
 

@@ -24,14 +24,14 @@ impl ContextAssemblerProvider {
 impl ContextProvider for ContextAssemblerProvider {
     fn assemble(&self) -> Result<ContextSnapshot> {
         let snap = self.assembler.assemble()?;
-        *self.last_snapshot.lock().unwrap() = Some(snap.clone());
+        *self.last_snapshot.lock().expect("lock poisoned") = Some(snap.clone());
         Ok(snap)
     }
 
     fn refresh(&self) -> Result<ContextSnapshot> {
-        let prior = self.last_snapshot.lock().unwrap().clone();
+        let prior = self.last_snapshot.lock().expect("lock poisoned").clone();
         let snap = self.assembler.refresh(prior)?;
-        *self.last_snapshot.lock().unwrap() = Some(snap.clone());
+        *self.last_snapshot.lock().expect("lock poisoned") = Some(snap.clone());
         Ok(snap)
     }
 }

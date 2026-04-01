@@ -13,6 +13,7 @@ impl RedactionPipeline {
     }
 
     /// Add a rule to the pipeline (builder pattern).
+    #[must_use]
     pub fn with_rule(mut self, rule: impl RedactionRule + 'static) -> Self {
         self.rules.push(Box::new(rule));
         self

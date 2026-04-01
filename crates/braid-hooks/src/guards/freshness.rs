@@ -28,6 +28,7 @@ impl Hook for FreshnessGuard {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use braid_model::{SessionId, ToolCall};

@@ -199,13 +199,16 @@ impl SessionWriter {
 
 impl EventSink for SessionStore {
     fn record(&self, event: &Event) -> Result<()> {
-        self.buffer.lock().unwrap().push(event.clone());
+        self.buffer
+            .lock()
+            .expect("lock poisoned")
+            .push(event.clone());
         Ok(())
     }
 
     fn flush(&self) -> Result<()> {
         let events = {
-            let mut buf = self.buffer.lock().unwrap();
+            let mut buf = self.buffer.lock().expect("lock poisoned");
             std::mem::take(&mut *buf)
         };
         if events.is_empty() {

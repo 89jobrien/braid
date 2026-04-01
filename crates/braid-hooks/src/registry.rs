@@ -26,6 +26,7 @@ impl HookRegistry {
     }
 
     /// Register a hook.
+    #[must_use]
     pub fn register(mut self, hook: impl Hook + 'static) -> Self {
         self.hooks.push(Box::new(hook));
         self

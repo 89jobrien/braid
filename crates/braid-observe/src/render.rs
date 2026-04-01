@@ -58,6 +58,7 @@ pub fn render_session(
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use braid_model::{Event, EventKind, SessionId};

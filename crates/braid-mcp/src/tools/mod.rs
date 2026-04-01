@@ -18,6 +18,7 @@ impl McpToolRegistry {
     }
 
     /// Register a tool definition (builder pattern).
+    #[must_use]
     pub fn register(mut self, def: ToolDefinition) -> Self {
         self.tools.push(def);
         self

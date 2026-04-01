@@ -174,6 +174,7 @@ pub async fn run_mcp_server(registry: McpToolRegistry) -> Result<()> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::tools::echo::echo_tool;

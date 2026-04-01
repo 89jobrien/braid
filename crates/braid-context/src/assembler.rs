@@ -27,11 +27,13 @@ impl ContextAssembler {
         }
     }
 
+    #[must_use]
     pub fn with_budget(mut self, budget: usize) -> Self {
         self.budget = budget;
         self
     }
 
+    #[must_use]
     pub fn with_provider(mut self, provider: Arc<dyn Provider + Send + Sync>) -> Self {
         self.provider = Some(provider);
         self

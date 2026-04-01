@@ -33,3 +33,9 @@ regex = "1"
 tokio = { version = "1", features = ["rt", "macros", "io-std", "io-util"] }
 chrono = { version = "0.4", features = ["serde"] }
 toml = "0.8"
+
+[workspace.lints.clippy]
+# Deny: always bugs or dangerous patterns in production code
+unwrap_used = "deny"
+todo = "deny"
+wildcard_imports = "deny"

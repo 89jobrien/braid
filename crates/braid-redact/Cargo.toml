@@ -10,3 +10,6 @@ braid-model = { path = "../braid-model" }
 braid-ports = { path = "../braid-ports" }
 regex.workspace = true
 serde_json.workspace = true
+
+[lints]
+workspace = true

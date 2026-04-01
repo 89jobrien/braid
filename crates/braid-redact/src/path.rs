@@ -10,7 +10,7 @@ pub struct HomePathRule {
 impl HomePathRule {
     pub fn new() -> Self {
         Self {
-            pattern: Regex::new(r"/(Users|home)/[A-Za-z0-9._-]+/").unwrap(),
+            pattern: Regex::new(r"/(Users|home)/[A-Za-z0-9._-]+/").expect("valid regex"),
         }
     }
 }

@@ -19,3 +19,6 @@ ratatui = "0.29"
 
 [dev-dependencies]
 tempfile = "3"
+
+[lints]
+workspace = true

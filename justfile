@@ -1,5 +1,5 @@
 default:
-    cargo check
+    just --list
 
 fmt:
     cargo fmt --all
