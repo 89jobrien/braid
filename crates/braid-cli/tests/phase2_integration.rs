@@ -214,3 +214,136 @@ fn mcp_registry_propagates_hook_denial() {
         .unwrap_err();
     assert!(err.to_string().contains("unknown tool"), "{err}");
 }
+
+// ---------------------------------------------------------------------------
+// Fail-closed hook error propagation (cross-crate boundary)
+// ---------------------------------------------------------------------------
+
+/// A hook that panics/errors with fail_closed=true must cause the executor
+/// to deny the call — the inner tool never runs.
+///
+/// This tests the registry→executor boundary: the fail_closed verdict must
+/// surface as an error from HookedExecutor::execute, not be swallowed.
+#[test]
+fn fail_closed_hook_error_propagates_through_executor() {
+    use braid_hooks::contract::{Hook, HookContext, HookVerdict};
+
+    struct BrokenHook;
+    impl Hook for BrokenHook {
+        fn name(&self) -> &str {
+            "broken-hook"
+        }
+        fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
+            Err(anyhow::anyhow!("hook evaluation failed internally"))
+        }
+    }
+
+    let tool = StaticTool::new("shell", "should not appear");
+    let registry = HookRegistry::fail_closed().register(BrokenHook);
+    let executor = HookedExecutor::new(tool, registry, SessionId("s1".into()));
+
+    let err = executor.execute(make_call("shell", "ls /tmp")).unwrap_err();
+
+    let msg = err.to_string();
+    assert!(
+        msg.contains("denied") || msg.contains("broken-hook"),
+        "error must mention denial or the failing hook name: {msg}"
+    );
+    assert!(
+        !msg.contains("should not appear"),
+        "inner tool must not have executed"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Post-execute hook notification fires on allowed calls
+// ---------------------------------------------------------------------------
+
+/// When a hook allows a call, post_execute must be called with the tool result.
+/// This tests the executor notifies hooks after successful execution.
+#[test]
+fn post_execute_hook_fires_after_successful_tool_call() {
+    use braid_hooks::contract::{Hook, HookContext, HookVerdict};
+    use std::sync::{Arc, Mutex};
+
+    let fired = Arc::new(Mutex::new(false));
+    let fired_clone = Arc::clone(&fired);
+
+    struct TrackingHook {
+        fired: Arc<Mutex<bool>>,
+    }
+    impl Hook for TrackingHook {
+        fn name(&self) -> &str {
+            "tracking-hook"
+        }
+        fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
+            Ok(HookVerdict::Allow)
+        }
+        fn post_execute(&self, _ctx: &HookContext, _result: &braid_model::ToolResult) {
+            *self.fired.lock().unwrap() = true;
+        }
+    }
+
+    let tool = StaticTool::new("echo", "pong");
+    let registry = HookRegistry::new().register(TrackingHook { fired: fired_clone });
+    let executor = HookedExecutor::new(tool, registry, SessionId("s1".into()));
+
+    let result = executor.execute(make_call("echo", "ping")).unwrap();
+    assert_eq!(result.output, "pong");
+    assert!(
+        *fired.lock().unwrap(),
+        "post_execute must be called after a successful tool execution"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Redact Message with ToolUse input (cross-crate: braid-redact + braid-model)
+// ---------------------------------------------------------------------------
+
+/// When a message contains a ToolUse part with a secret embedded in the JSON
+/// input, redact_message must strip it — preserving the structure.
+///
+/// This tests the cross-crate flow: braid-model Message → braid-redact pipeline
+/// → secret removed from nested JSON without corrupting the content part.
+#[test]
+fn redact_message_strips_secret_from_tool_use_input() {
+    use braid_model::{ContentPart, Message, Role};
+    use braid_redact::RedactionPipeline;
+    use braid_redact::patterns::SecretPatternRule;
+
+    let pipeline = RedactionPipeline::new().with_rule(SecretPatternRule::new());
+
+    let secret = "sk-abcdefghijklmnopqrstuvwxyz";
+    let msg = Message {
+        role: Role::Assistant,
+        content: vec![ContentPart::ToolUse {
+            id: "call_1".into(),
+            name: "api_call".into(),
+            input: serde_json::json!({
+                "url": "https://api.example.com/v1/chat",
+                "headers": {
+                    "Authorization": format!("Bearer {secret}")
+                }
+            }),
+        }],
+    };
+
+    let redacted = pipeline.redact_message(&msg);
+
+    match &redacted.content[0] {
+        ContentPart::ToolUse { id, name, input } => {
+            assert_eq!(id, "call_1", "id must be preserved");
+            assert_eq!(name, "api_call", "name must be preserved");
+            let auth = input["headers"]["Authorization"].as_str().unwrap();
+            assert!(
+                !auth.contains(secret),
+                "secret must not appear in redacted input: {auth}"
+            );
+            assert!(
+                auth.contains("[REDACTED]") || auth.contains("REDACTED"),
+                "redacted placeholder must be present: {auth}"
+            );
+        }
+        _ => panic!("expected ToolUse content part"),
+    }
+}
