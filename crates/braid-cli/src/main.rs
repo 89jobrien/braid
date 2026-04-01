@@ -4,7 +4,9 @@ use std::sync::Arc;
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
-use braid_context::{ContextAssembler, ContextAssemblerProvider, DoobSource, RefreshContextTool, RepoSource};
+use braid_context::{
+    ContextAssembler, ContextAssemblerProvider, DoobSource, RefreshContextTool, RepoSource,
+};
 use braid_core::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_hooks::{DestructiveCommandGuard, HookRegistry, HookedExecutor};
 use braid_model::{ContentPart, Message, Role, SessionId};
@@ -136,7 +138,9 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
         match OpenAiProvider::new(&model) {
             Ok(p) if std::env::var("OPENAI_API_KEY").is_ok() => Some(Arc::new(p)),
             _ => {
-                eprintln!("note: no provider available for context summarization (OPENAI_API_KEY not set)");
+                eprintln!(
+                    "note: no provider available for context summarization (OPENAI_API_KEY not set)"
+                );
                 None
             }
         };

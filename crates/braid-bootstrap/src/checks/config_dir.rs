@@ -11,7 +11,7 @@ impl Check for BraidConfigDirCheck {
                     name: "~/.braid dir",
                     status: CheckStatus::Fail,
                     message: "HOME not set".into(),
-                }
+                };
             }
         };
         let dir = std::path::PathBuf::from(home).join(".braid");

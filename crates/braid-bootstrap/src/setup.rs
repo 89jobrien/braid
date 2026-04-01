@@ -53,6 +53,9 @@ mod tests {
         run(&braid_dir).unwrap();
 
         let content = std::fs::read_to_string(&config_path).unwrap();
-        assert_eq!(content, "# sentinel\n", "second run must not overwrite existing config");
+        assert_eq!(
+            content, "# sentinel\n",
+            "second run must not overwrite existing config"
+        );
     }
 }

@@ -5,11 +5,19 @@ fn version_check(name: &'static str, bin: &str, args: &[&str], warn_only: bool) 
     match Cmd::new(bin).args(args).output() {
         Ok(out) if out.status.success() => {
             let msg = String::from_utf8_lossy(&out.stdout).trim().to_string();
-            CheckResult { name, status: CheckStatus::Pass, message: msg }
+            CheckResult {
+                name,
+                status: CheckStatus::Pass,
+                message: msg,
+            }
         }
         _ => CheckResult {
             name,
-            status: if warn_only { CheckStatus::Warn } else { CheckStatus::Fail },
+            status: if warn_only {
+                CheckStatus::Warn
+            } else {
+                CheckStatus::Fail
+            },
             message: format!("{bin} not found — install with: cargo install {bin}"),
         },
     }
@@ -21,7 +29,11 @@ impl Check for GitCheck {
         match std::process::Command::new("git").arg("--version").output() {
             Ok(out) if out.status.success() => {
                 let msg = String::from_utf8_lossy(&out.stdout).trim().to_string();
-                CheckResult { name: "git", status: CheckStatus::Pass, message: msg }
+                CheckResult {
+                    name: "git",
+                    status: CheckStatus::Pass,
+                    message: msg,
+                }
             }
             _ => CheckResult {
                 name: "git",
@@ -48,7 +60,11 @@ impl Check for CargoNextestCheck {
         {
             Ok(out) if out.status.success() => {
                 let msg = String::from_utf8_lossy(&out.stdout).trim().to_string();
-                CheckResult { name: "cargo-nextest", status: CheckStatus::Pass, message: msg }
+                CheckResult {
+                    name: "cargo-nextest",
+                    status: CheckStatus::Pass,
+                    message: msg,
+                }
             }
             _ => CheckResult {
                 name: "cargo-nextest",
@@ -68,7 +84,11 @@ impl Check for CargoDenyCheck {
         {
             Ok(out) if out.status.success() => {
                 let msg = String::from_utf8_lossy(&out.stdout).trim().to_string();
-                CheckResult { name: "cargo-deny", status: CheckStatus::Pass, message: msg }
+                CheckResult {
+                    name: "cargo-deny",
+                    status: CheckStatus::Pass,
+                    message: msg,
+                }
             }
             _ => CheckResult {
                 name: "cargo-deny",
@@ -94,6 +114,9 @@ mod tests {
     fn doob_check_is_warn_on_missing() {
         let r = DoobCheck.run();
         assert_eq!(r.name, "doob");
-        assert!(!matches!(r.status, CheckStatus::Fail), "doob must warn, not fail");
+        assert!(
+            !matches!(r.status, CheckStatus::Fail),
+            "doob must warn, not fail"
+        );
     }
 }

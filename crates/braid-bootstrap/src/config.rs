@@ -33,7 +33,9 @@ impl Default for BraidConfig {
                 model: "gpt-4o".into(),
             },
             session: SessionConfig { max_turns: 20 },
-            context: ContextConfig { budget_tokens: 2000 },
+            context: ContextConfig {
+                budget_tokens: 2000,
+            },
         }
     }
 }

@@ -123,6 +123,7 @@ name = "braid-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "braid-bootstrap",
  "braid-context",
  "braid-core",
  "braid-hooks",

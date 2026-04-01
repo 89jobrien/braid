@@ -16,10 +16,7 @@ impl TerminalRenderer {
                     CheckStatus::Warn => ("warn", "\x1b[33m"),
                     CheckStatus::Fail => ("FAIL", "\x1b[31m"),
                 };
-                format!(
-                    "{:<22} ... {color}{label}\x1b[0m ({})\n",
-                    r.name, r.message
-                )
+                format!("{:<22} ... {color}{label}\x1b[0m ({})\n", r.name, r.message)
             })
             .collect()
     }
@@ -31,7 +28,11 @@ mod tests {
     use crate::checks::{CheckResult, CheckStatus};
 
     fn make(name: &'static str, status: CheckStatus, msg: &str) -> CheckResult {
-        CheckResult { name, status, message: msg.into() }
+        CheckResult {
+            name,
+            status,
+            message: msg.into(),
+        }
     }
 
     #[test]

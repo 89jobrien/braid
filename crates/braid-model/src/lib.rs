@@ -7,7 +7,7 @@ pub mod task;
 pub mod tool;
 pub mod transcript;
 
-pub use context::{estimate_tokens, ContextChunk, ContextSnapshot, ContextSummary};
+pub use context::{ContextChunk, ContextSnapshot, ContextSummary, estimate_tokens};
 pub use event::{Event, EventKind};
 pub use message::{ContentPart, Message, Role};
 pub use provider::{ProviderRequest, ProviderResponse};

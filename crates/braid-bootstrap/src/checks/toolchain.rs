@@ -13,7 +13,8 @@ impl Check for RustToolchainCheck {
                 let parts: Vec<&str> = version.split('.').collect();
                 let ok = parts.len() >= 2
                     && parts[0].parse::<u32>().unwrap_or(0) >= 1
-                    && parts[1].trim_end_matches(|c: char| !c.is_numeric())
+                    && parts[1]
+                        .trim_end_matches(|c: char| !c.is_numeric())
                         .parse::<u32>()
                         .unwrap_or(0)
                         >= 88;
@@ -48,6 +49,9 @@ mod tests {
     fn rust_toolchain_check_runs_without_panic() {
         let result = RustToolchainCheck.run();
         assert_eq!(result.name, "rust toolchain");
-        assert!(matches!(result.status, CheckStatus::Pass | CheckStatus::Fail));
+        assert!(matches!(
+            result.status,
+            CheckStatus::Pass | CheckStatus::Fail
+        ));
     }
 }
