@@ -229,11 +229,11 @@ Extract:
 - syntax-aware extraction only where it materially helps
 
 Checklist:
-- [ ] Define snapshot and compaction interfaces.
-- [ ] Add import path for one local task source.
-- [ ] Add staleness metadata to context inputs.
-- [ ] Add bounded compaction so context cannot grow without pressure.
-- [ ] Keep extraction selective; do not build a giant ingestion framework.
+- [x] Define snapshot and compaction interfaces.
+- [x] Add import path for one local task source.
+- [x] Add staleness metadata to context inputs.
+- [x] Add bounded compaction so context cannot grow without pressure.
+- [x] Keep extraction selective; do not build a giant ingestion framework.
 
 Definition of done:
 - Braid can produce a bounded, timestamped context package from local work state.
