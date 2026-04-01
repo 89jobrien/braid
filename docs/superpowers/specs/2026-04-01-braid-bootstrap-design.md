@@ -19,7 +19,7 @@ tags: [braid, bootstrap, doctor, setup, hexagonal]
 
 ### Crate boundary
 
-`braid-bootstrap` is a pure library crate with no dependency on any other braid crate. It depends only on workspace-level deps (`anyhow`, `serde`, `serde_json`) and `reqwest` (blocking) for the OpenAI connectivity check — calling the API directly rather than importing `braid-providers` to avoid pulling in `braid-core`.
+`braid-bootstrap` is a pure library crate with no dependency on any other braid crate. It depends on workspace-level deps (`anyhow`, `serde`, `serde_json`), `reqwest` (blocking) for the OpenAI connectivity check, and `toml` for config serialization. `toml` is added to workspace deps.
 
 Dependency addition: `braid-cli` gains `braid-bootstrap = { path = "../braid-bootstrap" }`.
 
@@ -82,26 +82,54 @@ OPENAI_API_KEY         ... ok
 openai connectivity    ... ok
 ```
 
+### Config types
+
+Defined in `braid-bootstrap/src/config.rs`. The file format is derived from the types — never hand-authored strings.
+
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BraidConfig {
+    pub provider: ProviderConfig,
+    pub session:  SessionConfig,
+    pub context:  ContextConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProviderConfig {
+    pub default: String,   // "openai" | "ollama"
+    pub model:   String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionConfig {
+    pub max_turns: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContextConfig {
+    pub budget_tokens: usize,
+}
+
+impl Default for BraidConfig {
+    fn default() -> Self {
+        Self {
+            provider: ProviderConfig { default: "openai".into(), model: "gpt-4o".into() },
+            session:  SessionConfig  { max_turns: 20 },
+            context:  ContextConfig  { budget_tokens: 2000 },
+        }
+    }
+}
+```
+
+`BraidConfig` also exposes `load(path: &Path) -> Result<Self>` for future use by `braid-cli` at startup.
+
 ### Setup flow
 
 `braid_bootstrap::setup::run() -> Result<()>`
 
 Non-interactive, idempotent. Creates:
 - `~/.braid/` directory
-- `~/.braid/config.toml` with default content (does not overwrite if exists)
-
-Default `config.toml`:
-```toml
-[provider]
-default = "openai"
-model   = "gpt-4o"
-
-[session]
-max_turns = 20
-
-[context]
-budget_tokens = 2000
-```
+- `~/.braid/config.toml` serialized from `BraidConfig::default()` via `toml::to_string_pretty()` (does not overwrite if exists)
 
 Prints each action taken:
 ```
@@ -133,6 +161,7 @@ crates/braid-bootstrap/
       workspace.rs  — WorkspaceHealthCheck
       tools.rs      — GitCheck, DoobCheck, CargoNextestCheck, CargoDenyCheck
       config.rs     — BraidConfigDirCheck
+    config.rs       — BraidConfig, ProviderConfig, SessionConfig, ContextConfig
     doctor.rs       — run_checks() → Vec<CheckResult>
     render.rs       — TerminalRenderer
     setup.rs        — run() -> Result<()>
