@@ -16,7 +16,7 @@ Concrete implementation checklist for **Braid**. This note turns the extraction 
 
 - [ ] Create the Rust workspace root and member crates.
 - [ ] Freeze crate boundaries from [Braid - Rust Workspace Spec](./Braid%20-%20Rust%20Workspace%20Spec.md).
-- [ ] Write ADRs for event envelope, tool contract, and component format.
+- [x] Write ADRs for event envelope, tool contract, and component format.
 - [ ] Set testing conventions for unit, contract, and integration coverage.
 - [ ] Define the rule for donor extraction: reimplement ideas, do not port code blindly.
 
