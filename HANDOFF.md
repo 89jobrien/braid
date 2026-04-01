@@ -1,5 +1,59 @@
 # Braid Handoff Notes
 
+## 2026-04-01 — Phase 3: braid-context (Context Assembly)
+
+### What changed
+
+**PR #7 merged** — `feat(braid-context): Phase 3 context assembly crate`
+
+#### New crate: `braid-context`
+
+Context assembly from two sources with two-stage compaction, injected into the engine at session start.
+
+**Types** (`braid-model/src/context.rs`):
+- `ContextChunk` — bounded snapshot from one source (label, content, captured_at, token_estimate)
+- `ContextSummary` — LLM-generated rolling summary replacing raw chunks in long sessions
+- `ContextSnapshot` — assembled output: chunks + optional summary, total token estimate, dropped_chunks count
+
+**Port** (`braid-ports/src/lib.rs`):
+- `ContextProvider` trait — `assemble() / refresh()` — with `Box<T>` and `Arc<T>` blanket impls
+
+**Sources**:
+- `DoobSource` — shells out to `doob todo list --format json`; filters to current project path; staleness window 1h; non-fatal on failure
+- `RepoSource` — runs `git diff --stat HEAD` + `git log --oneline -10`; staleness window 30m; non-fatal on failure
+
+**Assembler** (`ContextAssembler`):
+- Stage 1: drop chunks older than their source's `staleness_window`
+- Stage 2: if token estimate ≤ 50% of budget (default 2000), done; otherwise call `Provider` to summarize into a `ContextSummary` (rolling handoff on each refresh); falls back to oldest-first drop if no provider or summarization fails
+- `dropped_chunks` always populated
+
+**Provider wrapper** (`ContextAssemblerProvider`):
+- Implements `ContextProvider`; caches last snapshot behind `Mutex` for rolling refresh
+
+**Engine integration** (`braid-core`):
+- `Engine<P, T, S, R, C = NoopContextProvider>` — optional 5th generic; `with_context(provider)` builder
+- Injects snapshot as system message prefix at session start; skips silently on error
+
+**CLI wiring** (`braid-cli`):
+- `RefreshContextTool` — calls `provider.refresh()` mid-session
+- `ContextAssemblerProvider` constructed with real `DoobSource` + `RepoSource`; passed to both tool and engine
+
+#### License / CI fixes (on main, post-merge)
+
+- `deny.toml`: added `"Zlib"` to allow list (foldhash via ratatui/hashbrown/lru)
+- `deny.toml`: removed stale entries (`ISC`, `Unicode-DFS-2016`, `MPL-2.0`, `CDLA-Permissive-2.0`) that were triggering `license-not-encountered` warnings treated as errors
+- `braid-observe/Cargo.toml`: removed unused `thiserror` dep (machete)
+
+### Test count
+
+Before: 150 tests | After: 166 tests (+16, 4 skipped — `#[ignore]` integration tests requiring live doob/git)
+
+### Remaining backlog
+
+None. All Phase 1–3 items from the implementation checklist are complete.
+
+---
+
 ## 2026-03-30 — P2: SessionWriter Durability + Dependency Lint
 
 ### What changed
