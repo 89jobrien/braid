@@ -52,7 +52,15 @@ Braid is a **personal agent platform** built as a Rust workspace. It consolidate
 | `braid-hooks` | `Hook` trait with `HookVerdict` (Allow/Deny). `HookedExecutor<T: ToolExecutor>` wraps any executor with pre/post hook gating. Built-in: `DestructiveCommandGuard`, `FreshnessGuard` (placeholder). Engine/Planner unchanged. |
 | `braid-mcp` | MCP server over stdio (JSON-RPC). `McpToolRegistry` for tool registration/dispatch. Echo tool. Only async crate (tokio). CLI `mcp` subcommand. |
 
-**Phases 3–4 (planned, not started)**: `braid-observe`, `braid-context`, `braid-bootstrap`, `braid-components`.
+**Phases 3–4 (planned, not started)**: `braid-context`, `braid-bootstrap`, `braid-components`.
+
+### Rebase Conflicts: Hexagonal Refactor + Phase 3a
+
+When rebasing a branch that predates Phase 3a onto current main, `braid-observe/src/store.rs` needs both sets of changes merged manually:
+1. `braid_ports` import + `EventSink`/`SessionStorage` impls + `Mutex<Vec<Event>>` buffer field (hexagonal refactor)
+2. `SessionWriter`, `root()` method (Phase 3a)
+
+Strategy: take `--theirs` for conflicted files, then add whichever half is missing.
 
 ### Data Flow
 
@@ -88,6 +96,9 @@ All crates share: `anyhow`, `serde` (with derive), `serde_json`, `thiserror`, `t
 - Branch naming: `council/YYYY-MM-DD-description` for council sessions, `feat/description` for features.
 - Push feature branches to the `github` remote and open a PR targeting `main`.
 - The `gitea` remote (`origin`) is the self-hosted primary; `github` is the GitHub mirror.
+- Squash merges cause `git branch -d` to fail with "not fully merged" — use `git branch -D` for squash-merged branches.
+- Remove worktrees (`git worktree remove`) before deleting their branches.
+- `gh pr create` inside a worktree requires `--repo owner/repo --head branch-name --base main` flags.
 
 ## Design Principles
 
