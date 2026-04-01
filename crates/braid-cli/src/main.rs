@@ -4,13 +4,31 @@ use std::sync::Arc;
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
+use braid_context::ContextAssemblerProvider;
 use braid_core::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_hooks::{DestructiveCommandGuard, HookRegistry, HookedExecutor};
-use braid_model::{ContentPart, Message, Role, SessionId};
+use braid_model::{ContentPart, Message, Role, SessionId, ToolCall, ToolResult};
 use braid_observe::SessionStore;
-use braid_ports::Provider;
+use braid_ports::{ContextProvider, Provider, ToolExecutor};
 use braid_providers::OpenAiProvider;
 use braid_redact::{EnvVarRule, HomePathRule, RedactionPipeline, SecretPatternRule};
+
+struct RefreshContextTool {
+    provider: Option<Arc<ContextAssemblerProvider>>,
+}
+
+impl ToolExecutor for RefreshContextTool {
+    fn execute(&self, call: ToolCall) -> Result<ToolResult> {
+        let output = match &self.provider {
+            Some(p) => p.refresh()?.render(),
+            None => "No context provider configured.".to_string(),
+        };
+        Ok(ToolResult {
+            name: call.name,
+            output,
+        })
+    }
+}
 
 #[derive(Parser)]
 #[command(name = "braid")]
@@ -130,7 +148,12 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     let store = Arc::new(SessionStore::open(default_store_dir()?)?);
 
     let hooks = HookRegistry::fail_closed().register(DestructiveCommandGuard::new());
-    let tools = HookedExecutor::new(ToolRegistry::new(), hooks, session_id.clone());
+    let mut registry = ToolRegistry::new();
+    registry.register(
+        "refresh_context",
+        Box::new(RefreshContextTool { provider: None }),
+    );
+    let tools = HookedExecutor::new(registry, hooks, session_id.clone());
 
     let engine = Engine::new(provider, tools, Arc::clone(&store), redactor);
     let output = engine.run(
