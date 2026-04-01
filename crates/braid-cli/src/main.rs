@@ -130,10 +130,22 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     // Arc lets cmd_sessions (and any future caller) share the same store instance.
     let store = Arc::new(SessionStore::open(default_store_dir()?)?);
 
-    let ctx_assembler = ContextAssembler::new(vec![
+    let summarization_provider: Option<Arc<dyn Provider + Send + Sync>> =
+        match OpenAiProvider::new(&model) {
+            Ok(p) if std::env::var("OPENAI_API_KEY").is_ok() => Some(Arc::new(p)),
+            _ => {
+                eprintln!("note: no provider available for context summarization (OPENAI_API_KEY not set)");
+                None
+            }
+        };
+
+    let mut ctx_assembler = ContextAssembler::new(vec![
         Box::new(DoobSource::new()),
         Box::new(RepoSource::new()),
     ]);
+    if let Some(p) = summarization_provider {
+        ctx_assembler = ctx_assembler.with_provider(p);
+    }
     let ctx_provider = Arc::new(ContextAssemblerProvider::new(ctx_assembler));
 
     let hooks = HookRegistry::fail_closed().register(DestructiveCommandGuard::new());
