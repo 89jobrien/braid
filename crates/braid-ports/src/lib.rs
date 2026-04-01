@@ -109,6 +109,31 @@ impl<T: SessionStorage + ?Sized> SessionStorage for Arc<T> {
     }
 }
 
+// ── ContextProvider ──────────────────────────────────────────────────────────
+
+pub trait ContextProvider {
+    fn assemble(&self) -> Result<braid_model::ContextSnapshot>;
+    fn refresh(&self) -> Result<braid_model::ContextSnapshot>;
+}
+
+impl<T: ContextProvider + ?Sized> ContextProvider for Box<T> {
+    fn assemble(&self) -> Result<braid_model::ContextSnapshot> {
+        (**self).assemble()
+    }
+    fn refresh(&self) -> Result<braid_model::ContextSnapshot> {
+        (**self).refresh()
+    }
+}
+
+impl<T: ContextProvider + ?Sized> ContextProvider for Arc<T> {
+    fn assemble(&self) -> Result<braid_model::ContextSnapshot> {
+        (**self).assemble()
+    }
+    fn refresh(&self) -> Result<braid_model::ContextSnapshot> {
+        (**self).refresh()
+    }
+}
+
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
