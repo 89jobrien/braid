@@ -22,20 +22,45 @@ pub fn apply_key(state: &mut AppState, action: KeyAction) -> (bool, bool) {
     (should_quit, session_changed)
 }
 
+/// Reload the session list from disk and clamp the selection.
+fn refresh_sessions(store: &SessionStore, state: &mut AppState) -> Result<()> {
+    state.sessions = store.list()?;
+    if state.selected_session >= state.sessions.len() && !state.sessions.is_empty() {
+        state.selected_session = state.sessions.len() - 1;
+    }
+    Ok(())
+}
+
+/// Reload the selected session, updating `loaded`, `timeline_len`, and `state.error`.
+fn reload_session(store: &SessionStore, state: &mut AppState, loaded: &mut Option<LoadedSession>) {
+    match load_session(store, state) {
+        None => {
+            *loaded = None;
+            state.timeline_len = 0;
+        }
+        Some(Ok(l)) => {
+            state.timeline_len = l.replay.len();
+            state.error = None; // clear any previous error on success
+            *loaded = Some(l);
+        }
+        Some(Err(e)) => {
+            state.error = Some(format!("error: {e}"));
+            *loaded = None;
+            state.timeline_len = 0;
+        }
+    }
+}
+
 pub fn run(terminal: &mut ratatui::DefaultTerminal, store: SessionStore) -> Result<()> {
     use crossterm::event::{self, Event as CrossEvent, KeyCode, KeyEventKind};
 
-    let sessions = store.list()?;
-    let mut state = AppState::new(sessions);
+    let mut state = AppState::new(store.list()?);
 
-    let mut loaded = load_session(&store, &state).and_then(|r| r.ok());
-    if let Some(ref l) = loaded {
-        state.timeline_len = l.replay.len();
-    }
+    let mut loaded: Option<LoadedSession> = None;
+    reload_session(&store, &mut state, &mut loaded);
 
     loop {
-        let loaded_ref = loaded.as_ref();
-        terminal.draw(|frame| crate::ui::render(frame, &state, loaded_ref))?;
+        terminal.draw(|frame| crate::ui::render(frame, &state, loaded.as_ref()))?;
 
         if !event::poll(std::time::Duration::from_millis(100))? {
             continue;
@@ -64,16 +89,17 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal, store: SessionStore) -> Resu
             break;
         }
 
-        if session_changed || action == KeyAction::Reload {
-            loaded = load_session(&store, &state).and_then(|r| match r {
-                Ok(l) => Some(l),
-                Err(e) => {
-                    state.error = Some(format!("error: {e}"));
-                    None
-                }
-            });
-            state.timeline_len = loaded.as_ref().map(|l| l.replay.len()).unwrap_or(0);
+        if action == KeyAction::Reload {
+            // Full refresh: re-read session list from disk, then reload selected session
+            if let Err(e) = refresh_sessions(&store, &mut state) {
+                state.error = Some(format!("error listing sessions: {e}"));
+            }
             state.timeline_cursor = 0;
+            state.detail = crate::keys::DetailState::Collapsed;
+            reload_session(&store, &mut state, &mut loaded);
+        } else if session_changed {
+            state.timeline_cursor = 0;
+            reload_session(&store, &mut state, &mut loaded);
         }
     }
 
@@ -140,5 +166,64 @@ mod tests {
         let state = AppState::new(ids.clone());
         let loaded = load_session(&store, &state).unwrap().unwrap();
         assert_eq!(loaded.replay.id, ids[0]);
+    }
+
+    #[test]
+    fn error_cleared_on_successful_reload() {
+        let (_dir, store, ids) = make_store_with_sessions(1);
+        let mut state = AppState::new(ids);
+        state.error = Some("previous error".into());
+        let mut loaded = None;
+        reload_session(&store, &mut state, &mut loaded);
+        assert!(state.error.is_none(), "error should be cleared on success");
+        assert!(loaded.is_some());
+    }
+
+    #[test]
+    fn error_set_when_session_missing() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        // State points to a session ID that doesn't exist on disk
+        let mut state = AppState::new(vec![SessionId("ghost".into())]);
+        let mut loaded = None;
+        reload_session(&store, &mut state, &mut loaded);
+        assert!(
+            state.error.is_some(),
+            "error should be set for missing session"
+        );
+        assert!(loaded.is_none());
+    }
+
+    #[test]
+    fn refresh_sessions_updates_list_and_clamps_selection() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+
+        // Start with 3 sessions
+        let (_dir2, store2, ids) = make_store_with_sessions(3);
+        let mut state = AppState::new(ids);
+        state.selected_session = 2;
+
+        // Simulate store with only 1 session (others pruned)
+        let small_store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let id = SessionId("only".into());
+        small_store
+            .write(
+                &id,
+                &[Event {
+                    session_id: id.clone(),
+                    kind: EventKind::SessionStarted,
+                }],
+            )
+            .unwrap();
+
+        refresh_sessions(&small_store, &mut state).unwrap();
+        assert_eq!(state.sessions.len(), 1);
+        assert_eq!(
+            state.selected_session, 0,
+            "selection clamped to last valid index"
+        );
+
+        let _ = store2; // keep alive
     }
 }

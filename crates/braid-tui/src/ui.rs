@@ -9,6 +9,19 @@ use ratatui::{
 use crate::app::LoadedSession;
 use crate::keys::{AppState, DetailState, Focus};
 
+/// Strip terminal control characters from a string before rendering.
+/// Replaces escape sequences and other non-printable chars (except tab/newline)
+/// with '·' to prevent ANSI injection from untrusted session content.
+fn sanitize(s: &str) -> String {
+    s.chars()
+        .map(|c| match c {
+            '\t' | '\n' => c,
+            c if (c as u32) < 0x20 || c == '\x7f' => '·',
+            _ => c,
+        })
+        .collect()
+}
+
 pub fn render(frame: &mut Frame, state: &AppState, loaded: Option<&LoadedSession>) {
     let size = frame.area();
 
@@ -169,7 +182,13 @@ fn render_timeline(
                     " "
                 };
                 let line = match detail {
-                    Some(d) => format!("  {:>3}  {:<22}{} {}", re.index, kind_str, marker, d),
+                    Some(d) => format!(
+                        "  {:>3}  {:<22}{} {}",
+                        re.index,
+                        kind_str,
+                        marker,
+                        sanitize(d)
+                    ),
                     None => format!("  {:>3}  {}{}", re.index, kind_str, marker),
                 };
                 ListItem::new(line)
@@ -203,7 +222,10 @@ fn render_detail(frame: &mut Frame, state: &AppState, loaded: Option<&LoadedSess
     let content = match (&state.detail, loaded) {
         (DetailState::Expanded(index), Some(s)) => match s.replay.get(*index) {
             Some(re) => match &re.payload {
-                Some(val) => serde_json::to_string_pretty(val).unwrap_or_else(|_| "?".into()),
+                Some(val) => {
+                    let raw = serde_json::to_string_pretty(val).unwrap_or_else(|_| "?".into());
+                    sanitize(&raw)
+                }
                 None => "(no payload)".into(),
             },
             None => "(event not found)".into(),
