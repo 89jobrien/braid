@@ -35,6 +35,8 @@ enum Command {
     },
     /// Check environment health
     Doctor,
+    /// Set up local braid environment (~/.braid/)
+    Setup,
     /// Start MCP server over stdio
     Mcp,
     /// Manage stored sessions
@@ -184,104 +186,15 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
 }
 
 fn cmd_doctor() -> Result<()> {
-    doctor::run_checks()
+    let results = braid_bootstrap::doctor::run_checks();
+    braid_bootstrap::render::TerminalRenderer::render(&results);
+    Ok(())
 }
 
-mod doctor {
-    use anyhow::Result;
-    use std::process::Command as ProcessCommand;
-
-    pub fn run_checks() -> Result<()> {
-        check_rust_toolchain();
-        check_openai_key();
-        check_ollama_connectivity();
-        check_openai_connectivity();
-        check_workspace_health();
-        Ok(())
-    }
-
-    fn check_ollama_connectivity() {
-        let output = ProcessCommand::new("curl")
-            .args(["-sf", "http://localhost:11434/api/tags"])
-            .output();
-        match output {
-            Ok(out) if out.status.success() => println!("ollama ... ok"),
-            _ => println!("ollama ... not reachable (http://localhost:11434)"),
-        }
-    }
-
-    fn check_rust_toolchain() {
-        let output = ProcessCommand::new("rustc").arg("--version").output();
-        match output {
-            Ok(out) if out.status.success() => {
-                let version_str = String::from_utf8_lossy(&out.stdout);
-                let version = version_str
-                    .trim()
-                    .strip_prefix("rustc ")
-                    .unwrap_or(version_str.trim());
-                let parts: Vec<&str> = version.split('.').collect();
-                if parts.len() >= 2 {
-                    let major: u32 = parts[0].parse().unwrap_or(0);
-                    let minor: u32 = parts[1].parse().unwrap_or(0);
-                    if major >= 1 && minor >= 88 {
-                        println!("rust toolchain ... ok ({version})");
-                    } else {
-                        println!("rust toolchain ... FAIL (found {version}, need >= 1.88)");
-                    }
-                } else {
-                    println!("rust toolchain ... FAIL (could not parse version: {version})");
-                }
-            }
-            _ => println!("rust toolchain ... FAIL (rustc not found)"),
-        }
-    }
-
-    fn check_openai_key() {
-        if std::env::var("OPENAI_API_KEY").is_ok() {
-            println!("OPENAI_API_KEY ... set");
-        } else {
-            println!("OPENAI_API_KEY ... not set");
-        }
-    }
-
-    fn check_openai_connectivity() {
-        if std::env::var("OPENAI_API_KEY").is_err() {
-            println!("openai connectivity ... skipped (no API key)");
-            return;
-        }
-
-        use braid_model::{ContentPart, Message, ProviderRequest, Role};
-        use braid_ports::Provider;
-        use braid_providers::OpenAiProvider;
-
-        match OpenAiProvider::new("gpt-4o") {
-            Ok(provider) => {
-                let request = ProviderRequest {
-                    messages: vec![Message {
-                        role: Role::User,
-                        content: vec![ContentPart::Text { text: "hi".into() }],
-                    }],
-                    tools: vec![],
-                };
-                match provider.complete(request) {
-                    Ok(_) => println!("openai connectivity ... ok"),
-                    Err(e) => println!("openai connectivity ... FAIL ({e})"),
-                }
-            }
-            Err(e) => println!("openai connectivity ... FAIL ({e})"),
-        }
-    }
-
-    fn check_workspace_health() {
-        let output = ProcessCommand::new("cargo")
-            .args(["check", "--workspace"])
-            .output();
-        match output {
-            Ok(out) if out.status.success() => println!("workspace health ... ok"),
-            Ok(_) => println!("workspace health ... FAIL (cargo check failed)"),
-            Err(_) => println!("workspace health ... FAIL (cargo not found)"),
-        }
-    }
+fn cmd_setup() -> Result<()> {
+    let home = std::env::var("HOME").context("HOME not set")?;
+    let braid_dir = std::path::PathBuf::from(home).join(".braid");
+    braid_bootstrap::setup::run(&braid_dir)
 }
 
 fn main() -> Result<()> {
@@ -294,6 +207,7 @@ fn main() -> Result<()> {
             model,
         } => cmd_run(prompt, provider, model),
         Command::Doctor => cmd_doctor(),
+        Command::Setup => cmd_setup(),
         Command::Mcp => cmd_mcp(),
         Command::Sessions { action } => cmd_sessions(action),
     }
