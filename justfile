@@ -15,6 +15,7 @@ test:
 
 pre-commit:
     cargo fmt --all --check
+    cargo build --release --workspace
     cargo clippy --workspace -- -D warnings
     cargo nextest run --workspace
 
