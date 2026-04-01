@@ -1,6 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+/// Rough token estimate: 1 token ≈ 4 bytes of UTF-8 text.
+pub fn estimate_tokens(text: &str) -> usize {
+    text.len() / 4
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContextChunk {
     pub source: String,
@@ -13,7 +18,7 @@ pub struct ContextChunk {
 impl ContextChunk {
     pub fn new(source: &'static str, label: impl Into<String>, content: impl Into<String>) -> Self {
         let content = content.into();
-        let token_estimate = content.len() / 4;
+        let token_estimate = estimate_tokens(&content);
         Self {
             source: source.into(),
             label: label.into(),

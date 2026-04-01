@@ -101,7 +101,12 @@ where
                         },
                     );
                 }
-                _ => {} // no context or error — proceed without
+                Ok(_) => {} // empty snapshot — proceed without
+                Err(e) => {
+                    eprintln!(
+                        "[braid-core] context assembly failed, proceeding without context: {e:#}"
+                    );
+                }
             }
         }
 

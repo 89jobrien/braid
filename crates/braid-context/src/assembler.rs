@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anyhow::{Result, bail};
 use braid_model::{
     ContentPart, ContextChunk, ContextSnapshot, ContextSummary, Message, ProviderRequest, Role,
+    estimate_tokens,
 };
 use braid_ports::Provider;
 use chrono::Utc;
@@ -173,7 +174,7 @@ impl ContextAssembler {
             })
             .unwrap_or_default();
 
-        let token_estimate = content.len() / 4;
+        let token_estimate = estimate_tokens(&content);
 
         Ok(ContextSummary {
             content,
