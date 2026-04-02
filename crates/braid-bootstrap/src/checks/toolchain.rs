@@ -9,7 +9,10 @@ impl Check for RustToolchainCheck {
         match output {
             Ok(out) if out.status.success() => {
                 let raw = String::from_utf8_lossy(&out.stdout);
-                let version = raw.trim().strip_prefix("rustc ").unwrap_or(raw.trim());
+                let version = raw
+                    .trim()
+                    .strip_prefix("rustc ")
+                    .unwrap_or_else(|| raw.trim());
                 let parts: Vec<&str> = version.split('.').collect();
                 let ok = parts.len() >= 2
                     && parts[0].parse::<u32>().unwrap_or(0) >= 1

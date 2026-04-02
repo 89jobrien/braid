@@ -13,7 +13,7 @@ pub struct HookedExecutor<T: ToolExecutor> {
 }
 
 impl<T: ToolExecutor> HookedExecutor<T> {
-    pub fn new(inner: T, registry: HookRegistry, session_id: SessionId) -> Self {
+    pub const fn new(inner: T, registry: HookRegistry, session_id: SessionId) -> Self {
         Self {
             inner,
             registry,
@@ -65,7 +65,7 @@ mod tests {
 
     struct BlockAllHook;
     impl Hook for BlockAllHook {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "block-all"
         }
         fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
@@ -86,7 +86,7 @@ mod tests {
                 name: "echo".into(),
                 input: "hi".into(),
             })
-            .unwrap();
+            .expect("should succeed");
         assert_eq!(result.output, "hello");
     }
 
@@ -101,7 +101,7 @@ mod tests {
                 name: "echo".into(),
                 input: "hi".into(),
             })
-            .unwrap_err();
+            .expect_err("should fail");
         assert!(err.to_string().contains("blocked"));
         assert!(err.to_string().contains("remediation"));
     }
@@ -121,7 +121,7 @@ mod tests {
                 name: "shell".into(),
                 input: "ls -la".into(),
             })
-            .unwrap();
+            .expect("should succeed");
         assert_eq!(result.output, "output");
 
         // Destructive command blocked
@@ -131,7 +131,7 @@ mod tests {
                 name: "shell".into(),
                 input: "rm -rf /".into(),
             })
-            .unwrap_err();
+            .expect_err("should fail");
         assert!(err.to_string().contains("rm -rf"));
     }
 }

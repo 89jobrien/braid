@@ -10,13 +10,13 @@ pub struct FreshnessGuard {
 }
 
 impl FreshnessGuard {
-    pub fn new(max_age: Duration) -> Self {
+    pub const fn new(max_age: Duration) -> Self {
         Self { max_age }
     }
 }
 
 impl Hook for FreshnessGuard {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "freshness-guard"
     }
 
@@ -28,7 +28,6 @@ impl Hook for FreshnessGuard {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use braid_model::{SessionId, ToolCall};
@@ -44,6 +43,9 @@ mod tests {
                 input: "file.txt".into(),
             },
         };
-        assert_eq!(guard.pre_execute(&ctx).unwrap(), HookVerdict::Allow);
+        assert_eq!(
+            guard.pre_execute(&ctx).expect("pre_execute failed"),
+            HookVerdict::Allow
+        );
     }
 }

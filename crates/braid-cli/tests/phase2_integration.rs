@@ -170,7 +170,7 @@ fn mcp_registry_rejects_unknown_tool_with_error() {
     });
 
     let err = registry
-        .call_tool("nonexistent", serde_json::json!({}))
+        .call_tool("nonexistent", &serde_json::json!({}))
         .unwrap_err();
 
     assert!(
@@ -205,12 +205,12 @@ fn mcp_registry_propagates_hook_denial() {
     .register(echo_tool());
 
     // Safe echo call succeeds
-    let ok = registry.call_tool("echo", serde_json::json!({ "message": "hi" }));
+    let ok = registry.call_tool("echo", &serde_json::json!({ "message": "hi" }));
     assert!(ok.is_ok(), "safe call must succeed: {ok:?}");
 
     // Unknown tool is rejected by the registry before the executor runs
     let err = registry
-        .call_tool("nonexistent", serde_json::json!({}))
+        .call_tool("nonexistent", &serde_json::json!({}))
         .unwrap_err();
     assert!(err.to_string().contains("unknown tool"), "{err}");
 }
@@ -230,7 +230,7 @@ fn fail_closed_hook_error_propagates_through_executor() {
 
     struct BrokenHook;
     impl Hook for BrokenHook {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "broken-hook"
         }
         fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
@@ -273,7 +273,7 @@ fn post_execute_hook_fires_after_successful_tool_call() {
         fired: Arc<Mutex<bool>>,
     }
     impl Hook for TrackingHook {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "tracking-hook"
         }
         fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {

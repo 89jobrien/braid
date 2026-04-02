@@ -37,7 +37,7 @@ impl SessionStore {
         let mut f = fs::File::create(&events_path)?;
         for event in events {
             let line = serde_json::to_string(event)?;
-            writeln!(f, "{}", line)?;
+            writeln!(f, "{line}")?;
         }
 
         // Write meta.json atomically (write-then-rename)
@@ -99,10 +99,8 @@ impl SessionStore {
                 continue;
             }
             let id = SessionId(entry.file_name().to_string_lossy().into_owned());
-            let written_at = self
-                .load_meta(&id)?
-                .map(|m| m.written_at)
-                .unwrap_or_else(|| {
+            let written_at = self.load_meta(&id)?.map_or_else(
+                || {
                     entry
                         .metadata()
                         .and_then(|m| m.modified())
@@ -110,7 +108,9 @@ impl SessionStore {
                         .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
                         .map(|d| format_rfc3339(d.as_secs()))
                         .unwrap_or_default()
-                });
+                },
+                |m| m.written_at,
+            );
             entries.push((id, written_at));
         }
         // Sort newest first (RFC 3339 strings sort lexicographically)
@@ -132,7 +132,7 @@ impl SessionStore {
         Ok(count)
     }
 
-    /// Expose the root directory for use by ReplaySession and other readers.
+    /// Expose the root directory for use by `ReplaySession` and other readers.
     pub fn root(&self) -> &std::path::Path {
         &self.root
     }
@@ -143,6 +143,7 @@ impl SessionStore {
 }
 
 /// Streams events to disk one at a time during an active session.
+///
 /// Call `finish()` to write `meta.json`. Safe to drop without `finish()` —
 /// partial events remain on disk for inspection, but `meta.json` is absent.
 #[derive(Debug)]
@@ -171,7 +172,7 @@ impl SessionWriter {
 
     pub fn write_event(&mut self, event: &Event) -> Result<()> {
         let line = serde_json::to_string(event)?;
-        writeln!(self.file, "{}", line)?;
+        writeln!(self.file, "{line}")?;
         self.file.flush()?;
         self.event_count += 1;
         Ok(())
@@ -248,14 +249,14 @@ fn format_rfc3339(secs: u64) -> String {
     let h = (secs / 3600) % 24;
     let days = secs / 86400;
     let (y, mo, d) = days_to_ymd(days);
-    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", y, mo, d, h, m, s)
+    format!("{y:04}-{mo:02}-{d:02}T{h:02}:{m:02}:{s:02}Z")
 }
 
-fn days_to_ymd(days: u64) -> (u64, u64, u64) {
-    let z = days + 719468;
-    let era = z / 146097;
-    let doe = z % 146097;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+const fn days_to_ymd(days: u64) -> (u64, u64, u64) {
+    let z = days + 719_468;
+    let era = z / 146_097;
+    let doe = z % 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146_096) / 365;
     let y = yoe + era * 400;
     let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
     let mp = (5 * doy + 2) / 153;
@@ -290,27 +291,29 @@ mod tests {
 
     #[test]
     fn writes_and_loads_roundtrip() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
         let id = SessionId("sess-1".into());
         let events = make_events("sess-1");
-        store.write(&id, &events).unwrap();
-        let loaded = store.load(&id).unwrap();
+        store.write(&id, &events).expect("should succeed");
+        let loaded = store.load(&id).expect("should succeed");
         assert_eq!(loaded, events);
     }
 
     #[test]
     fn list_returns_sessions_by_recency() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
 
         for id_str in &["sess-a", "sess-b", "sess-c"] {
             let id = SessionId(id_str.to_string());
-            store.write(&id, &make_events(id_str)).unwrap();
+            store
+                .write(&id, &make_events(id_str))
+                .expect("should succeed");
             std::thread::sleep(std::time::Duration::from_secs(1));
         }
 
-        let list = store.list().unwrap();
+        let list = store.list().expect("should succeed");
         assert_eq!(list.len(), 3);
         assert_eq!(list[0].0, "sess-c");
         assert_eq!(list[2].0, "sess-a");
@@ -318,68 +321,73 @@ mod tests {
 
     #[test]
     fn prune_removes_oldest() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
 
         for i in 0..5 {
             let id = SessionId(format!("sess-{i}"));
             store
                 .write(&id, &make_events(&format!("sess-{i}")))
-                .unwrap();
+                .expect("should succeed");
             std::thread::sleep(std::time::Duration::from_secs(1));
         }
 
-        let deleted = store.prune(3).unwrap();
+        let deleted = store.prune(3).expect("should succeed");
         assert_eq!(deleted, 2);
 
-        let remaining = store.list().unwrap();
+        let remaining = store.list().expect("should succeed");
         assert_eq!(remaining.len(), 3);
         assert_eq!(remaining[0].0, "sess-4");
     }
 
     #[test]
     fn load_missing_session_errors() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let err = store.load(&SessionId("ghost".into())).unwrap_err();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let err = store
+            .load(&SessionId("ghost".into()))
+            .expect_err("should fail");
         assert!(err.to_string().contains("ghost"));
     }
 
     #[test]
     fn load_succeeds_when_meta_absent() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
 
         // Write events.jsonl manually without meta.json
         let sess_dir = dir.path().join("orphan");
-        std::fs::create_dir_all(&sess_dir).unwrap();
+        std::fs::create_dir_all(&sess_dir).expect("should succeed");
         let id = SessionId("orphan".into());
         let events = make_events("orphan");
-        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
+        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).expect("should succeed");
         for e in &events {
-            writeln!(f, "{}", serde_json::to_string(e).unwrap()).unwrap();
+            writeln!(f, "{}", serde_json::to_string(e).expect("should succeed"))
+                .expect("should succeed");
         }
 
         // load() should succeed (best-effort)
-        let loaded = store.load(&id).unwrap();
+        let loaded = store.load(&id).expect("should succeed");
         assert_eq!(loaded, events);
 
         // load_meta() returns None
-        let meta = store.load_meta(&id).unwrap();
+        let meta = store.load_meta(&id).expect("should succeed");
         assert!(meta.is_none());
     }
 
     #[test]
     fn prune_keep_all_is_noop() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
         for i in 0..3 {
             let id = SessionId(format!("s{i}"));
-            store.write(&id, &make_events(&format!("s{i}"))).unwrap();
+            store
+                .write(&id, &make_events(&format!("s{i}")))
+                .expect("should succeed");
         }
-        let deleted = store.prune(10).unwrap();
+        let deleted = store.prune(10).expect("should succeed");
         assert_eq!(deleted, 0);
-        assert_eq!(store.list().unwrap().len(), 3);
+        assert_eq!(store.list().expect("should succeed").len(), 3);
     }
 
     /// Golden test: these JSON strings ARE the on-disk format.
@@ -418,7 +426,7 @@ mod tests {
             let event: Event = serde_json::from_str(json)
                 .unwrap_or_else(|e| panic!("failed to parse {json}: {e}"));
             assert_eq!(&event.kind, expected_kind, "kind mismatch for {json}");
-            let re = serde_json::to_string(&event).unwrap();
+            let re = serde_json::to_string(&event).expect("should succeed");
             assert_eq!(
                 &re, json,
                 "re-serialized form changed for {expected_kind:?}"
@@ -431,21 +439,21 @@ mod tests {
     /// the unknown lines.
     #[test]
     fn forward_compat_skips_unknown_event_kind() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
         let sess_dir = dir.path().join("s1");
-        std::fs::create_dir_all(&sess_dir).unwrap();
-        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
-        writeln!(f, r#"{{"session_id":"s1","kind":"SessionStarted"}}"#).unwrap();
+        std::fs::create_dir_all(&sess_dir).expect("should succeed");
+        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).expect("should succeed");
+        writeln!(f, r#"{{"session_id":"s1","kind":"SessionStarted"}}"#).expect("should succeed");
         // Simulate an event kind added in a future release
         writeln!(
             f,
             r#"{{"session_id":"s1","kind":{{"ProviderStreaming":{{"token":"hi"}}}}}}"#
         )
-        .unwrap();
-        writeln!(f, r#"{{"session_id":"s1","kind":"SessionCompleted"}}"#).unwrap();
+        .expect("should succeed");
+        writeln!(f, r#"{{"session_id":"s1","kind":"SessionCompleted"}}"#).expect("should succeed");
 
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&SessionId("s1".into())).unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let events = store.load(&SessionId("s1".into())).expect("should succeed");
 
         assert_eq!(events.len(), 2, "unknown variant must be skipped");
         assert_eq!(events[0].kind, EventKind::SessionStarted);
@@ -454,10 +462,10 @@ mod tests {
 
     #[test]
     fn session_writer_streams_events_incrementally() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
         let id = SessionId("stream-1".into());
 
-        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+        let mut writer = SessionWriter::open(dir.path(), &id).expect("should succeed");
 
         let e1 = Event {
             session_id: id.clone(),
@@ -468,16 +476,16 @@ mod tests {
             kind: EventKind::ProviderResponded,
         };
 
-        writer.write_event(&e1).unwrap();
+        writer.write_event(&e1).expect("should succeed");
         // Events are on disk immediately — load mid-session
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let partial = store.load(&id).unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let partial = store.load(&id).expect("should succeed");
         assert_eq!(partial.len(), 1, "first event visible before finish");
 
-        writer.write_event(&e2).unwrap();
-        writer.finish().unwrap();
+        writer.write_event(&e2).expect("should succeed");
+        writer.finish().expect("should succeed");
 
-        let loaded = store.load(&id).unwrap();
+        let loaded = store.load(&id).expect("should succeed");
         assert_eq!(loaded.len(), 2);
         assert_eq!(loaded[0].kind, EventKind::SessionStarted);
         assert_eq!(loaded[1].kind, EventKind::ProviderResponded);
@@ -485,37 +493,37 @@ mod tests {
 
     #[test]
     fn session_writer_writes_meta_on_finish() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
         let id = SessionId("stream-2".into());
-        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+        let mut writer = SessionWriter::open(dir.path(), &id).expect("should succeed");
         writer
             .write_event(&Event {
                 session_id: id.clone(),
                 kind: EventKind::SessionStarted,
             })
-            .unwrap();
-        writer.finish().unwrap();
+            .expect("should succeed");
+        writer.finish().expect("should succeed");
 
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let meta = store.load_meta(&id).unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let meta = store.load_meta(&id).expect("should succeed");
         assert!(meta.is_some(), "meta.json written after finish");
-        assert_eq!(meta.unwrap().event_count, 1);
+        assert_eq!(meta.expect("should succeed").event_count, 1);
     }
 
     #[test]
     fn unknown_event_kind_survives_roundtrip() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
         let sess_dir = dir.path().join("u1");
-        std::fs::create_dir_all(&sess_dir).unwrap();
-        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
+        std::fs::create_dir_all(&sess_dir).expect("should succeed");
+        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).expect("should succeed");
         writeln!(
             f,
             "{{\"session_id\":\"u1\",\"kind\":{{\"Unknown\":{{\"raw\":\"future-event\"}}}}}}"
         )
-        .unwrap();
+        .expect("should succeed");
 
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&SessionId("u1".into())).unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let events = store.load(&SessionId("u1".into())).expect("should succeed");
         assert_eq!(events.len(), 1);
         assert!(matches!(&events[0].kind, EventKind::Unknown { .. }));
     }
@@ -523,25 +531,25 @@ mod tests {
     /// Drop without calling finish() leaves events readable but no meta.json.
     #[test]
     fn drop_without_finish_leaves_events_readable() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
         let id = SessionId("drop-1".into());
 
         {
-            let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+            let mut writer = SessionWriter::open(dir.path(), &id).expect("should succeed");
             writer
                 .write_event(&Event {
                     session_id: id.clone(),
                     kind: EventKind::SessionStarted,
                 })
-                .unwrap();
+                .expect("should succeed");
             // dropped here without calling finish()
         }
 
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&id).unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let events = store.load(&id).expect("should succeed");
         assert_eq!(events.len(), 1, "events survive drop without finish");
 
-        let meta = store.load_meta(&id).unwrap();
+        let meta = store.load_meta(&id).expect("should succeed");
         assert!(meta.is_none(), "meta.json absent when finish() not called");
     }
 
@@ -549,18 +557,21 @@ mod tests {
     /// This simulates a crash mid-write where the last JSON object is incomplete.
     #[test]
     fn partial_write_last_line_is_skipped() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
         let sess_dir = dir.path().join("partial-1");
-        std::fs::create_dir_all(&sess_dir).unwrap();
+        std::fs::create_dir_all(&sess_dir).expect("should succeed");
 
-        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).unwrap();
+        let mut f = std::fs::File::create(sess_dir.join("events.jsonl")).expect("should succeed");
         // Complete event
-        writeln!(f, r#"{{"session_id":"partial-1","kind":"SessionStarted"}}"#).unwrap();
+        writeln!(f, r#"{{"session_id":"partial-1","kind":"SessionStarted"}}"#)
+            .expect("should succeed");
         // Truncated / corrupt line — no closing brace
-        write!(f, r#"{{"session_id":"partial-1","kind":"SessionComple"#).unwrap();
+        write!(f, r#"{{"session_id":"partial-1","kind":"SessionComple"#).expect("should succeed");
 
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
-        let events = store.load(&SessionId("partial-1".into())).unwrap();
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let events = store
+            .load(&SessionId("partial-1".into()))
+            .expect("should succeed");
 
         assert_eq!(
             events.len(),
@@ -574,17 +585,17 @@ mod tests {
     /// is no window where a partial meta.json is visible to concurrent readers.
     #[test]
     fn finish_is_atomic_no_tmp_left_behind() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
         let id = SessionId("atomic-1".into());
 
-        let mut writer = SessionWriter::open(dir.path(), &id).unwrap();
+        let mut writer = SessionWriter::open(dir.path(), &id).expect("should succeed");
         writer
             .write_event(&Event {
                 session_id: id.clone(),
                 kind: EventKind::SessionStarted,
             })
-            .unwrap();
-        writer.finish().unwrap();
+            .expect("should succeed");
+        writer.finish().expect("should succeed");
 
         let sess_dir = dir.path().join(&id.0);
         assert!(

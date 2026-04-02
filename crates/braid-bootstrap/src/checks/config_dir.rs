@@ -4,15 +4,12 @@ pub struct BraidConfigDirCheck;
 
 impl Check for BraidConfigDirCheck {
     fn run(&self) -> CheckResult {
-        let home = match std::env::var("HOME") {
-            Ok(h) => h,
-            Err(_) => {
-                return CheckResult {
-                    name: "~/.braid dir",
-                    status: CheckStatus::Fail,
-                    message: "HOME not set".into(),
-                };
-            }
+        let Ok(home) = std::env::var("HOME") else {
+            return CheckResult {
+                name: "~/.braid dir",
+                status: CheckStatus::Fail,
+                message: "HOME not set".into(),
+            };
         };
         let dir = std::path::PathBuf::from(home).join(".braid");
         if dir.exists() {
@@ -37,7 +34,7 @@ mod tests {
 
     #[test]
     fn config_dir_check_returns_warn_when_dir_absent() {
-        let tmp = tempfile::tempdir().unwrap();
+        let tmp = tempfile::tempdir().expect("tempdir");
         unsafe { std::env::set_var("HOME", tmp.path()) };
         let r = BraidConfigDirCheck.run();
         assert!(matches!(r.status, CheckStatus::Warn));

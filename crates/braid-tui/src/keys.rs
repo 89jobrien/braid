@@ -25,7 +25,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(sessions: Vec<SessionId>) -> Self {
+    pub const fn new(sessions: Vec<SessionId>) -> Self {
         Self {
             sessions,
             selected_session: 0,
@@ -38,7 +38,7 @@ impl AppState {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KeyAction {
     Tab,
     Up,
@@ -91,16 +91,16 @@ pub fn handle_key(state: &mut AppState, action: KeyAction) -> bool {
             if state.focus == Focus::Timeline && state.timeline_len > 0 {
                 let event_index = state.timeline_cursor + 1; // 1-based
                 state.detail = match &state.detail {
-                    DetailState::Collapsed => DetailState::Expanded(event_index),
                     DetailState::Expanded(i) if *i == event_index => DetailState::Collapsed,
-                    DetailState::Expanded(_) => DetailState::Expanded(event_index),
+                    DetailState::Collapsed | DetailState::Expanded(_) => {
+                        DetailState::Expanded(event_index)
+                    }
                 };
             }
         }
-        KeyAction::Reload => {
+        KeyAction::Reload | KeyAction::Other => {
             // Caller handles reload; state reset done externally
         }
-        KeyAction::Other => {}
     }
     false
 }

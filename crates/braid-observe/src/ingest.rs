@@ -144,7 +144,7 @@ impl Ingester for DevloopIngester {
             if session_id.is_none()
                 && let Some(rid) = val.get("run_id").and_then(|v| v.as_str())
             {
-                session_id = Some(SessionId(format!("devloop-{}", rid)));
+                session_id = Some(SessionId(format!("devloop-{rid}")));
             }
 
             let sid = match &session_id {

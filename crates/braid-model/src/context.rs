@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Rough token estimate: 1 token ≈ 4 bytes of UTF-8 text.
-pub fn estimate_tokens(text: &str) -> usize {
+pub const fn estimate_tokens(text: &str) -> usize {
     text.len() / 4
 }
 
@@ -62,7 +62,7 @@ impl ContextSnapshot {
     }
 
     pub fn total_tokens(&self) -> usize {
-        let summary_tokens = self.summary.as_ref().map(|s| s.token_estimate).unwrap_or(0);
+        let summary_tokens = self.summary.as_ref().map_or(0, |s| s.token_estimate);
         let chunk_tokens: usize = self.chunks.iter().map(|c| c.token_estimate).sum();
         summary_tokens + chunk_tokens
     }

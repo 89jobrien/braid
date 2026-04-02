@@ -92,9 +92,9 @@ fn handle_request(registry: &McpToolRegistry, req: &JsonRpcRequest) -> JsonRpcRe
                 .params
                 .get("arguments")
                 .cloned()
-                .unwrap_or(Value::Object(Default::default()));
+                .unwrap_or_else(|| Value::Object(serde_json::Map::default()));
 
-            match registry.call_tool(name, arguments) {
+            match registry.call_tool(name, &arguments) {
                 Ok(result) => JsonRpcResponse::success(
                     id,
                     serde_json::json!({
@@ -145,9 +145,8 @@ pub async fn run_mcp_server(registry: McpToolRegistry) -> Result<()> {
             }
         }
 
-        let len = match content_length {
-            Some(n) => n,
-            None => continue, // no Content-Length header, skip
+        let Some(len) = content_length else {
+            continue; // no Content-Length header, skip
         };
 
         // Read exactly len bytes for the body
@@ -174,7 +173,6 @@ pub async fn run_mcp_server(registry: McpToolRegistry) -> Result<()> {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::tools::echo::echo_tool;
@@ -210,7 +208,7 @@ mod tests {
         let req = make_request("initialize", Value::Object(Default::default()));
         let resp = handle_request(&registry, &req);
         assert!(resp.result.is_some());
-        let result = resp.result.unwrap();
+        let result = resp.result.expect("should be present");
         assert_eq!(result["protocolVersion"], "2024-11-05");
         assert!(result["capabilities"]["tools"].is_object());
     }
@@ -220,8 +218,8 @@ mod tests {
         let registry = make_registry();
         let req = make_request("tools/list", Value::Object(Default::default()));
         let resp = handle_request(&registry, &req);
-        let result = resp.result.unwrap();
-        let tools = result["tools"].as_array().unwrap();
+        let result = resp.result.expect("should be present");
+        let tools = result["tools"].as_array().expect("should be present");
         assert_eq!(tools.len(), 1);
         assert_eq!(tools[0]["name"], "echo");
     }
@@ -237,8 +235,8 @@ mod tests {
             }),
         );
         let resp = handle_request(&registry, &req);
-        let result = resp.result.unwrap();
-        let content = result["content"].as_array().unwrap();
+        let result = resp.result.expect("should be present");
+        let content = result["content"].as_array().expect("should be present");
         assert_eq!(content[0]["text"], "hello world");
     }
 
@@ -248,7 +246,7 @@ mod tests {
         let req = make_request("unknown/method", Value::Object(Default::default()));
         let resp = handle_request(&registry, &req);
         assert!(resp.error.is_some());
-        assert_eq!(resp.error.unwrap().code, -32601);
+        assert_eq!(resp.error.expect("should be present").code, -32601);
     }
 
     #[test]

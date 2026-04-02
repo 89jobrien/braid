@@ -149,7 +149,7 @@ pub enum HookVerdict {
 }
 
 pub trait Hook: Send + Sync {
-    fn name(&self) -> &str;
+    fn name(&self) -> &'static str;
     fn pre_execute(&self, ctx: &HookContext) -> Result<HookVerdict>;
     fn post_execute(&self, _ctx: &HookContext, _result: &ToolResult) {}
 }

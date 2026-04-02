@@ -114,8 +114,8 @@ fn default_store_dir() -> Result<std::path::PathBuf> {
         .join("sessions"))
 }
 
-fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: String) -> Result<()> {
-    let provider = resolve_provider(provider_flag.as_deref(), &model)?;
+fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<&str>, model: &str) -> Result<()> {
+    let provider = resolve_provider(provider_flag, model)?;
     let prompt = resolve_prompt(prompt_arg)?;
 
     let redactor = RedactionPipeline::new()
@@ -135,7 +135,7 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     let store = Arc::new(SessionStore::open(default_store_dir()?)?);
 
     let summarization_provider: Option<Arc<dyn Provider + Send + Sync>> =
-        match OpenAiProvider::new(&model) {
+        match OpenAiProvider::new(model) {
             Ok(p) if std::env::var("OPENAI_API_KEY").is_ok() => Some(Arc::new(p)),
             _ => {
                 eprintln!(
@@ -189,10 +189,9 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: Str
     Ok(())
 }
 
-fn cmd_doctor() -> Result<()> {
+fn cmd_doctor() {
     let results = braid_bootstrap::doctor::run_checks();
     braid_bootstrap::render::TerminalRenderer::render(&results);
-    Ok(())
 }
 
 fn cmd_setup() -> Result<()> {
@@ -209,8 +208,11 @@ fn main() -> Result<()> {
             prompt,
             provider,
             model,
-        } => cmd_run(prompt, provider, model),
-        Command::Doctor => cmd_doctor(),
+        } => cmd_run(prompt, provider.as_deref(), &model),
+        Command::Doctor => {
+            cmd_doctor();
+            Ok(())
+        }
         Command::Setup => cmd_setup(),
         Command::Mcp => cmd_mcp(),
         Command::Sessions { action } => cmd_sessions(action),

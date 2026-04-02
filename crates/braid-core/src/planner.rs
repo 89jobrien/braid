@@ -26,7 +26,7 @@ pub trait Planner {
 
 /// Default planner: standard tool-call loop.
 ///
-/// 1. If turn_count >= max_turns, finish with last response (or error).
+/// 1. If `turn_count` >= `max_turns`, finish with last response (or error).
 /// 2. If pending tool calls, execute the first one.
 /// 3. If last response exists and no pending tools, finish.
 /// 4. Otherwise, call the provider.

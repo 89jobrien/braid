@@ -30,7 +30,7 @@ impl McpToolRegistry {
     }
 
     /// Call a tool by name with the given input.
-    pub fn call_tool(&self, name: &str, input: serde_json::Value) -> Result<ToolResult> {
+    pub fn call_tool(&self, name: &str, input: &serde_json::Value) -> Result<ToolResult> {
         if !self.tools.iter().any(|t| t.name == name) {
             bail!("unknown tool: {name}");
         }
@@ -76,8 +76,8 @@ mod tests {
     fn call_echo_tool() {
         let registry = make_registry();
         let result = registry
-            .call_tool("echo", serde_json::json!({"message": "hello"}))
-            .unwrap();
+            .call_tool("echo", &serde_json::json!({"message": "hello"}))
+            .expect("should succeed");
         assert_eq!(result.name, "echo");
         assert_eq!(result.output, "hello");
     }
@@ -86,8 +86,8 @@ mod tests {
     fn call_unknown_tool_errors() {
         let registry = make_registry();
         let err = registry
-            .call_tool("missing", serde_json::json!({}))
-            .unwrap_err();
+            .call_tool("missing", &serde_json::json!({}))
+            .expect_err("should fail");
         assert!(err.to_string().contains("unknown tool: missing"));
     }
 
@@ -101,7 +101,7 @@ mod tests {
         assert!(
             params["required"]
                 .as_array()
-                .unwrap()
+                .expect("should succeed")
                 .contains(&serde_json::json!("message"))
         );
     }

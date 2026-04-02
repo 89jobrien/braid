@@ -51,7 +51,7 @@ impl Default for SecretPatternRule {
 }
 
 impl RedactionRule for SecretPatternRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "secret-patterns"
     }
 
@@ -87,7 +87,7 @@ impl Default for EnvVarRule {
 }
 
 impl RedactionRule for EnvVarRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "env-vars"
     }
 

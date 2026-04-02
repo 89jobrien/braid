@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use std::fmt::Write as FmtWrite;
+
 use anyhow::{Result, bail};
 use braid_model::{
     ContentPart, ContextChunk, ContextSnapshot, ContextSummary, Message, ProviderRequest, Role,
@@ -28,7 +30,7 @@ impl ContextAssembler {
     }
 
     #[must_use]
-    pub fn with_budget(mut self, budget: usize) -> Self {
+    pub const fn with_budget(mut self, budget: usize) -> Self {
         self.budget = budget;
         self
     }
@@ -43,29 +45,25 @@ impl ContextAssembler {
         self.assemble_with_prior(None)
     }
 
-    pub fn refresh(&self, prior: Option<ContextSnapshot>) -> Result<ContextSnapshot> {
+    pub fn refresh(&self, prior: Option<&ContextSnapshot>) -> Result<ContextSnapshot> {
         self.assemble_with_prior(prior)
     }
 
-    fn assemble_with_prior(&self, prior: Option<ContextSnapshot>) -> Result<ContextSnapshot> {
+    fn assemble_with_prior(&self, prior: Option<&ContextSnapshot>) -> Result<ContextSnapshot> {
         let now = Utc::now();
         let mut all_chunks: Vec<ContextChunk> = Vec::new();
 
         // Collect from sources, skip failures
         for source in &self.sources {
-            match source.fetch() {
-                Ok(chunks) => {
-                    let window = source.staleness_window();
-                    for chunk in chunks {
-                        if now.signed_duration_since(chunk.captured_at) <= window {
-                            all_chunks.push(chunk);
-                        }
+            if let Ok(chunks) = source.fetch() {
+                let window = source.staleness_window();
+                for chunk in chunks {
+                    if now.signed_duration_since(chunk.captured_at) <= window {
+                        all_chunks.push(chunk);
                     }
                 }
-                Err(_) => {
-                    // non-fatal: skip this source
-                }
             }
+            // else: non-fatal: skip this source
         }
 
         if all_chunks.is_empty() {
@@ -87,23 +85,19 @@ impl ContextAssembler {
         }
 
         // Over threshold: try LLM summarization if provider is wired
-        if let Some(provider) = &self.provider {
-            match self.summarize(provider.as_ref(), &all_chunks, prior.as_ref()) {
-                Ok(summary) => {
-                    let token_estimate = summary.token_estimate;
-                    return Ok(ContextSnapshot {
-                        token_estimate,
-                        chunks: vec![],
-                        summary: Some(summary),
-                        assembled_at: now,
-                        dropped_chunks: 0,
-                    });
-                }
-                Err(_) => {
-                    // Fall through to oldest-first drop
-                }
-            }
+        if let Some(provider) = &self.provider
+            && let Ok(summary) = Self::summarize(provider.as_ref(), &all_chunks, prior)
+        {
+            let token_estimate = summary.token_estimate;
+            return Ok(ContextSnapshot {
+                token_estimate,
+                chunks: vec![],
+                summary: Some(summary),
+                assembled_at: now,
+                dropped_chunks: 0,
+            });
         }
+        // else: fall through to oldest-first drop
 
         // Over threshold: drop oldest-first until under budget
         all_chunks.sort_by_key(|c| c.captured_at);
@@ -130,7 +124,6 @@ impl ContextAssembler {
     }
 
     fn summarize(
-        &self,
         provider: &dyn Provider,
         chunks: &[ContextChunk],
         prior: Option<&ContextSnapshot>,
@@ -146,10 +139,12 @@ impl ContextAssembler {
 
         prompt.push_str("New context to integrate:\n");
         for chunk in chunks {
-            prompt.push_str(&format!(
+            write!(
+                prompt,
                 "[{}] {}\n{}\n\n",
                 chunk.source, chunk.label, chunk.content
-            ));
+            )
+            .expect("writing to String is infallible");
         }
         prompt.push_str("Produce a concise summary of the above context in under 400 words.");
 
@@ -256,7 +251,7 @@ mod tests {
             chunks: vec![fresh_chunk("test", 10), stale_chunk("test", 10)],
         };
         let assembler = ContextAssembler::new(vec![Box::new(source)]).with_budget(10000);
-        let snap = assembler.assemble().unwrap();
+        let snap = assembler.assemble().expect("should succeed");
         assert_eq!(snap.chunks.len(), 1);
         assert_eq!(snap.dropped_chunks, 0);
     }
@@ -270,7 +265,7 @@ mod tests {
             chunks: vec![fresh_chunk("test", 10)],
         };
         let assembler = ContextAssembler::new(vec![Box::new(source)]);
-        let snap = assembler.assemble().unwrap();
+        let snap = assembler.assemble().expect("should succeed");
         assert_eq!(snap.dropped_chunks, 0);
         assert!(snap.summary.is_none());
         assert_eq!(snap.chunks.len(), 1);
@@ -290,7 +285,7 @@ mod tests {
             chunks: vec![chunk_old, chunk_new],
         };
         let assembler = ContextAssembler::new(vec![Box::new(source)]).with_budget(100);
-        let snap = assembler.assemble().unwrap();
+        let snap = assembler.assemble().expect("should succeed");
         assert_eq!(snap.dropped_chunks, 1);
         assert_eq!(snap.chunks.len(), 1);
         assert!(snap.token_estimate <= 100);
@@ -304,7 +299,7 @@ mod tests {
             chunks: vec![fresh_chunk("good", 10)],
         };
         let assembler = ContextAssembler::new(vec![Box::new(FailingSource), Box::new(good)]);
-        let snap = assembler.assemble().unwrap();
+        let snap = assembler.assemble().expect("should succeed");
         assert_eq!(snap.chunks.len(), 1);
         assert_eq!(snap.chunks[0].source, "good");
     }
@@ -323,7 +318,7 @@ mod tests {
             chunks: vec![fresh_chunk("test", 1)],
         };
         let assembler = ContextAssembler::new(vec![Box::new(source)]);
-        let snap = assembler.assemble().unwrap();
+        let snap = assembler.assemble().expect("should succeed");
         assert_eq!(snap.dropped_chunks, 0);
     }
 
@@ -363,9 +358,12 @@ mod tests {
         let assembler = ContextAssembler::new(vec![Box::new(source)])
             .with_budget(100)
             .with_provider(provider);
-        let snap = assembler.assemble().unwrap();
+        let snap = assembler.assemble().expect("should succeed");
         assert!(snap.summary.is_some());
-        assert_eq!(snap.summary.unwrap().content, "this is the summary");
+        assert_eq!(
+            snap.summary.expect("should succeed").content,
+            "this is the summary"
+        );
         assert!(snap.chunks.is_empty());
     }
 
@@ -389,7 +387,7 @@ mod tests {
             .with_budget(100)
             .with_provider(provider);
         // Should not error — falls back to oldest-first drop
-        let snap = assembler.assemble().unwrap();
+        let snap = assembler.assemble().expect("should succeed");
         assert!(snap.summary.is_none());
         assert!(snap.token_estimate <= 100);
     }

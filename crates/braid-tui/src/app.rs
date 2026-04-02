@@ -3,7 +3,7 @@ use braid_observe::{ReplaySession, SessionStore};
 
 use crate::keys::{AppState, KeyAction, handle_key};
 
-/// Loaded session data — separate from AppState so it can be replaced on reload.
+/// Loaded session data — separate from `AppState` so it can be replaced on reload.
 pub struct LoadedSession {
     pub replay: ReplaySession,
 }
@@ -14,7 +14,7 @@ pub fn load_session(store: &SessionStore, state: &AppState) -> Option<Result<Loa
     Some(ReplaySession::load(store, id).map(|replay| LoadedSession { replay }))
 }
 
-/// Apply key action and return (should_quit, session_changed).
+/// Apply key action and return (`should_quit`, `session_changed`).
 pub fn apply_key(state: &mut AppState, action: KeyAction) -> (bool, bool) {
     let prev_session = state.selected_session;
     let should_quit = handle_key(state, action);
@@ -51,13 +51,13 @@ fn reload_session(store: &SessionStore, state: &mut AppState, loaded: &mut Optio
     }
 }
 
-pub fn run(terminal: &mut ratatui::DefaultTerminal, store: SessionStore) -> Result<()> {
+pub fn run(terminal: &mut ratatui::DefaultTerminal, store: &SessionStore) -> Result<()> {
     use crossterm::event::{self, Event as CrossEvent, KeyCode, KeyEventKind};
 
     let mut state = AppState::new(store.list()?);
 
     let mut loaded: Option<LoadedSession> = None;
-    reload_session(&store, &mut state, &mut loaded);
+    reload_session(store, &mut state, &mut loaded);
 
     loop {
         terminal.draw(|frame| crate::ui::render(frame, &state, loaded.as_ref()))?;
@@ -84,22 +84,22 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal, store: SessionStore) -> Resu
             _ => KeyAction::Other,
         };
 
-        let (should_quit, session_changed) = apply_key(&mut state, action.clone());
+        let (should_quit, session_changed) = apply_key(&mut state, action);
         if should_quit {
             break;
         }
 
         if action == KeyAction::Reload {
             // Full refresh: re-read session list from disk, then reload selected session
-            if let Err(e) = refresh_sessions(&store, &mut state) {
+            if let Err(e) = refresh_sessions(store, &mut state) {
                 state.error = Some(format!("error listing sessions: {e}"));
             }
             state.timeline_cursor = 0;
             state.detail = crate::keys::DetailState::Collapsed;
-            reload_session(&store, &mut state, &mut loaded);
+            reload_session(store, &mut state, &mut loaded);
         } else if session_changed {
             state.timeline_cursor = 0;
-            reload_session(&store, &mut state, &mut loaded);
+            reload_session(store, &mut state, &mut loaded);
         }
     }
 
@@ -112,8 +112,8 @@ mod tests {
     use braid_model::{Event, EventKind, SessionId};
 
     fn make_store_with_sessions(n: usize) -> (tempfile::TempDir, SessionStore, Vec<SessionId>) {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
         let mut ids = Vec::new();
         for i in 0..n {
             let id = SessionId(format!("s{i}"));
@@ -127,7 +127,7 @@ mod tests {
                     kind: EventKind::SessionCompleted,
                 },
             ];
-            store.write(&id, &events).unwrap();
+            store.write(&id, &events).expect("should succeed");
             ids.push(id);
         }
         (dir, store, ids)
@@ -135,8 +135,8 @@ mod tests {
 
     #[test]
     fn load_session_returns_none_for_empty_store() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
         let state = AppState::new(vec![]);
         assert!(load_session(&store, &state).is_none());
     }
@@ -146,7 +146,9 @@ mod tests {
         let (_dir, store, ids) = make_store_with_sessions(2);
         let mut state = AppState::new(ids);
         state.selected_session = 1;
-        let loaded = load_session(&store, &state).unwrap().unwrap();
+        let loaded = load_session(&store, &state)
+            .expect("should succeed")
+            .expect("should succeed");
         assert_eq!(loaded.replay.id, SessionId("s1".into()));
         assert_eq!(loaded.replay.len(), 2);
     }
@@ -164,7 +166,9 @@ mod tests {
     fn initial_state_has_first_session_selected() {
         let (_dir, store, ids) = make_store_with_sessions(3);
         let state = AppState::new(ids.clone());
-        let loaded = load_session(&store, &state).unwrap().unwrap();
+        let loaded = load_session(&store, &state)
+            .expect("should succeed")
+            .expect("should succeed");
         assert_eq!(loaded.replay.id, ids[0]);
     }
 
@@ -181,8 +185,8 @@ mod tests {
 
     #[test]
     fn error_set_when_session_missing() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
         // State points to a session ID that doesn't exist on disk
         let mut state = AppState::new(vec![SessionId("ghost".into())]);
         let mut loaded = None;
@@ -196,8 +200,8 @@ mod tests {
 
     #[test]
     fn refresh_sessions_updates_list_and_clamps_selection() {
-        let dir = tempfile::tempdir().unwrap();
-        let _store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let dir = tempfile::tempdir().expect("should succeed");
+        let _store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
 
         // Start with 3 sessions
         let (_dir2, store2, ids) = make_store_with_sessions(3);
@@ -205,7 +209,7 @@ mod tests {
         state.selected_session = 2;
 
         // Simulate store with only 1 session (others pruned)
-        let small_store = SessionStore::open(dir.path().to_path_buf()).unwrap();
+        let small_store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
         let id = SessionId("only".into());
         small_store
             .write(
@@ -215,9 +219,9 @@ mod tests {
                     kind: EventKind::SessionStarted,
                 }],
             )
-            .unwrap();
+            .expect("should succeed");
 
-        refresh_sessions(&small_store, &mut state).unwrap();
+        refresh_sessions(&small_store, &mut state).expect("should succeed");
         assert_eq!(state.sessions.len(), 1);
         assert_eq!(
             state.selected_session, 0,

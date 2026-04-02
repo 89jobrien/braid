@@ -11,32 +11,29 @@ pub fn render_session(
     out: &mut impl Write,
 ) -> Result<()> {
     let event_count = events.len();
-    match meta {
-        Some(m) => {
-            // "2026-03-24T05:00:00Z" → "2026-03-24 05:00:00 UTC"
-            let ts = m
-                .written_at
-                .replace('T', " ")
-                .trim_end_matches('Z')
-                .to_string()
-                + " UTC";
-            writeln!(
-                out,
-                "Session: {}  ({})  {} events",
-                m.session_id.0, ts, event_count
-            )?;
-        }
-        None => {
-            let sid = events
-                .first()
-                .map(|e| e.session_id.0.as_str())
-                .unwrap_or("unknown");
-            writeln!(out, "Session: {}  {} events", sid, event_count)?;
-        }
+    if let Some(m) = meta {
+        // "2026-03-24T05:00:00Z" → "2026-03-24 05:00:00 UTC"
+        let ts = m
+            .written_at
+            .replace('T', " ")
+            .trim_end_matches('Z')
+            .to_string()
+            + " UTC";
+        writeln!(
+            out,
+            "Session: {}  ({ts})  {event_count} events",
+            m.session_id.0
+        )?;
+    } else {
+        let sid = events
+            .first()
+            .map_or("unknown", |e| e.session_id.0.as_str());
+        writeln!(out, "Session: {sid}  {event_count} events")?;
     }
 
     // Separator: ASCII hyphens, 50 chars wide
-    writeln!(out, "{}", "-".repeat(50))?;
+    let sep = "-".repeat(50);
+    writeln!(out, "{sep}")?;
 
     // Event rows: right-aligned index (2 chars), kind (20 chars), optional detail
     for (i, event) in events.iter().enumerate() {
@@ -58,7 +55,6 @@ pub fn render_session(
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use braid_model::{Event, EventKind, SessionId};
@@ -107,8 +103,8 @@ mod tests {
             event_count: 6,
         };
         let mut out = Vec::new();
-        render_session(&events, Some(&meta), &mut out).unwrap();
-        let s = String::from_utf8(out).unwrap();
+        render_session(&events, Some(&meta), &mut out).expect("render failed");
+        let s = String::from_utf8(out).expect("utf8");
 
         assert!(s.contains("Session: abc"), "should contain session ID");
         assert!(s.contains("2026-03-24"), "should contain date");
@@ -135,8 +131,8 @@ mod tests {
     fn renders_gracefully_without_meta() {
         let events = all_event_kinds("xyz");
         let mut out = Vec::new();
-        render_session(&events, None, &mut out).unwrap();
-        let s = String::from_utf8(out).unwrap();
+        render_session(&events, None, &mut out).expect("render failed");
+        let s = String::from_utf8(out).expect("utf8");
         assert!(s.contains("SessionStarted"));
         assert!(
             !s.contains("2026-"),
@@ -155,8 +151,8 @@ mod tests {
             event_count: 6,
         };
         let mut out = Vec::new();
-        render_session(&events, Some(&meta), &mut out).unwrap();
-        let actual = String::from_utf8(out).unwrap();
+        render_session(&events, Some(&meta), &mut out).expect("render failed");
+        let actual = String::from_utf8(out).expect("utf8");
 
         // Each line: "  {index:>2}  {kind:<20}{detail}" for tool events,
         //            "  {index:>2}  {kind}"              for others.
@@ -182,9 +178,12 @@ mod tests {
             event_count: events.len(),
         };
         let mut out = Vec::new();
-        render_session(&events, Some(&meta), &mut out).unwrap();
-        let s = String::from_utf8(out).unwrap();
-        let sep_line = s.lines().find(|l| l.starts_with('-')).unwrap();
+        render_session(&events, Some(&meta), &mut out).expect("render failed");
+        let s = String::from_utf8(out).expect("utf8");
+        let sep_line = s
+            .lines()
+            .find(|l| l.starts_with('-'))
+            .expect("separator line");
         assert!(sep_line.is_ascii(), "separator must be ASCII only");
     }
 }

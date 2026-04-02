@@ -27,15 +27,12 @@ pub struct OpenAiConnectivityCheck;
 
 impl Check for OpenAiConnectivityCheck {
     fn run(&self) -> CheckResult {
-        let key = match std::env::var("OPENAI_API_KEY") {
-            Ok(k) => k,
-            Err(_) => {
-                return CheckResult {
-                    name: "openai connectivity",
-                    status: CheckStatus::Warn,
-                    message: "skipped — OPENAI_API_KEY not set".into(),
-                };
-            }
+        let Ok(key) = std::env::var("OPENAI_API_KEY") else {
+            return CheckResult {
+                name: "openai connectivity",
+                status: CheckStatus::Warn,
+                message: "skipped — OPENAI_API_KEY not set".into(),
+            };
         };
 
         let client = reqwest::blocking::Client::builder()

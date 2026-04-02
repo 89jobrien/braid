@@ -17,7 +17,7 @@ fn main() -> Result<()> {
     let store = SessionStore::open(store_dir)?;
 
     let mut terminal = ratatui::init();
-    let result = app::run(&mut terminal, store);
+    let result = app::run(&mut terminal, &store);
     ratatui::restore();
 
     result

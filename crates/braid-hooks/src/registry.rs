@@ -46,14 +46,13 @@ impl HookRegistry {
                         remediation,
                     };
                 }
-                Ok(HookVerdict::Allow) => {}
                 Err(e) if self.fail_closed => {
                     return HookVerdict::Deny {
                         reason: format!("hook '{}' failed: {e}", hook.name()),
                         remediation: "check hook configuration".into(),
                     };
                 }
-                Err(_) => {} // fail open: log and continue
+                Ok(HookVerdict::Allow) | Err(_) => {} // fail open: log and continue
             }
         }
         HookVerdict::Allow
@@ -80,7 +79,7 @@ mod tests {
 
     struct AllowHook;
     impl Hook for AllowHook {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "allow"
         }
         fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
@@ -90,7 +89,7 @@ mod tests {
 
     struct DenyHook(&'static str);
     impl Hook for DenyHook {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             self.0
         }
         fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {
@@ -152,7 +151,7 @@ mod tests {
 
     struct ErrorHook;
     impl Hook for ErrorHook {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "error-hook"
         }
         fn pre_execute(&self, _ctx: &HookContext) -> anyhow::Result<HookVerdict> {

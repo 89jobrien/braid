@@ -22,7 +22,7 @@ impl Default for HomePathRule {
 }
 
 impl RedactionRule for HomePathRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "home-path"
     }
 
