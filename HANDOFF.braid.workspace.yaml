@@ -1,0 +1,126 @@
+project: braid
+id: braid
+updated: 2026-04-03
+branch: main
+state:
+  tests: "183 passing, 4 skipped"
+  build: clean
+  notes: null
+
+items:
+  - id: braid-1
+    name: unsafe-code-deny
+    priority: P1
+    status: open
+    title: Change `unsafe_code = "warn"` to `"deny"` in workspace Cargo.toml
+    description: >
+      Sentinel flagged Cargo.toml:37 — `unsafe_code = "warn"` silently allows an unsafe block
+      past CI. No unsafe blocks exist; flip to deny to enforce the invariant.
+    files: [Cargo.toml]
+
+  - id: braid-2
+    name: assembler-summarize-warn
+    priority: P2
+    status: open
+    title: Add tracing::warn! on summarize failure in ContextAssembler
+    description: >
+      braid-context/src/assembler.rs:126 — silent failure when LLM summarize call errors,
+      falls through to oldest-first drop. Add tracing::warn! to make this observable.
+    files: [crates/braid-context/src/assembler.rs]
+
+  - id: braid-3
+    name: openai-tool-arg-warn
+    priority: P2
+    status: open
+    title: Add tracing::warn! for malformed tool-call JSON in OpenAI provider
+    description: >
+      braid-providers/src/openai.rs:210 — `unwrap_or_else(|_| json!({}))` silently swallows
+      parse errors. Log raw string + error for diagnosability.
+    files: [crates/braid-providers/src/openai.rs]
+
+  - id: braid-4
+    name: redundant-closure-lint
+    priority: P2
+    status: open
+    title: Restore redundant_closure_for_method_calls to warn
+    description: >
+      Cargo.toml has this lint set to allow. Sentinel recommends keeping at warn and
+      suppressing per-callsite with #[allow] where the closure genuinely aids readability.
+    files: [Cargo.toml]
+
+  - id: braid-5
+    name: phase5-cleanup
+    priority: P1
+    status: open
+    title: Remove donor-only features not needed for the final platform shape
+    description: >
+      Any feature that exists only because a donor repo had it should be pruned.
+      Audit each crate against the Phase 5 design spec before adding new capabilities.
+
+  - id: braid-6
+    name: architecture-boundary-checks
+    priority: P2
+    status: open
+    title: Add architecture checks to prevent crate-boundary drift
+    description: >
+      Enforce hexagonal boundaries in CI (e.g., cargo-depgraph or custom xtask check)
+      so crate-boundary violations are caught before merge.
+
+  - id: braid-7
+    name: observe-replay-tests
+    priority: P2
+    status: open
+    title: Add replay tests for observed sessions in braid-observe
+    description: null
+    files: [crates/braid-observe/]
+
+  - id: braid-8
+    name: redact-persist-coverage
+    priority: P2
+    status: open
+    title: Add redaction coverage for all persisted event/transcript paths
+    description: null
+    files: [crates/braid-redact/]
+
+  - id: braid-9
+    name: contract-tests
+    priority: P2
+    status: open
+    title: Add contract tests across braid-core, braid-hooks, and braid-mcp
+    description: null
+
+  - id: braid-10
+    name: braid-components-impl
+    priority: P2
+    status: open
+    title: Implement braid-components — one built-in component package
+    description: >
+      Phase 4 item. Define manifest schema for commands, skills, prompts, and templates;
+      implement loader and registry interfaces; ship one built-in component package.
+
+  - id: braid-11
+    name: adrs
+    priority: P2
+    status: open
+    title: Write ADRs for event envelope, tool contract, and component format
+    description: >
+      Architectural decision records for three key design choices. Lives in docs/planning/ or
+      docs/adrs/.
+
+log:
+  - date: 2026-04-03
+    summary: >
+      Strict workspace clippy lints enforced; all warnings fixed. Pre-commit gate now includes
+      release build. OpenAI contract test CI job added. Hooks tracked in .githooks/ via
+      core.hooksPath. Sentinel review identified three follow-up items (braid-1 through braid-4).
+    commits: [4212fd9, 6e3a4dc, e9b2b02, 7017296, 3125d47]
+  - date: 2026-04-01
+    summary: >
+      Phase 3 braid-context merged (PR #7). Context assembly with DoobSource + RepoSource,
+      two-stage compaction, engine integration. 183 tests, 4 skipped. All Phase 1-3 checklist
+      items complete.
+    commits: [f41016b, 619d305]
+  - date: 2026-03-30
+    summary: >
+      SessionWriter durability tests added. Unused thiserror deps removed from braid-model
+      and braid-observe. cargo-machete clean.
