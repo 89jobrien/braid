@@ -21,6 +21,7 @@ impl Check for OpenAiKeyCheck {
 }
 
 #[cfg(test)]
+#[allow(unsafe_code)]
 mod tests {
     use super::*;
 

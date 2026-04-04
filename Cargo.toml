@@ -35,7 +35,7 @@ chrono = { version = "0.4", features = ["serde"] }
 toml = "0.8"
 
 [workspace.lints.rust]
-unsafe_code = "warn"
+unsafe_code = "deny"
 
 [workspace.lints.clippy]
 # Groups (priority -1 so individual overrides take effect)

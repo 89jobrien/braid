@@ -29,6 +29,7 @@ impl Check for BraidConfigDirCheck {
 }
 
 #[cfg(test)]
+#[allow(unsafe_code)]
 mod tests {
     use super::*;
 
