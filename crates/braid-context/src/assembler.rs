@@ -85,17 +85,25 @@ impl ContextAssembler {
         }
 
         // Over threshold: try LLM summarization if provider is wired
-        if let Some(provider) = &self.provider
-            && let Ok(summary) = Self::summarize(provider.as_ref(), &all_chunks, prior)
-        {
-            let token_estimate = summary.token_estimate;
-            return Ok(ContextSnapshot {
-                token_estimate,
-                chunks: vec![],
-                summary: Some(summary),
-                assembled_at: now,
-                dropped_chunks: 0,
-            });
+        if let Some(provider) = &self.provider {
+            match Self::summarize(provider.as_ref(), &all_chunks, prior) {
+                Ok(summary) => {
+                    let token_estimate = summary.token_estimate;
+                    return Ok(ContextSnapshot {
+                        token_estimate,
+                        chunks: vec![],
+                        summary: Some(summary),
+                        assembled_at: now,
+                        dropped_chunks: 0,
+                    });
+                }
+                Err(err) => {
+                    tracing::warn!(
+                        error = %err,
+                        "context summarization failed; falling back to oldest-first drop"
+                    );
+                }
+            }
         }
         // else: fall through to oldest-first drop
 

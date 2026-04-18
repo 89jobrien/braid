@@ -1,6 +1,10 @@
 default:
     just --list
 
+# Launch zellij workspace layout
+workspace:
+    zellij --layout braid
+
 fmt:
     cargo fmt --all
 
