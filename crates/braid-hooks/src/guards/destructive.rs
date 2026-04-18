@@ -45,7 +45,7 @@ fn normalize(s: &str) -> String {
 }
 
 impl Hook for DestructiveCommandGuard {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "destructive-command-guard"
     }
 
@@ -55,7 +55,7 @@ impl Hook for DestructiveCommandGuard {
             if normalized.contains(&normalize(pattern)) {
                 return Ok(HookVerdict::Deny {
                     reason: format!("blocked destructive pattern: {pattern}"),
-                    remediation: remediation.to_string(),
+                    remediation: (*remediation).to_string(),
                 });
             }
         }
@@ -82,7 +82,10 @@ mod tests {
     #[test]
     fn blocks_rm_rf() {
         let guard = DestructiveCommandGuard::new();
-        match guard.pre_execute(&make_ctx("rm -rf /")).unwrap() {
+        match guard
+            .pre_execute(&make_ctx("rm -rf /"))
+            .expect("pre_execute failed")
+        {
             HookVerdict::Deny {
                 reason,
                 remediation,
@@ -98,7 +101,9 @@ mod tests {
     fn blocks_drop_table() {
         let guard = DestructiveCommandGuard::new();
         assert!(matches!(
-            guard.pre_execute(&make_ctx("DROP TABLE users;")).unwrap(),
+            guard
+                .pre_execute(&make_ctx("DROP TABLE users;"))
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
     }
@@ -109,13 +114,13 @@ mod tests {
         assert!(matches!(
             guard
                 .pre_execute(&make_ctx("git push --force origin main"))
-                .unwrap(),
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
         assert!(matches!(
             guard
                 .pre_execute(&make_ctx("git push -f origin main"))
-                .unwrap(),
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
     }
@@ -124,15 +129,21 @@ mod tests {
     fn allows_safe_commands() {
         let guard = DestructiveCommandGuard::new();
         assert_eq!(
-            guard.pre_execute(&make_ctx("ls -la")).unwrap(),
+            guard
+                .pre_execute(&make_ctx("ls -la"))
+                .expect("pre_execute failed"),
             HookVerdict::Allow
         );
         assert_eq!(
-            guard.pre_execute(&make_ctx("git status")).unwrap(),
+            guard
+                .pre_execute(&make_ctx("git status"))
+                .expect("pre_execute failed"),
             HookVerdict::Allow
         );
         assert_eq!(
-            guard.pre_execute(&make_ctx("cat README.md")).unwrap(),
+            guard
+                .pre_execute(&make_ctx("cat README.md"))
+                .expect("pre_execute failed"),
             HookVerdict::Allow
         );
     }
@@ -142,7 +153,7 @@ mod tests {
         let guard = DestructiveCommandGuard::new();
         match guard
             .pre_execute(&make_ctx("git reset --hard HEAD~3"))
-            .unwrap()
+            .expect("pre_execute failed")
         {
             HookVerdict::Deny {
                 reason,
@@ -159,13 +170,15 @@ mod tests {
     fn blocks_extra_whitespace_variants() {
         let guard = DestructiveCommandGuard::new();
         assert!(matches!(
-            guard.pre_execute(&make_ctx("rm  -rf /")).unwrap(),
+            guard
+                .pre_execute(&make_ctx("rm  -rf /"))
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
         assert!(matches!(
             guard
                 .pre_execute(&make_ctx("git  push  --force origin main"))
-                .unwrap(),
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
     }
@@ -174,17 +187,21 @@ mod tests {
     fn blocks_case_variants() {
         let guard = DestructiveCommandGuard::new();
         assert!(matches!(
-            guard.pre_execute(&make_ctx("drop table users")).unwrap(),
+            guard
+                .pre_execute(&make_ctx("drop table users"))
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
         assert!(matches!(
-            guard.pre_execute(&make_ctx("Drop Table users")).unwrap(),
+            guard
+                .pre_execute(&make_ctx("Drop Table users"))
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
         assert!(matches!(
             guard
                 .pre_execute(&make_ctx("truncate table events"))
-                .unwrap(),
+                .expect("pre_execute failed"),
             HookVerdict::Deny { .. }
         ));
     }

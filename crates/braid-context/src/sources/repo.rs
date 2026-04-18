@@ -84,7 +84,7 @@ fn run_with_timeout(mut cmd: Command, timeout: StdDuration) -> Result<std::proce
             Some(_) => return Ok(child.wait_with_output()?),
             None if start.elapsed() > timeout => {
                 let _ = child.kill();
-                anyhow::bail!("subprocess timed out after {:?}", timeout);
+                anyhow::bail!("subprocess timed out after {timeout:?}");
             }
             None => std::thread::sleep(StdDuration::from_millis(50)),
         }

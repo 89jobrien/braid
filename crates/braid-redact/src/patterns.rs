@@ -13,30 +13,30 @@ impl SecretPatternRule {
             patterns: vec![
                 // AWS access key IDs
                 (
-                    Regex::new(r"AKIA[0-9A-Z]{16}").unwrap(),
+                    Regex::new(r"AKIA[0-9A-Z]{16}").expect("valid regex"),
                     "[REDACTED:aws-key]",
                 ),
                 // GitHub tokens (ghp_, gho_, github_pat_)
                 (
-                    Regex::new(r"ghp_[A-Za-z0-9]{36,}").unwrap(),
+                    Regex::new(r"ghp_[A-Za-z0-9]{36,}").expect("valid regex"),
                     "[REDACTED:github-token]",
                 ),
                 (
-                    Regex::new(r"gho_[A-Za-z0-9]{36,}").unwrap(),
+                    Regex::new(r"gho_[A-Za-z0-9]{36,}").expect("valid regex"),
                     "[REDACTED:github-token]",
                 ),
                 (
-                    Regex::new(r"github_pat_[A-Za-z0-9_]{22,}").unwrap(),
+                    Regex::new(r"github_pat_[A-Za-z0-9_]{22,}").expect("valid regex"),
                     "[REDACTED:github-pat]",
                 ),
                 // Bearer tokens in headers
                 (
-                    Regex::new(r"Bearer\s+[A-Za-z0-9\-._~+/]+=*").unwrap(),
+                    Regex::new(r"Bearer\s+[A-Za-z0-9\-._~+/]+=*").expect("valid regex"),
                     "Bearer [REDACTED]",
                 ),
                 // Generic sk- prefixed API keys (OpenAI, Stripe, etc.)
                 (
-                    Regex::new(r"sk-[A-Za-z0-9]{20,}").unwrap(),
+                    Regex::new(r"sk-[A-Za-z0-9]{20,}").expect("valid regex"),
                     "[REDACTED:api-key]",
                 ),
             ],
@@ -51,7 +51,7 @@ impl Default for SecretPatternRule {
 }
 
 impl RedactionRule for SecretPatternRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "secret-patterns"
     }
 
@@ -75,7 +75,7 @@ impl EnvVarRule {
             pattern: Regex::new(
                 r"(?i)((?:API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE_KEY|ACCESS_KEY|AUTH|CREDENTIAL)(?:_[A-Z_]*)?)\s*=\s*(\S+)",
             )
-            .unwrap(),
+            .expect("valid regex"),
         }
     }
 }
@@ -87,7 +87,7 @@ impl Default for EnvVarRule {
 }
 
 impl RedactionRule for EnvVarRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "env-vars"
     }
 

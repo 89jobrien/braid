@@ -9,5 +9,9 @@ rust-version.workspace = true
 anyhow.workspace = true
 serde_json.workspace = true
 chrono.workspace = true
+tracing.workspace = true
 braid-model = { path = "../braid-model" }
 braid-ports = { path = "../braid-ports" }
+
+[lints]
+workspace = true

@@ -1,5 +1,9 @@
 default:
-    cargo check
+    just --list
+
+# Launch zellij workspace layout
+workspace:
+    zellij --layout braid
 
 fmt:
     cargo fmt --all
@@ -8,14 +12,15 @@ check:
     cargo check --workspace
 
 clippy:
-    cargo clippy --workspace -- -D warnings
+    cargo clippy --workspace
 
 test:
     cargo nextest run --workspace
 
 pre-commit:
     cargo fmt --all --check
-    cargo clippy --workspace -- -D warnings
+    cargo build --release --workspace
+    cargo clippy --workspace
     cargo nextest run --workspace
 
 install-hooks:

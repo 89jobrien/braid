@@ -1,5 +1,50 @@
 # Braid Handoff Notes
 
+## 2026-04-03 — Doob Tasks
+
+### P1
+
+- **[phase5,cleanup]** Remove any feature that exists only because a donor repo had it.
+
+### P2
+
+- **[phase5,architecture]** Add architecture checks to prevent crate-boundary drift.
+- **[phase5,braid-observe]** Add replay tests for observed sessions.
+- **[phase5,braid-redact]** Add redaction coverage for all persisted event/transcript paths.
+- **[phase5,testing]** Add contract tests across `braid-core`, `braid-hooks`, and `braid-mcp`.
+- **[phase4,braid-components]** Implement `braid-components`: one built-in component package.
+- **[phase0,docs]** Write ADRs for event envelope, tool contract, and component format.
+
+### P3
+
+- **[phase4,braid-components]** Implement loader and registry interfaces.
+- **[phase4,braid-components]** Define manifest schema for commands, skills, prompts, and templates.
+- **[phase4,braid-bootstrap]** Implement one install/setup flow for local development.
+- **[phase4,braid-bootstrap]** Implement doctor checks for required tools and env vars.
+
+---
+
+## 2026-04-03 — Sentinel Review (lint commit `4212fd9`)
+
+### Blocking
+
+- [`Cargo.toml:37`] `unsafe_code = "warn"` should be `"deny"`. No unsafe blocks exist in the workspace; warn lets one slip past CI silently.
+
+### Suggestions
+
+- [`Cargo.toml`] `redundant_closure_for_method_calls = "allow"` re-opens the door to the noisier closure form on new code. Keep at `warn`; suppress per-callsite with `#[allow]` where the closure genuinely aids readability.
+- [`braid-context/src/assembler.rs:126`] Silent failure path when `summarize` (LLM call) errors — falls through to oldest-first drop with no log. Add `tracing::warn!` to make summarization failures observable.
+- [`braid-providers/src/openai.rs:210`] `unwrap_or_else(|_| json!({}))` silently swallows malformed tool-call argument JSON. Add `tracing::warn!` with raw string + error for diagnosability.
+
+### Observations
+
+- Hexagonal architecture boundaries intact across all 33 changed files.
+- All `.unwrap()` → `.expect("…")` substitutions are mechanical and correct.
+- `days_to_ymd` promoted to `const fn` with readable numeric literals — clean improvement.
+
+---
+
+
 ## 2026-04-01 — Phase 3: braid-context (Context Assembly)
 
 ### What changed

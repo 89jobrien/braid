@@ -51,14 +51,11 @@ impl OpenAiProvider {
         Self::with_base_url("http://localhost:11434/v1", model, "ollama")
     }
 
-    fn to_openai_messages(&self, messages: &[Message]) -> Vec<Value> {
-        messages
-            .iter()
-            .map(|msg| self.to_openai_message(msg))
-            .collect()
+    fn to_openai_messages(messages: &[Message]) -> Vec<Value> {
+        messages.iter().map(Self::to_openai_message).collect()
     }
 
-    fn to_openai_message(&self, msg: &Message) -> Value {
+    fn to_openai_message(msg: &Message) -> Value {
         let role = match msg.role {
             Role::System => "system",
             Role::User => "user",
@@ -112,8 +109,7 @@ impl OpenAiProvider {
                         "url": format!("data:{};base64,{}", media_type, data),
                     }
                 })),
-                ContentPart::ToolUse { .. } => None,
-                ContentPart::ToolResult { .. } => None,
+                ContentPart::ToolUse { .. } | ContentPart::ToolResult { .. } => None,
             })
             .collect();
 
@@ -138,7 +134,7 @@ impl OpenAiProvider {
         messages: &[Message],
         tools: &[braid_model::ToolDefinition],
     ) -> Value {
-        let openai_messages = self.to_openai_messages(messages);
+        let openai_messages = Self::to_openai_messages(messages);
         let mut body = json!({
             "model": self.model,
             "messages": openai_messages,
@@ -164,7 +160,7 @@ impl OpenAiProvider {
         body
     }
 
-    fn parse_response(&self, body: Value) -> Result<ProviderResponse> {
+    fn parse_response(body: &Value) -> Result<ProviderResponse> {
         let choices = body["choices"]
             .as_array()
             .context("response missing choices array")?;
@@ -173,7 +169,7 @@ impl OpenAiProvider {
         }
 
         let choice_msg = &choices[0]["message"];
-        let message = self.parse_message(choice_msg)?;
+        let message = Self::parse_message(choice_msg)?;
 
         let token_count = body.get("usage").and_then(|usage| {
             let input = usage.get("prompt_tokens")?.as_u64()?;
@@ -187,7 +183,7 @@ impl OpenAiProvider {
         })
     }
 
-    fn parse_message(&self, msg: &Value) -> Result<Message> {
+    fn parse_message(msg: &Value) -> Result<Message> {
         let role_str = msg["role"].as_str().context("message missing role")?;
         let role = match role_str {
             "system" => Role::System,
@@ -214,7 +210,7 @@ impl OpenAiProvider {
                 let name = func["name"].as_str().unwrap_or_default().to_string();
                 let arguments_str = func["arguments"].as_str().unwrap_or("{}");
                 let input: serde_json::Value =
-                    serde_json::from_str(arguments_str).unwrap_or(json!({}));
+                    serde_json::from_str(arguments_str).unwrap_or_else(|_| json!({}));
                 content.push(ContentPart::ToolUse { id, name, input });
             }
         }
@@ -248,7 +244,7 @@ impl Provider for OpenAiProvider {
             bail!("OpenAI API error ({status}): {response_body}");
         }
 
-        self.parse_response(response_body)
+        Self::parse_response(&response_body)
     }
 }
 
@@ -278,7 +274,7 @@ mod tests {
             messages: vec![],
             tools: vec![],
         };
-        let err = provider.complete(request).unwrap_err();
+        let err = provider.complete(request).expect_err("should fail");
         assert!(
             err.to_string().contains("empty"),
             "expected empty messages error, got: {err}"
@@ -343,14 +339,13 @@ mod tests {
 
     #[test]
     fn serializes_text_message_as_string_content() {
-        let provider = OpenAiProvider::ollama("test");
         let msg = Message {
             role: Role::User,
             content: vec![ContentPart::Text {
                 text: "hello".into(),
             }],
         };
-        let j = provider.to_openai_message(&msg);
+        let j = OpenAiProvider::to_openai_message(&msg);
         assert_eq!(j["role"], "user");
         assert_eq!(
             j["content"], "hello",
@@ -360,7 +355,6 @@ mod tests {
 
     #[test]
     fn serializes_assistant_tool_use_message() {
-        let provider = OpenAiProvider::ollama("test");
         let msg = Message {
             role: Role::Assistant,
             content: vec![ContentPart::ToolUse {
@@ -369,7 +363,7 @@ mod tests {
                 input: serde_json::json!({ "msg": "hi" }),
             }],
         };
-        let j = provider.to_openai_message(&msg);
+        let j = OpenAiProvider::to_openai_message(&msg);
         assert_eq!(j["role"], "assistant");
         let calls = j["tool_calls"]
             .as_array()
@@ -378,14 +372,17 @@ mod tests {
         assert_eq!(calls[0]["id"], "tc-1");
         assert_eq!(calls[0]["type"], "function");
         assert_eq!(calls[0]["function"]["name"], "echo");
-        let args: Value =
-            serde_json::from_str(calls[0]["function"]["arguments"].as_str().unwrap()).unwrap();
+        let args: Value = serde_json::from_str(
+            calls[0]["function"]["arguments"]
+                .as_str()
+                .expect("should succeed"),
+        )
+        .expect("should succeed");
         assert_eq!(args["msg"], "hi");
     }
 
     #[test]
     fn serializes_tool_result_message() {
-        let provider = OpenAiProvider::ollama("test");
         let msg = Message {
             role: Role::Tool,
             content: vec![ContentPart::ToolResult {
@@ -393,7 +390,7 @@ mod tests {
                 content: "42".into(),
             }],
         };
-        let j = provider.to_openai_message(&msg);
+        let j = OpenAiProvider::to_openai_message(&msg);
         assert_eq!(j["role"], "tool");
         assert_eq!(j["tool_call_id"], "tc-1");
         assert_eq!(j["content"], "42");
@@ -428,10 +425,8 @@ mod tests {
 
     #[test]
     fn parses_text_response_with_token_count() {
-        let provider = OpenAiProvider::ollama("test");
-        let resp = provider
-            .parse_response(mock_text_response("hello"))
-            .unwrap();
+        let resp =
+            OpenAiProvider::parse_response(&mock_text_response("hello")).expect("should succeed");
         assert_eq!(resp.message.role, Role::Assistant);
         assert_eq!(
             resp.message.content,
@@ -446,11 +441,10 @@ mod tests {
 
     #[test]
     fn parses_response_without_usage_field() {
-        let provider = OpenAiProvider::ollama("test");
         let body = serde_json::json!({
             "choices": [{ "message": { "role": "assistant", "content": "hi" } }]
         });
-        let resp = provider.parse_response(body).unwrap();
+        let resp = OpenAiProvider::parse_response(&body).expect("should succeed");
         assert!(
             resp.token_count.is_none(),
             "token_count should be None when usage absent"
@@ -459,10 +453,9 @@ mod tests {
 
     #[test]
     fn parses_tool_call_response() {
-        let provider = OpenAiProvider::ollama("test");
-        let resp = provider
-            .parse_response(mock_tool_call_response("echo", r#"{"msg":"hi"}"#))
-            .unwrap();
+        let resp =
+            OpenAiProvider::parse_response(&mock_tool_call_response("echo", r#"{"msg":"hi"}"#))
+                .expect("should succeed");
         assert_eq!(resp.message.role, Role::Assistant);
         match &resp.message.content[0] {
             ContentPart::ToolUse { id, name, input } => {
@@ -476,17 +469,14 @@ mod tests {
 
     #[test]
     fn parse_response_errors_on_missing_choices() {
-        let provider = OpenAiProvider::ollama("test");
-        let err = provider.parse_response(serde_json::json!({})).unwrap_err();
+        let err = OpenAiProvider::parse_response(&serde_json::json!({})).expect_err("should fail");
         assert!(err.to_string().contains("choices"));
     }
 
     #[test]
     fn parse_response_errors_on_empty_choices() {
-        let provider = OpenAiProvider::ollama("test");
-        let err = provider
-            .parse_response(serde_json::json!({ "choices": [] }))
-            .unwrap_err();
+        let err = OpenAiProvider::parse_response(&serde_json::json!({ "choices": [] }))
+            .expect_err("should fail");
         assert!(err.to_string().contains("empty"));
     }
 }

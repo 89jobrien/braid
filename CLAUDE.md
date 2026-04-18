@@ -10,6 +10,8 @@ just fmt          # Format: cargo fmt --all
 just check        # Check workspace: cargo check --workspace
 just clippy       # Lint: cargo clippy --workspace -- -D warnings
 just test         # Run tests: cargo nextest run --workspace
+cargo nextest run --workspace                        # preferred test runner
+cargo nextest run -p braid-core -- test_name         # single test by name
 
 cargo run -p braid-cli                       # Run the CLI
 cargo test -p braid-core                     # Test a single crate
@@ -22,6 +24,12 @@ cargo clippy --workspace                     # Lint
 `.github/workflows/ci.yml` — fmt → clippy → test (nextest), plus independent `audit` (cargo-deny + cargo-audit) and `lint` (cargo-machete) jobs.
 `.github/workflows/nightly.yml` — cargo-geiger unsafe audit at 2am UTC.
 `deny.toml` — license/ban/advisory policy (mirrors minibox).
+
+## Unsafe Code Policy
+
+`unsafe_code = "deny"` is enforced workspace-wide. Test modules that use `set_var`/`remove_var`
+(Rust 2024 edition requires `unsafe {}`) must add `#[allow(unsafe_code)]` to the `mod tests` block —
+not to individual functions or the whole crate.
 
 ## Rust Toolchain
 

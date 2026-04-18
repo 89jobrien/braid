@@ -13,7 +13,7 @@ pub struct ContextAssemblerProvider {
 }
 
 impl ContextAssemblerProvider {
-    pub fn new(assembler: ContextAssembler) -> Self {
+    pub const fn new(assembler: ContextAssembler) -> Self {
         Self {
             assembler,
             last_snapshot: Mutex::new(None),
@@ -24,14 +24,14 @@ impl ContextAssemblerProvider {
 impl ContextProvider for ContextAssemblerProvider {
     fn assemble(&self) -> Result<ContextSnapshot> {
         let snap = self.assembler.assemble()?;
-        *self.last_snapshot.lock().unwrap() = Some(snap.clone());
+        *self.last_snapshot.lock().expect("lock poisoned") = Some(snap.clone());
         Ok(snap)
     }
 
     fn refresh(&self) -> Result<ContextSnapshot> {
-        let prior = self.last_snapshot.lock().unwrap().clone();
-        let snap = self.assembler.refresh(prior)?;
-        *self.last_snapshot.lock().unwrap() = Some(snap.clone());
+        let prior = self.last_snapshot.lock().expect("lock poisoned").clone();
+        let snap = self.assembler.refresh(prior.as_ref())?;
+        *self.last_snapshot.lock().expect("lock poisoned") = Some(snap.clone());
         Ok(snap)
     }
 }
@@ -64,7 +64,7 @@ mod tests {
         let chunk = ContextChunk::new("stub", "label", "content with some text here");
         let assembler = ContextAssembler::new(vec![Box::new(StubSource(vec![chunk]))]);
         let provider = ContextAssemblerProvider::new(assembler);
-        let snap = provider.assemble().unwrap();
+        let snap = provider.assemble().expect("should succeed");
         assert!(!snap.chunks.is_empty());
     }
 
@@ -73,9 +73,9 @@ mod tests {
         let chunk = ContextChunk::new("stub", "label", "content with some text here");
         let assembler = ContextAssembler::new(vec![Box::new(StubSource(vec![chunk]))]);
         let provider = ContextAssemblerProvider::new(assembler);
-        let _ = provider.assemble().unwrap();
+        let _ = provider.assemble().expect("should succeed");
         // refresh should not error when prior exists
-        let snap = provider.refresh().unwrap();
+        let snap = provider.refresh().expect("should succeed");
         assert_eq!(snap.dropped_chunks, 0);
     }
 
@@ -85,7 +85,7 @@ mod tests {
         let chunk = ContextChunk::new("stub", "label", "hello world");
         let assembler = ContextAssembler::new(vec![Box::new(StubSource(vec![chunk]))]);
         let provider = ContextAssemblerProvider::new(assembler);
-        let snap = provider.assemble().unwrap();
+        let snap = provider.assemble().expect("should succeed");
         let _ = snap.dropped_chunks; // field always present
         assert_eq!(snap.dropped_chunks, 0);
     }

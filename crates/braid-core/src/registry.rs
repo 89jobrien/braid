@@ -19,7 +19,7 @@ impl ToolRegistry {
 
     pub fn list(&self) -> Vec<&str> {
         let mut names: Vec<&str> = self.tools.keys().map(|s| s.as_str()).collect();
-        names.sort();
+        names.sort_unstable();
         names
     }
 

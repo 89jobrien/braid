@@ -1,0 +1,8 @@
+#!/bin/sh
+T0=$(date +%s)
+echo "[$(date '+%H:%M:%S')] pre-push: start"
+just test
+CODE=$?
+T1=$(date +%s)
+echo "[$(date '+%H:%M:%S')] pre-push: done in $((T1 - T0))s"
+exit $CODE

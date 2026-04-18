@@ -11,3 +11,6 @@ braid-model = { path = "../braid-model" }
 serde.workspace = true
 serde_json.workspace = true
 tokio = { workspace = true, features = ["rt", "macros", "io-std", "io-util"] }
+
+[lints]
+workspace = true

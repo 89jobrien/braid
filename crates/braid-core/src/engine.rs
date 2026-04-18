@@ -52,7 +52,7 @@ where
     S: EventSink,
     R: Redactor,
 {
-    pub fn new(provider: P, tool_executor: T, event_sink: S, redactor: R) -> Self {
+    pub const fn new(provider: P, tool_executor: T, event_sink: S, redactor: R) -> Self {
         Self {
             provider,
             tool_executor,
