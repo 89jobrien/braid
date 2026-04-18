@@ -16,6 +16,7 @@ serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
+braid-redact = { path = "../braid-redact" }
 tempfile = "3"
 
 [lints]

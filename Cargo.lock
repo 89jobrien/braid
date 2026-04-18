@@ -196,6 +196,7 @@ dependencies = [
  "anyhow",
  "braid-model",
  "braid-ports",
+ "braid-redact",
  "serde",
  "serde_json",
  "tempfile",
