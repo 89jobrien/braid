@@ -210,7 +210,15 @@ impl OpenAiProvider {
                 let name = func["name"].as_str().unwrap_or_default().to_string();
                 let arguments_str = func["arguments"].as_str().unwrap_or("{}");
                 let input: serde_json::Value =
-                    serde_json::from_str(arguments_str).unwrap_or_else(|_| json!({}));
+                    serde_json::from_str(arguments_str).unwrap_or_else(|err| {
+                        tracing::warn!(
+                            error = %err,
+                            raw = arguments_str,
+                            tool_name = %name,
+                            "malformed tool-call JSON arguments; falling back to empty object"
+                        );
+                        json!({})
+                    });
                 content.push(ContentPart::ToolUse { id, name, input });
             }
         }
@@ -462,6 +470,24 @@ mod tests {
                 assert_eq!(id, "tc-1");
                 assert_eq!(name, "echo");
                 assert_eq!(input["msg"], "hi");
+            }
+            other => panic!("expected ToolUse, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn malformed_tool_call_arguments_falls_back_to_empty_object() {
+        // Invalid JSON in arguments — must not panic, must fall back to {}
+        let resp = OpenAiProvider::parse_response(&mock_tool_call_response("echo", "NOT JSON"))
+            .expect("should succeed despite malformed arguments");
+        match &resp.message.content[0] {
+            ContentPart::ToolUse { name, input, .. } => {
+                assert_eq!(name, "echo");
+                assert_eq!(
+                    *input,
+                    serde_json::json!({}),
+                    "malformed args must become {{}}"
+                );
             }
             other => panic!("expected ToolUse, got {other:?}"),
         }
