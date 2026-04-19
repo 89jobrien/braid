@@ -1,6 +1,6 @@
 project: braid
 id: braid
-updated: 2026-04-03
+updated: 20260419:162232
 branch: main
 state:
   tests: 183 passing, 4 skipped
@@ -152,6 +152,10 @@ items:
     type: note
     note: captured in doob — todo id 4qqhdm26ujl7wl93jrcf
 log:
+- date: 20260419:162232
+  session: 4
+  summary: handup sweep — confirmed braid-1/2/3 still open per sentinel recommendations. braid-2/3 likely done per recent commits (fix#14, fix#27) — needs verification next session.
+  commits: []
 - date: 2026-04-03
   summary: |
     Strict workspace clippy lints enforced; all warnings fixed. Pre-commit gate now includes release build. OpenAI contract test CI job added. Hooks tracked in .githooks/ via core.hooksPath. Sentinel review identified three follow-up items (braid-1 through braid-4).
