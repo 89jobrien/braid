@@ -1,0 +1,38 @@
+language: "en-US"
+early_access: false
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  path_filters:
+    - "!**/*.lock"
+    - "!**/vendor/**"
+    - "!**/.ctx/**"
+    - "!**/.superpowers/**"
+  path_instructions:
+    - path: "**/*.rs"
+      instructions: |
+        - Rust edition 2024 conventions; minimum rust-version 1.88.
+        - Prefer returning errors over panicking — no bare .unwrap()/.expect() at runtime.
+        - Use tracing::{warn,error} for observable failures.
+        - Hexagonal architecture: domain logic stays in braid-core/braid-model; I/O and adapters
+          in braid-providers, braid-mcp, etc. Never let adapter concerns leak into core.
+        - `unsafe_code = "deny"` workspace-wide. Tests that need unsafe (e.g. set_var) must add
+          `#[allow(unsafe_code)]` to the mod tests block only — not the whole crate.
+        - Redact-before-persist invariant: any Event or Transcript written to storage must pass
+          through braid-redact before reaching braid-observe. Flag any persist path that bypasses
+          the RedactionPipeline.
+        - No new parallel domain models — all canonical types live in braid-model.
+        - CLI (braid-cli) is a thin front door; session control belongs in braid-core.
+    - path: "**/Cargo.toml"
+      instructions: "Check for yanked or insecure dependency versions."
+chat:
+  auto_reply: true
