@@ -18,13 +18,13 @@ impl ToolRegistry {
     }
 
     pub fn list(&self) -> Vec<&str> {
-        let mut names: Vec<&str> = self.tools.keys().map(|s| s.as_str()).collect();
+        let mut names: Vec<&str> = self.tools.keys().map(String::as_str).collect();
         names.sort_unstable();
         names
     }
 
     pub fn get(&self, name: &str) -> Option<&dyn ToolExecutor> {
-        self.tools.get(name).map(|t| t.as_ref())
+        self.tools.get(name).map(Box::as_ref)
     }
 }
 
