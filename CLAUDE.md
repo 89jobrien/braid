@@ -43,28 +43,29 @@ Braid is a **personal agent platform** built as a Rust workspace. It consolidate
 
 **Phase 1 (complete)**: Four foundational crates forming a minimal runnable vertical slice:
 
-| Crate | Role |
-|---|---|
-| `braid-model` | Canonical domain types — single source of truth. No other crate invents parallel domain models. |
-| `braid-core` | Runtime engine (`Engine<T, P>`), `Provider`/`Planner`/`ToolExecutor` traits, `SimpleLoopPlanner`. No provider logic lives here. |
-| `braid-providers` | Provider adapters (`MockProvider`, `OpenAiProvider`). Real adapters go here, not in core or CLI. |
-| `braid-cli` | Thin operator entrypoint. Delegates to core, not vice versa. |
+| Crate             | Role                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `braid-model`     | Canonical domain types — single source of truth. No other crate invents parallel domain models.                                 |
+| `braid-core`      | Runtime engine (`Engine<T, P>`), `Provider`/`Planner`/`ToolExecutor` traits, `SimpleLoopPlanner`. No provider logic lives here. |
+| `braid-providers` | Provider adapters (`MockProvider`, `OpenAiProvider`). Real adapters go here, not in core or CLI.                                |
+| `braid-cli`       | Thin operator entrypoint. Delegates to core, not vice versa.                                                                    |
 
 **Crate dependency graph**: `braid-cli → braid-providers → braid-core → braid-model`. Model is the leaf; CLI is the root. All domain types live in `braid-model`; all traits (`Provider`, `ToolExecutor`) live in `braid-core`.
 
 **Phase 2 (complete)**: Safety and tool-exposure layer:
 
-| Crate | Role |
-|---|---|
-| `braid-redact` | `RedactionPipeline` with ordered `RedactionRule` chain. Built-in rules: `SecretPatternRule`, `EnvVarRule`, `HomePathRule`. Walks `Message`/`Event` types. |
-| `braid-hooks` | `Hook` trait with `HookVerdict` (Allow/Deny). `HookedExecutor<T: ToolExecutor>` wraps any executor with pre/post hook gating. Built-in: `DestructiveCommandGuard`, `FreshnessGuard` (placeholder). Engine/Planner unchanged. |
-| `braid-mcp` | MCP server over stdio (JSON-RPC). `McpToolRegistry` for tool registration/dispatch. Echo tool. Only async crate (tokio). CLI `mcp` subcommand. |
+| Crate          | Role                                                                                                                                                                                                                         |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `braid-redact` | `RedactionPipeline` with ordered `RedactionRule` chain. Built-in rules: `SecretPatternRule`, `EnvVarRule`, `HomePathRule`. Walks `Message`/`Event` types.                                                                    |
+| `braid-hooks`  | `Hook` trait with `HookVerdict` (Allow/Deny). `HookedExecutor<T: ToolExecutor>` wraps any executor with pre/post hook gating. Built-in: `DestructiveCommandGuard`, `FreshnessGuard` (placeholder). Engine/Planner unchanged. |
+| `braid-mcp`    | MCP server over stdio (JSON-RPC). `McpToolRegistry` for tool registration/dispatch. Echo tool. Only async crate (tokio). CLI `mcp` subcommand.                                                                               |
 
 **Phases 3–4 (planned, not started)**: `braid-context`, `braid-bootstrap`, `braid-components`.
 
 ### Rebase Conflicts: Hexagonal Refactor + Phase 3a
 
 When rebasing a branch that predates Phase 3a onto current main, `braid-observe/src/store.rs` needs both sets of changes merged manually:
+
 1. `braid_ports` import + `EventSink`/`SessionStorage` impls + `Mutex<Vec<Event>>` buffer field (hexagonal refactor)
 2. `SessionWriter`, `root()` method (Phase 3a)
 
@@ -114,11 +115,28 @@ All crates share: `anyhow`, `serde` (with derive), `serde_json`, `thiserror`, `t
 - **No cargo-cult porting**: Only rebuild subsystems that serve the final platform shape.
 - **Bounded context**: Extractors should be selective, not endless ingestion frameworks.
 
+## Sentinel Reviews
+
+When running sentinel, apply ALL severity levels (blocking, suggestion, nitpick) in one pass
+before committing. Do not commit after fixing only blocking issues and leave suggestions for a
+follow-up — that creates noisy multi-pass fix histories. One sentinel run, one fix commit.
+
+When sentinel flags something in a test file as a false positive (variable named `password`,
+localhost IP, test fixture URL), add a per-site `#[allow]` or allowlist entry immediately —
+do not defer to a separate cleanup session.
+
+## Spec Documents
+
+When writing a design doc or spec under `docs/`, immediately add a HANDOFF item
+`"Implement: <spec-name>"` with `status: open`. Specs without a tracking item are lost between
+sessions.
+
 ## Planning Docs
 
 Implementation specs and plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
 Comprehensive design documents live in `docs/planning/`:
+
 - `Braid - Rust Workspace Spec.md` — most detailed architecture spec
 - `Braid - Crate Implementation Checklist.md` — phase-by-phase deliverables
 - `Braid - Rust Workspace Blueprint.md` — rationale for Rust-first, scratch-build decision
