@@ -1,6 +1,6 @@
 project: braid
 id: braid
-updated: 20260419:162232
+updated: 20260424:000000
 branch: main
 state:
   tests: 183 passing, 4 skipped
@@ -21,6 +21,12 @@ items:
   - date: 2026-04-06
     type: note
     note: captured in doob — todo id vyvbzu27ywshtdnedyw2
+  - type: github-issue
+    number: 25
+    url: https://github.com/89jobrien/braid/issues/25
+  - type: github-issue
+    number: 29
+    url: https://github.com/89jobrien/braid/issues/29
   completed: 2026-04-04
 - id: braid-2
   doob_uuid: f53c5d59-1601-42aa-aa48-a281b7debcff
@@ -36,6 +42,9 @@ items:
   - date: 2026-04-06
     type: note
     note: captured in doob — todo id 5uciequzltptp4od487v
+  - type: github-issue
+    number: 18
+    url: https://github.com/89jobrien/braid/issues/18
 - id: braid-3
   doob_uuid: 5c3a8e01-8e1c-49d7-92a1-16696398ee08
   name: openai-tool-arg-warn
@@ -50,6 +59,9 @@ items:
   - date: 2026-04-06
     type: note
     note: captured in doob — todo id dc8oh6h4wvd1bxtfsak9
+  - type: github-issue
+    number: 19
+    url: https://github.com/89jobrien/braid/issues/19
 - id: braid-4
   doob_uuid: 99ffea24-f043-4e32-8b24-7e8581d47b00
   name: redundant-closure-lint
@@ -64,6 +76,9 @@ items:
   - date: 2026-04-06
     type: note
     note: captured in doob — todo id x54rjk5v6mzzjtxnb5pu
+  - type: github-issue
+    number: 10
+    url: https://github.com/89jobrien/braid/issues/10
 - id: braid-5
   doob_uuid: 49b44bcf-9974-4fd0-8d61-235a3311d3e6
   name: phase5-cleanup
@@ -77,6 +92,12 @@ items:
   - date: 2026-04-06
     type: note
     note: captured in doob — todo id m0oq1f7ib38d3t695qbe
+  - type: github-issue
+    number: 22
+    url: https://github.com/89jobrien/braid/issues/22
+  - type: github-issue
+    number: 30
+    url: https://github.com/89jobrien/braid/issues/30
 - id: braid-6
   doob_uuid: 032361e9-08a1-4598-bacd-72ab382c0785
   name: architecture-boundary-checks
@@ -152,6 +173,11 @@ items:
     type: note
     note: captured in doob — todo id 4qqhdm26ujl7wl93jrcf
 log:
+- date: 20260424:000000
+  session: 5
+  summary: Minor session — friction-prevention rules added from session analysis (1 commit).
+  commits:
+  - 735d067
 - date: 20260419:162232
   session: 4
   summary: handup sweep — confirmed braid-1/2/3 still open per sentinel recommendations. braid-2/3 likely done per recent commits (fix#14, fix#27) — needs verification next session.
