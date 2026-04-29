@@ -3,6 +3,7 @@
 *.local.md
 .worktrees/
 .envrc
+HANDOFF.*.yaml
 
 # handoff-begin
 .ctx/*
