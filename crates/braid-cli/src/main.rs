@@ -1,4 +1,4 @@
-use std::io::{self, IsTerminal, Read};
+use std::io::{self, IsTerminal, Read, Write};
 use std::sync::Arc;
 
 use anyhow::{Context, Result, bail};
@@ -45,6 +45,21 @@ enum Command {
     Sessions {
         #[command(subcommand)]
         action: SessionsCommand,
+    },
+    /// Run as a warpx agent harness (JSON-lines output)
+    Agent {
+        /// Prompt text (reads stdin if omitted)
+        #[arg(long)]
+        prompt: Option<String>,
+        /// Provider to use (ollama or openai; default: auto-detect)
+        #[arg(long)]
+        provider: Option<String>,
+        /// Model name
+        #[arg(long, default_value = "gpt-4o")]
+        model: String,
+        /// Maximum engine turns before stopping
+        #[arg(long)]
+        max_turns: Option<u32>,
     },
 }
 
@@ -189,6 +204,104 @@ fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<&str>, model: &str)
     Ok(())
 }
 
+/// Warpx agent harness mode: same Engine pipeline as `cmd_run`, but emits
+/// each event as a JSON line on stdout and reads warpx env vars for session
+/// tracking.
+fn cmd_agent(
+    prompt_arg: Option<String>,
+    provider_flag: Option<&str>,
+    model: &str,
+    max_turns: Option<u32>,
+) -> Result<()> {
+    let provider = resolve_provider(provider_flag, model)?;
+    let prompt = resolve_prompt(prompt_arg)?;
+
+    let redactor = RedactionPipeline::new()
+        .with_rule(SecretPatternRule::new())
+        .with_rule(EnvVarRule::new())
+        .with_rule(HomePathRule::new());
+
+    // Use OZ_RUN_ID from warpx if available, otherwise generate a timestamp.
+    let session_id = std::env::var("OZ_RUN_ID").unwrap_or_else(|_| {
+        let secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        format!("{secs}")
+    });
+    let session_id = SessionId(session_id);
+
+    let store = Arc::new(SessionStore::open(default_store_dir()?)?);
+
+    let summarization_provider: Option<Arc<dyn Provider + Send + Sync>> =
+        match OpenAiProvider::new(model) {
+            Ok(p) if std::env::var("OPENAI_API_KEY").is_ok() => Some(Arc::new(p)),
+            _ => None,
+        };
+
+    let mut ctx_assembler = ContextAssembler::new(vec![
+        Box::new(DoobSource::new()),
+        Box::new(RepoSource::new()),
+    ]);
+    if let Some(p) = summarization_provider {
+        ctx_assembler = ctx_assembler.with_provider(p);
+    }
+    let ctx_provider = Arc::new(ContextAssemblerProvider::new(ctx_assembler));
+
+    let hooks = HookRegistry::fail_closed().register(DestructiveCommandGuard::new());
+    let mut registry = ToolRegistry::new();
+    registry.register(
+        "refresh_context",
+        Box::new(RefreshContextTool {
+            provider: Some(ctx_provider.clone()),
+        }),
+    );
+    let tools = HookedExecutor::new(registry, hooks, session_id.clone());
+
+    let engine =
+        Engine::new(provider, tools, Arc::clone(&store), redactor).with_context(ctx_provider);
+    let output = engine.run(
+        RunInput {
+            session_id: session_id.clone(),
+            messages: vec![Message {
+                role: Role::User,
+                content: vec![ContentPart::Text { text: prompt }],
+            }],
+            max_turns,
+        },
+        &SimpleLoopPlanner,
+    )?;
+
+    // Emit session events as JSON lines on stdout for warpx consumption.
+    let events = store.load(&session_id).unwrap_or_default();
+    let stdout = io::stdout();
+    let mut out = stdout.lock();
+    for event in &events {
+        let line = serde_json::to_string(event).unwrap_or_default();
+        let _ = writeln!(out, "{line}");
+    }
+
+    // Final response line.
+    let response_text = match output.provider_response.message.content.first() {
+        Some(ContentPart::Text { text }) => text.clone(),
+        _ => "non-text response".into(),
+    };
+    let final_msg = serde_json::json!({
+        "type": "response",
+        "text": response_text,
+        "tokens": output.provider_response.token_count.as_ref().map(|tc| {
+            serde_json::json!({"input": tc.input, "output": tc.output})
+        }),
+    });
+    let _ = writeln!(
+        out,
+        "{}",
+        serde_json::to_string(&final_msg).unwrap_or_default()
+    );
+
+    Ok(())
+}
+
 fn cmd_doctor() {
     let results = braid_bootstrap::doctor::run_checks();
     braid_bootstrap::render::TerminalRenderer::render(&results);
@@ -216,6 +329,12 @@ fn main() -> Result<()> {
         Command::Setup => cmd_setup(),
         Command::Mcp => cmd_mcp(),
         Command::Sessions { action } => cmd_sessions(action),
+        Command::Agent {
+            prompt,
+            provider,
+            model,
+            max_turns,
+        } => cmd_agent(prompt, provider.as_deref(), &model, max_turns),
     }
 }
 
