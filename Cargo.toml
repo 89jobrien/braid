@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "xtask",
   "crates/braid-model",
   "crates/braid-ports",
   "crates/braid-core",
