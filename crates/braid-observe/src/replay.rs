@@ -10,6 +10,7 @@ pub struct ReplayEvent {
     pub payload: Option<serde_json::Value>,
 }
 
+#[derive(Debug)]
 pub struct ReplaySession {
     pub id: SessionId,
     events: Vec<ReplayEvent>,
@@ -154,5 +155,163 @@ mod tests {
         let tool_event = replay.get(2).expect("should succeed");
         let payload = tool_event.payload.as_ref().expect("should succeed");
         assert_eq!(payload["kind"]["ToolCalled"]["tool_name"], "echo");
+    }
+
+    // --- Replay tests via SessionWriter ---
+
+    /// Write events through `SessionWriter`, then load via `ReplaySession` and
+    /// verify the round-trip: same count, same order, same EventKind values.
+    #[test]
+    fn session_writer_roundtrips_via_replay() {
+        use crate::store::SessionWriter;
+        use braid_model::EventKind;
+
+        let dir = tempfile::tempdir().expect("should succeed");
+        let id = SessionId("rw-1".into());
+
+        let expected_kinds = [
+            EventKind::SessionStarted,
+            EventKind::ProviderResponded,
+            EventKind::ToolCalled {
+                tool_name: "grep".into(),
+            },
+            EventKind::ToolCompleted {
+                tool_name: "grep".into(),
+            },
+            EventKind::SessionCompleted,
+        ];
+
+        // Write via SessionWriter
+        let mut writer = SessionWriter::open(dir.path(), &id).expect("should succeed");
+        for kind in &expected_kinds {
+            writer
+                .write_event(&braid_model::Event {
+                    session_id: id.clone(),
+                    kind: kind.clone(),
+                })
+                .expect("should succeed");
+        }
+        writer.finish().expect("should succeed");
+
+        // Load via ReplaySession
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let replay = ReplaySession::load(&store, &id).expect("should succeed");
+
+        assert_eq!(
+            replay.len(),
+            expected_kinds.len(),
+            "replay length matches written event count"
+        );
+
+        for (i, expected_kind) in expected_kinds.iter().enumerate() {
+            let re = replay.get(i + 1).expect("index should be in range");
+            assert_eq!(re.index, i + 1, "replay index is 1-based and sequential");
+            assert_eq!(
+                &re.event.kind,
+                expected_kind,
+                "event kind at position {} round-trips correctly",
+                i + 1
+            );
+            assert_eq!(
+                &re.event.session_id,
+                &id,
+                "session_id is preserved at position {}",
+                i + 1
+            );
+        }
+    }
+
+    /// Events written incrementally (one at a time) are visible through
+    /// `ReplaySession` before `finish()` is called, matching partial-read semantics.
+    #[test]
+    fn session_writer_partial_replay_before_finish() {
+        use crate::store::SessionWriter;
+        use braid_model::EventKind;
+
+        let dir = tempfile::tempdir().expect("should succeed");
+        let id = SessionId("rw-2".into());
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+
+        let mut writer = SessionWriter::open(dir.path(), &id).expect("should succeed");
+
+        // Write first event; replay should see exactly one event immediately.
+        writer
+            .write_event(&braid_model::Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionStarted,
+            })
+            .expect("should succeed");
+
+        let partial = ReplaySession::load(&store, &id).expect("should succeed");
+        assert_eq!(partial.len(), 1, "one event visible before finish");
+        assert_eq!(
+            partial.get(1).expect("should succeed").event.kind,
+            EventKind::SessionStarted
+        );
+
+        // Write second event; replay now sees two.
+        writer
+            .write_event(&braid_model::Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionCompleted,
+            })
+            .expect("should succeed");
+        writer.finish().expect("should succeed");
+
+        let full = ReplaySession::load(&store, &id).expect("should succeed");
+        assert_eq!(full.len(), 2, "both events visible after finish");
+        assert_eq!(
+            full.get(2).expect("should succeed").event.kind,
+            EventKind::SessionCompleted
+        );
+    }
+
+    /// `ReplaySession` correctly reads a session written via `SessionStore::write`
+    /// (batch path) rather than `SessionWriter` (streaming path).
+    #[test]
+    fn replay_loads_batch_written_session() {
+        use braid_model::EventKind;
+
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let id = SessionId("rw-3".into());
+
+        let events = vec![
+            braid_model::Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionStarted,
+            },
+            braid_model::Event {
+                session_id: id.clone(),
+                kind: EventKind::ToolCalled {
+                    tool_name: "bash".into(),
+                },
+            },
+            braid_model::Event {
+                session_id: id.clone(),
+                kind: EventKind::SessionCompleted,
+            },
+        ];
+
+        store.write(&id, &events).expect("should succeed");
+
+        let replay = ReplaySession::load(&store, &id).expect("should succeed");
+        assert_eq!(replay.len(), events.len());
+
+        // Verify each event in order
+        for (i, original) in events.iter().enumerate() {
+            let re = replay.get(i + 1).expect("should succeed");
+            assert_eq!(&re.event, original, "event at index {} matches", i + 1);
+        }
+    }
+
+    /// `ReplaySession` loaded from a missing session returns an error.
+    #[test]
+    fn replay_missing_session_returns_error() {
+        let dir = tempfile::tempdir().expect("should succeed");
+        let store = SessionStore::open(dir.path().to_path_buf()).expect("should succeed");
+        let err = ReplaySession::load(&store, &SessionId("ghost".into()))
+            .expect_err("should fail for missing session");
+        assert!(err.to_string().contains("ghost"));
     }
 }
