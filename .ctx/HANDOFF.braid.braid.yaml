@@ -1,82 +1,117 @@
 project: braid
 id: braid
-updated: 20260424:000000
-branch: main
-state:
-  tests: 183 passing, 4 skipped
-  build: clean
-  notes: null
+updated: 2026-05-01
 items:
 - id: braid-1
   doob_uuid: 5ea7cdd2-8134-4b13-9488-a1269f6952cb
   name: unsafe-code-deny
   priority: P1
-  status: open
+  status: closed
   title: Change `unsafe_code = "warn"` to `"deny"` in workspace Cargo.toml
   description: |
     Sentinel flagged Cargo.toml:37 — `unsafe_code = "warn"` silently allows an unsafe block past CI. No unsafe blocks exist; flip to deny to enforce the invariant.
   files:
   - Cargo.toml
+  completed: 2026-04-04
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id vyvbzu27ywshtdnedyw2
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 25
     url: https://github.com/89jobrien/braid/issues/25
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 29
     url: https://github.com/89jobrien/braid/issues/29
-  completed: 2026-04-04
 - id: braid-2
   doob_uuid: f53c5d59-1601-42aa-aa48-a281b7debcff
   name: assembler-summarize-warn
   priority: P2
-  status: open
+  status: closed
   title: Add tracing::warn! on summarize failure in ContextAssembler
   description: |
     braid-context/src/assembler.rs:126 — silent failure when LLM summarize call errors, falls through to oldest-first drop. Add tracing::warn! to make this observable.
   files:
   - crates/braid-context/src/assembler.rs
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id 5uciequzltptp4od487v
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 18
     url: https://github.com/89jobrien/braid/issues/18
 - id: braid-3
   doob_uuid: 5c3a8e01-8e1c-49d7-92a1-16696398ee08
   name: openai-tool-arg-warn
   priority: P2
-  status: open
+  status: closed
   title: Add tracing::warn! for malformed tool-call JSON in OpenAI provider
   description: |
     braid-providers/src/openai.rs:210 — `unwrap_or_else(|_| json!({}))` silently swallows parse errors. Log raw string + error for diagnosability.
   files:
   - crates/braid-providers/src/openai.rs
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id dc8oh6h4wvd1bxtfsak9
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 19
     url: https://github.com/89jobrien/braid/issues/19
 - id: braid-4
   doob_uuid: 99ffea24-f043-4e32-8b24-7e8581d47b00
   name: redundant-closure-lint
   priority: P2
-  status: open
+  status: closed
   title: Restore redundant_closure_for_method_calls to warn
   description: |
     Cargo.toml has this lint set to allow. Sentinel recommends keeping at warn and suppressing per-callsite with #[allow] where the closure genuinely aids readability.
   files:
   - Cargo.toml
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id x54rjk5v6mzzjtxnb5pu
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 10
     url: https://github.com/89jobrien/braid/issues/10
 - id: braid-5
@@ -88,40 +123,63 @@ items:
   description: |
     Any feature that exists only because a donor repo had it should be pruned. Audit each crate against the Phase 5 design spec before adding new capabilities.
   files: []
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id m0oq1f7ib38d3t695qbe
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 22
     url: https://github.com/89jobrien/braid/issues/22
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 30
     url: https://github.com/89jobrien/braid/issues/30
 - id: braid-6
   doob_uuid: 032361e9-08a1-4598-bacd-72ab382c0785
   name: architecture-boundary-checks
   priority: P2
-  status: open
+  status: closed
   title: Add architecture checks to prevent crate-boundary drift
   description: |
     Enforce hexagonal boundaries in CI (e.g., cargo-depgraph or custom xtask check) so crate-boundary violations are caught before merge.
   files: []
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id kj2xqoykc462fxjubli1
 - id: braid-7
   doob_uuid: 5f2ef107-61c2-4d24-8441-0d9a37ce3c8e
   name: observe-replay-tests
   priority: P2
-  status: open
+  status: closed
   title: Add replay tests for observed sessions in braid-observe
+  description: null
   files:
   - crates/braid-observe/
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id l7uk5hyvotrgrbxttj5c
 - id: braid-8
   doob_uuid: fe22bebf-ad2d-4b04-9f5a-4e4ff879a66d
@@ -129,11 +187,16 @@ items:
   priority: P2
   status: open
   title: Add redaction coverage for all persisted event/transcript paths
+  description: null
   files:
   - crates/braid-redact/
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id o5syoiw9snn3gzh8mkg3
 - id: braid-9
   doob_uuid: 2f5572ab-d67d-4413-980a-7317c9fa8f0e
@@ -141,10 +204,15 @@ items:
   priority: P2
   status: open
   title: Add contract tests across braid-core, braid-hooks, and braid-mcp
+  description: null
   files: []
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id xaimecphynlgw5hrimvj
 - id: braid-10
   doob_uuid: 418f0568-26fb-4ffa-802f-bcad10b6063b
@@ -155,9 +223,13 @@ items:
   description: |
     Phase 4 item. Define manifest schema for commands, skills, prompts, and templates; implement loader and registry interfaces; ship one built-in component package.
   files: []
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id oe58n13dar19alp1901h
 - id: braid-11
   doob_uuid: 9e87747c-9c74-45d9-b107-3b33895f4e08
@@ -168,18 +240,24 @@ items:
   description: |
     Architectural decision records for three key design choices. Lives in docs/planning/ or docs/adrs/.
   files: []
+  completed: null
   extra:
   - date: 2026-04-06
     type: note
+    field: null
+    value: null
+    reviewed: null
     note: captured in doob — todo id 4qqhdm26ujl7wl93jrcf
 log:
-- date: 20260424:000000
-  session: 5
+- date: 2026-05-01
+  summary: 'Triage: braid-1/2/3/4 already done; merged braid-6 (xtask check-deps) + braid-7 (observe replay tests)'
+  commits:
+  - c94603f
+- date: 2026-04-24
   summary: Minor session — friction-prevention rules added from session analysis (1 commit).
   commits:
   - 735d067
-- date: 20260419:162232
-  session: 4
+- date: 2026-04-19
   summary: handup sweep — confirmed braid-1/2/3 still open per sentinel recommendations. braid-2/3 likely done per recent commits (fix#14, fix#27) — needs verification next session.
   commits: []
 - date: 2026-04-03
@@ -189,7 +267,7 @@ log:
   - 4212fd9
   - 6e3a4dc
   - e9b2b02
-  - 7017296
+  - '7017296'
   - 3125d47
 - date: 2026-04-01
   summary: |
@@ -200,3 +278,9 @@ log:
 - date: 2026-03-30
   summary: |
     SessionWriter durability tests added. Unused thiserror deps removed from braid-model and braid-observe. cargo-machete clean.
+  commits: []
+branch: main
+state:
+  tests: 183 passing, 4 skipped
+  build: clean
+  notes: null
