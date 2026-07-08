@@ -1,6 +1,6 @@
 project: braid
 id: braid
-updated: 2026-05-10
+updated: 2026-07-08
 items:
 - id: braid-1
   doob_uuid: 5ea7cdd2-8134-4b13-9488-a1269f6952cb
@@ -249,6 +249,10 @@ items:
     reviewed: null
     note: captured in doob — todo id 4qqhdm26ujl7wl93jrcf
 log:
+- date: 2026-07-08
+  summary: 'Preflight maintenance updates on chore/preflight-maintenance branch. No feature work. Open items remain: braid-5 (phase5-cleanup), braid-8 (redact-persist-coverage), braid-9 (contract-tests), braid-10 (braid-components-impl), braid-11 (adrs).'
+  commits:
+  - acb70f2
 - date: 2026-05-01
   summary: 'Triage: braid-1/2/3/4 already done; merged braid-6 (xtask check-deps) + braid-7 (observe replay tests)'
   commits: []
