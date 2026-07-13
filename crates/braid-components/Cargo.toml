@@ -7,7 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-braid-ports = { path = "../braid-ports" }
+braid-ports = { path = "../braid-ports", version = "0.3.0" }
 serde = { workspace = true, features = ["derive"] }
 toml = "0.8"
 tracing.workspace = true

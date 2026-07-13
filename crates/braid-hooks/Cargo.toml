@@ -7,8 +7,8 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-braid-model = { path = "../braid-model" }
-braid-ports = { path = "../braid-ports" }
+braid-model = { path = "../braid-model", version = "0.3.0" }
+braid-ports = { path = "../braid-ports", version = "0.3.0" }
 
 [lints]
 workspace = true
