@@ -1,0 +1,12 @@
+[component]
+name = "hello-world"
+version = "0.1.0"
+description = "Built-in demonstration component"
+
+[[commands]]
+name = "greet"
+file = "commands/greet.md"
+
+[[prompts]]
+name = "system"
+file = "prompts/system.txt"

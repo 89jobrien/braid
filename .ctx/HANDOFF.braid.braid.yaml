@@ -1,6 +1,6 @@
 project: braid
 id: braid
-updated: 2026-07-12
+updated: 2026-07-13
 items:
 - id: braid-1
   doob_uuid: 5ea7cdd2-8134-4b13-9488-a1269f6952cb
@@ -249,10 +249,13 @@ items:
     reviewed: null
     note: captured in doob — todo id 4qqhdm26ujl7wl93jrcf
 log:
+- date: 2026-07-13
+  summary: |
+    Full issue blitz session. Triaged 30 open GitHub issues → closed 19 duplicates, worked 7 genuine ones. Shipped: ANSI escape sanitization in braid-tui (#5/#6), CI gate fixes (xtask license, machete openssl, deny advisory RUSTSEC-2026-0190), docs/cli-contract.md (#40), donor audit (zero removals; added dead_code=warn workspace-wide, #11), v0.2.0 tag. Closed issues: #5 #6 #10 #11 #18 #19 #25 #29 #40 + duplicates. Tests: 203 passing. Both remotes (gitea + github) at parity.
+  commits: []
 - date: 2026-07-12
   summary: 'Ship chore/preflight-maintenance: fix clippy needless_pass_by_value in openai.rs, fix CI binary name braid→braid-cli, add CHANGELOG.md. Triage of 30 open issues completed.'
-  commits:
-  - 742a5fb
+  commits: []
 - date: 2026-05-01
   summary: 'Triage: braid-1/2/3/4 already done; merged braid-6 (xtask check-deps) + braid-7 (observe replay tests)'
   commits: []
@@ -276,6 +279,7 @@ log:
   commits: []
 branch: main
 state:
-  tests: 183 passing, 4 skipped
+  tests: 203 passing, 4 skipped
   build: clean
-  notes: null
+  notes: |
+    v0.2.0 tagged. 4 open issues remain (P3): #17 ADRs, #24 braid-components, #31 branch protection, #35 integration-agent CI verification.

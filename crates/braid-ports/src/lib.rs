@@ -2,6 +2,7 @@ use anyhow::Result;
 use braid_model::{
     Event, Message, ProviderRequest, ProviderResponse, SessionId, ToolCall, ToolResult,
 };
+use std::path::Path;
 use std::sync::Arc;
 
 // ── Provider ────────────────────────────────────────────────────────────────
@@ -152,4 +153,23 @@ pub trait Hook: Send + Sync {
     fn name(&self) -> &'static str;
     fn pre_execute(&self, ctx: &HookContext) -> Result<HookVerdict>;
     fn post_execute(&self, _ctx: &HookContext, _result: &ToolResult) {}
+}
+
+// ── ComponentRegistry ─────────────────────────────────────────────────────────
+
+/// Metadata for a registered component. Returned by registry queries.
+#[derive(Debug, Clone)]
+pub struct ComponentInfo {
+    pub name: String,
+    pub version: String,
+    pub description: String,
+}
+
+pub trait ComponentRegistry {
+    /// Load a single component from a directory path and register it.
+    fn load(&mut self, path: &Path) -> Result<()>;
+    /// Return metadata for a component by name.
+    fn get(&self, name: &str) -> Option<ComponentInfo>;
+    /// List metadata for all registered components, sorted by name.
+    fn list(&self) -> Vec<ComponentInfo>;
 }
