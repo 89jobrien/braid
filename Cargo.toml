@@ -38,6 +38,7 @@ toml = "0.8"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
+dead_code = "warn"
 
 [workspace.lints.clippy]
 # Groups (priority -1 so individual overrides take effect)
