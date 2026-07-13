@@ -124,6 +124,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "braid-bootstrap",
+ "braid-components",
  "braid-context",
  "braid-core",
  "braid-hooks",
@@ -136,6 +137,18 @@ dependencies = [
  "clap",
  "serde_json",
  "tokio",
+]
+
+[[package]]
+name = "braid-components"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "braid-ports",
+ "serde",
+ "tempfile",
+ "toml",
+ "tracing",
 ]
 
 [[package]]

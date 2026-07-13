@@ -1,0 +1,157 @@
+{
+  "cargo_lock_hash": "5b4cd82643bf013d2e3485c040a1225c59a03830d1565502197b7a27868f54ca",
+  "crates": {
+    "braid-bootstrap": {
+      "hash": "29392e7a541c72ae75b67b9606d07bb4567ad4efdf418c4c6e69a48d321de2c3",
+      "modules": {
+        "./crates/braid-bootstrap/Cargo.toml": "170d8afe39521f2af7c9d468c6d7da48e49fa2a7231f759c837d3878a3292de0",
+        "./crates/braid-bootstrap/src/checks/config_dir.rs": "f028f0115eada3a9ddd3801ef24f3d2915f73c7197260c4f2bc6b52343a89d65",
+        "./crates/braid-bootstrap/src/checks/connectivity.rs": "59984be94b6427d5ae7f6de997c92879bd70de900dbf26bf91a9cf9c4ea469f3",
+        "./crates/braid-bootstrap/src/checks/keys.rs": "12b292702f0da72618a89b2ac8e8b78eafdd75d1032fbd7ddc127329929c522d",
+        "./crates/braid-bootstrap/src/checks/mod.rs": "67338808d1418ec2db72fd142e2523044c25ef971cdcacf4466bd8ec3d7e61c7",
+        "./crates/braid-bootstrap/src/checks/toolchain.rs": "19dda05ec5cfed94420b8609eab842c3432f48da92dc1ea8efec7cee0db0c921",
+        "./crates/braid-bootstrap/src/checks/tools.rs": "56a6fdac7fa46e12b0d60902487a4053072bae5a5133cc759390f9b0272345d3",
+        "./crates/braid-bootstrap/src/checks/workspace.rs": "4d39a0c649941709ce5060c517f4440123b935b705f82558ebff03e1aab2853a",
+        "./crates/braid-bootstrap/src/config.rs": "6ac346c69bdbd23d7d42bbbc41aa3faa3c30259cc9eeb23c4f59a12f77df4275",
+        "./crates/braid-bootstrap/src/doctor.rs": "9f548f59a2e5527f5ea3f6e7e926eb6a550041d383e363d67d12590a087c59e4",
+        "./crates/braid-bootstrap/src/lib.rs": "9bd69687b8774c8ea9e2b61fe9f17dc151eaf2422c4029dfde1cd0c229bb9d7c",
+        "./crates/braid-bootstrap/src/render.rs": "16f5b9db3e113b0bfde2c2688764e5081a7cb129406690125c4115f6f93119f1",
+        "./crates/braid-bootstrap/src/setup.rs": "c0a40e1cb582b62054278f032aecd755c61d21e8369a2ee36aeaf8134125c5e8"
+      }
+    },
+    "braid-cli": {
+      "hash": "70140e9184d48d47341c094d8771a52c61db94fbad70b71d5f7a27b7299d4efd",
+      "modules": {
+        "./crates/braid-cli/Cargo.toml": "e508a2cccdb842bc5d763455d4e5739b4d87947ac46d680f2c6a2851f8c65dd0",
+        "./crates/braid-cli/src/main.rs": "5882e213fd9a83febc28f572862e475b8c237c05fc43b4de0ddfd8c43c7726c1",
+        "./crates/braid-cli/tests/phase2_integration.rs": "b1293c46516523f9c4da2f34c5087622948c8f2ef5a2605e30710608cccd32cc"
+      }
+    },
+    "braid-context": {
+      "hash": "e4298749fa477c60721ead378b026d9e924f61f7546a4f5e423fb550a847283f",
+      "modules": {
+        "./crates/braid-context/Cargo.toml": "465f9f6558971cd58f1dab14f4ab1aaabde15c59bf17aac3bf67b9563d51f1f0",
+        "./crates/braid-context/src/assembler.rs": "edbac116136eed3632310063b74c2b845541a7687c750ba0916608d46f61c5c1",
+        "./crates/braid-context/src/lib.rs": "febc5357baf2b8d3df4af4c7ac46444d7c857a695a06977b7d46b2e80c13b1f9",
+        "./crates/braid-context/src/provider.rs": "750f468668bce98792faa08f2b5c280e292722aa30ca68ffca1e7079b4ac5561",
+        "./crates/braid-context/src/sources/doob.rs": "792aab034c2140038829730e729bcee13ee25fd1757cfc536f31d0895ef88550",
+        "./crates/braid-context/src/sources/mod.rs": "d0f35bf1ad48f34e7f6c1b68e6174ad61261fa3b07402c2b3345efb403f15b04",
+        "./crates/braid-context/src/sources/repo.rs": "3fc92aeb0151139f837aee7e69eea482e74859a33cf915b9ca3e03f422d4aec3",
+        "./crates/braid-context/src/tool.rs": "cff316881145614390ff9e9f6eacffa100550eab1460741e33f7aa3934796426",
+        "./crates/braid-context/src/types.rs": "066677a1b1ef2d4709bb84fd6097d2665da41fcdd1b527f0ec141163239d11ba",
+        "./crates/braid-context/tests/integration.rs": "2a84d840bdc0fa7367f5b44d6e7a3ed9866e3980c1b4f4fc8a06c0b17f9399e6"
+      }
+    },
+    "braid-core": {
+      "hash": "14484fdc6f7bfc4f557dffbf0ae5a61adb33e21520b38888356c1b7f0235b8e9",
+      "modules": {
+        "./crates/braid-core/Cargo.toml": "a111f46618d773bab289dfeee516fe5b5d20c7fc4e34f134c85cbdc9f10ea498",
+        "./crates/braid-core/src/engine.rs": "1232f5a6348a496446b1b887be79538d40907d9da95f22b6ec6690ec1655e6a8",
+        "./crates/braid-core/src/lib.rs": "4b4ea833b52d06f5760bb1f0dec4bc6d0eda3784e1094ef17a7b29ee49e45c63",
+        "./crates/braid-core/src/planner.rs": "1ad89d9d768ab4161afd2aef99df356c2f55ac450dca06b4d0696f4f9e307a90",
+        "./crates/braid-core/src/registry.rs": "8ed60a69edd9df0eb0d21623ed2d1bc78c156b8acc8dcbf1ae6b8da855c77ddd",
+        "./crates/braid-core/src/tools.rs": "bdbf0e5e77db083b025f8b485c926ffd62f84e38be8f023a4412464947f51e27"
+      }
+    },
+    "braid-hooks": {
+      "hash": "e828eee0ca76ddc2c5b06d2467cf1d3a37793e8f5c4bd3aece58e76d5b88cb63",
+      "modules": {
+        "./crates/braid-hooks/Cargo.toml": "238540077ee9b027992d064cebab3e0142533a181e5c372bf732d30d4afbbdeb",
+        "./crates/braid-hooks/src/contract.rs": "c0e33ecbb65303e51487cdf312e450e50aeb219b13d02132b86658986af4ccf6",
+        "./crates/braid-hooks/src/executor.rs": "ea2bf5373f6fd37431648d008c6b92966eee604987a73d9f22d22eee26b92914",
+        "./crates/braid-hooks/src/guards/destructive.rs": "f66f644955f4b5250027e027e0295788e1e464a36a0686ef862abddd44237d44",
+        "./crates/braid-hooks/src/guards/freshness.rs": "9596569ad321f7d5f941090e05cd7d3d418da87187fc18f314ce786b85ea7a20",
+        "./crates/braid-hooks/src/guards/mod.rs": "c66bd870a081083f655cb43214fb1de0e3fbb835f9b357626ac7610ca17c6fe6",
+        "./crates/braid-hooks/src/lib.rs": "fc0ca524ee2cdc57b5da4f0a74dc02c600f15616e9e8ead8b35ed67830a3e569",
+        "./crates/braid-hooks/src/registry.rs": "84ec5df5fd5fac322deb1a9ba8e30f5a4e291f7c21ae589d067f1289570c1b93"
+      }
+    },
+    "braid-mcp": {
+      "hash": "3e62868c5eb8e47d6244f2a1aef8d5134558a4570d657e5ba498508cb917807d",
+      "modules": {
+        "./crates/braid-mcp/Cargo.toml": "72c14b8c85cbaf3459c3bbc3140120dd273d6a40dfc38a9c04ef2502a72540a4",
+        "./crates/braid-mcp/src/lib.rs": "8f79a6715303deef82577a3ad0af2007094c444105b398624b388b053accdf88",
+        "./crates/braid-mcp/src/server.rs": "4ea68b758eff4b70744d595fd4b745397b28e13cad09eab6131cbfde6b4bc4a3",
+        "./crates/braid-mcp/src/tools/echo.rs": "7fbc96563263ce7a971690ab0b2330aa2418ead0005917bd96c4de34ef2a873e",
+        "./crates/braid-mcp/src/tools/mod.rs": "0542bb0c963ceaf6ed20078842c466e8cd993ccaab91020f4ef693d83723e75f"
+      }
+    },
+    "braid-model": {
+      "hash": "0d296e3e1eb00d40fc65fbe42ef1eccdb11e2c759dc665815bd9f8679d92c84b",
+      "modules": {
+        "./crates/braid-model/Cargo.toml": "6716f0f783a6de8af9e3942e6a90e718565a1c8ac7d7a5c49c8c7af640f2ff3d",
+        "./crates/braid-model/src/context.rs": "68c813cfbddce4ab4421f652a8f0a9c826a9abc48306d1dc69a00f755ab1133a",
+        "./crates/braid-model/src/event.rs": "1635cb1fd2522182957a4f9e9c2bc9d84428bc6095e43a5285daaf3f9785d8bc",
+        "./crates/braid-model/src/lib.rs": "25d08b2293a56589d77a442f31c0a9a84dc1f9a3be61dcf8a413249150b6f704",
+        "./crates/braid-model/src/message.rs": "fbc2208188774c421c947f5d01125722eef14001256d6478f26deb6ac5ef3c75",
+        "./crates/braid-model/src/provider.rs": "f05761b85dc0d9f42051a8fc297961e464c002fab640783d8c400cde14b89fc5",
+        "./crates/braid-model/src/session.rs": "b5aa7d25438968f3e7c3a28555dc3a1774de9d1f5ff29446f16a25fefc55aa42",
+        "./crates/braid-model/src/task.rs": "c5e79450f792cae0f67b959bd48aa81b557653422328955bcbc83c18f1e161de",
+        "./crates/braid-model/src/tool.rs": "7589629f8e9d7f706a2048837aa4e573cca955501781c650c13925747cae97ec",
+        "./crates/braid-model/src/transcript.rs": "91d14a9a2527faeec275e85668c7a9e0054bd911cad0adad25c4f107c1c31b56",
+        "./crates/braid-model/tests/serde_roundtrip.rs": "38ebda7d3bd06524c680b1e4fcc6faa3bd9dc99c30f9020e208345b7efe1006c"
+      }
+    },
+    "braid-observe": {
+      "hash": "9e98d7366c6395a7f6d3d69b3c7b652911887a4f2513b818f1e81276567af128",
+      "modules": {
+        "./crates/braid-observe/Cargo.toml": "4ac8b079ccf7d79617814eaa57017712da7c06bafc5a9495373bbc37720cd354",
+        "./crates/braid-observe/src/e2e_streaming_tests.rs": "2722c6b0387c13195989024222a72a858a7367ffa5fbb0012fbba926b34a2153",
+        "./crates/braid-observe/src/ingest.rs": "c59aa1fe3704217c414bdcf54105bf110f03b0595c53795b4d01bb8311534fcd",
+        "./crates/braid-observe/src/lib.rs": "fd18108ecd4532a9b6422fc895d8b229867f6ff2ad0a5961f3227cd47f89e9a3",
+        "./crates/braid-observe/src/memory.rs": "8bbb33003c78247a33f0799396e8398591f3881bdf984819cdb2d114fa3de643",
+        "./crates/braid-observe/src/render.rs": "94e7afda1c37309aa21c81fefaf1eb705a4507e5409dd1337bc708f2a02fe3b3",
+        "./crates/braid-observe/src/replay.rs": "f70ef6130308aa3fc02d5e77fa4d5ea4325dabceab4c0cd254b9af3f618773b1",
+        "./crates/braid-observe/src/store.rs": "64be3b5231355640d894532613cb48df0c243bf11c157b7afa583aafcf8bf897",
+        "./crates/braid-observe/tests/conformance.rs": "31bb3ddd81338e474a4d295be6f98ee9ae75faf48eada7681fd445e0c239b302",
+        "./crates/braid-observe/tests/redaction_audit.rs": "e1228ef78bb56decaa3af711cb7731e238f8f3a73414b36a34e6a4a96598dfa7",
+        "./crates/braid-observe/tests/session_format_stability.rs": "5f03bda012c76cb41a607836f8629bcd6bdb3909260e7db0f80505cce0981e2f"
+      }
+    },
+    "braid-ports": {
+      "hash": "4b8e4a7856c157a477b1d8028b7dfb52e37541cc24e3f6fee14f5663754b2288",
+      "modules": {
+        "./crates/braid-ports/Cargo.toml": "6d16170d810bec559a3b3f95667a62709d2b69b4bb56e9c254d6e90df2225bb6",
+        "./crates/braid-ports/src/lib.rs": "cbec9422bbf9fb4dd005072f0f292290f53b631d0984b76b31f43e1a2bf7ccb5"
+      }
+    },
+    "braid-providers": {
+      "hash": "8bd59bb156e5db505517976ff48ff76b6ab576d46c55f914f4e2a8b824d6ccec",
+      "modules": {
+        "./crates/braid-providers/Cargo.toml": "d744a2d7b51aa725cdc4afa72a37399c4a8d48ba1b5fe2c9e06cc2a10c1aaee7",
+        "./crates/braid-providers/src/lib.rs": "148b0503d91b7e26217e45419dcc4a788103f18f531172ad6353a5433c169bcf",
+        "./crates/braid-providers/src/mock.rs": "7751e2aada1e5b3b0aeba1f4cc27ee1bbaac65d548fecc20d55bcbaa326960ba",
+        "./crates/braid-providers/src/openai.rs": "e84c99ca657d906c84579e2f906b48f95e7112245ffe80fa9938a683bbf931d2",
+        "./crates/braid-providers/tests/provider_contract.rs": "0e334375003b647c4d1aff06097ec980e1da400e0239c851ace13cb7d7667313"
+      }
+    },
+    "braid-redact": {
+      "hash": "3be35e01266974e3b940c3b74114f9a51bb961bc7f9c50739664510d46396bfb",
+      "modules": {
+        "./crates/braid-redact/Cargo.toml": "0833bb7c4751cb96835152c8b8a8e778aec1d8217130d652af6cd09cb004da34",
+        "./crates/braid-redact/src/lib.rs": "08fab13c281a50b413fc772fafccf573b90ca95073dd8fb4f7b06c4a6423a238",
+        "./crates/braid-redact/src/path.rs": "7312571305f062028a38ff1b6f0a87020210b547027e64050574adbb58b6dc53",
+        "./crates/braid-redact/src/patterns.rs": "f58cb58e5da4c786c3010fcd9df80b1422d780b08f4dd5a3fe13f7f4a9a2dab9",
+        "./crates/braid-redact/src/pipeline.rs": "4637788c7ed56dc16950ec214b71beca9fa42fd567df30130739205094c97dbc",
+        "./crates/braid-redact/src/rule.rs": "51d7dac062fac824f96ef125a812230135db97c0fa19d3a79b775394659ed574"
+      }
+    },
+    "braid-tui": {
+      "hash": "54d78b10c2026f112e871acfbbdb8dd2764dffb7e48a4928d67eadbaeac471bb",
+      "modules": {
+        "./crates/braid-tui/Cargo.toml": "871f685eb0a90bf6b90ad54c06f8c7e70daed36a304873a14dd449a474f060b8",
+        "./crates/braid-tui/src/app.rs": "5de322b7d80748f3964543924be1ce3cde923ad99fb39c0720b8bca31ab80460",
+        "./crates/braid-tui/src/keys.rs": "87b09f3801d1ded30dab2609d2b292f01550fcaeb5181ad8c706cfe6341c8ad3",
+        "./crates/braid-tui/src/main.rs": "35024ef158bb868cb868563ab0cc9fa77ae7db721671ca19f4d0dc71f3c0e2be",
+        "./crates/braid-tui/src/ui.rs": "d2e077225a04e19b87dca48cf24d15365aae612c75c4c2d01ba1d596ff1d77c9"
+      }
+    },
+    "xtask": {
+      "hash": "68117adc5705835ecc288770ba7c69e799f117ea765733f2c4324e69f4a893a8",
+      "modules": {
+        "./xtask/Cargo.toml": "a3b3f99c6c832c98143c1e8e299a80d75c3ddeada2c116b6f80c8056e7ca862e",
+        "./xtask/src/main.rs": "0b15b6ed5d2a38b2559f957e47f47731cb6c0c319c39f94cd73ea2b1d746d493"
+      }
+    }
+  }
+}

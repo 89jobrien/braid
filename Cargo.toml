@@ -13,6 +13,7 @@ members = [
   "crates/braid-tui",
   "crates/braid-context",
   "crates/braid-bootstrap",
+  "crates/braid-components",
 ]
 resolver = "2"
 

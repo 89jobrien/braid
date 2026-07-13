@@ -46,6 +46,11 @@ enum Command {
         #[command(subcommand)]
         action: SessionsCommand,
     },
+    /// List installed components
+    Components {
+        #[command(subcommand)]
+        action: ComponentsCommand,
+    },
     /// Run as a warpx agent harness (JSON-lines output)
     Agent {
         /// Prompt text (reads stdin if omitted)
@@ -60,6 +65,16 @@ enum Command {
         /// Maximum engine turns before stopping
         #[arg(long)]
         max_turns: Option<u32>,
+    },
+}
+
+#[derive(Subcommand)]
+enum ComponentsCommand {
+    /// List all installed components
+    List {
+        /// Directory to scan (default: ~/.braid/components)
+        #[arg(long)]
+        dir: Option<String>,
     },
 }
 
@@ -329,6 +344,7 @@ fn main() -> Result<()> {
         Command::Setup => cmd_setup(),
         Command::Mcp => cmd_mcp(),
         Command::Sessions { action } => cmd_sessions(action),
+        Command::Components { action } => cmd_components(action),
         Command::Agent {
             prompt,
             provider,
@@ -336,6 +352,49 @@ fn main() -> Result<()> {
             max_turns,
         } => cmd_agent(prompt, provider.as_deref(), &model, max_turns),
     }
+}
+
+fn default_components_dir() -> Result<std::path::PathBuf> {
+    let home = std::env::var("HOME").context("HOME not set")?;
+    Ok(std::path::PathBuf::from(home)
+        .join(".braid")
+        .join("components"))
+}
+
+fn cmd_components(action: ComponentsCommand) -> Result<()> {
+    use braid_components::FileSystemRegistry;
+    use braid_ports::ComponentRegistry;
+
+    match action {
+        ComponentsCommand::List { dir } => {
+            let components_dir = match dir {
+                Some(d) => std::path::PathBuf::from(d),
+                None => default_components_dir()?,
+            };
+
+            if !components_dir.exists() {
+                println!(
+                    "no components directory found at {}",
+                    components_dir.display()
+                );
+                println!("run `braid setup` to initialise, or use --dir to specify a path");
+                return Ok(());
+            }
+
+            let registry = FileSystemRegistry::from_dir(&components_dir)?;
+            let components = registry.list();
+
+            if components.is_empty() {
+                println!("no components installed in {}", components_dir.display());
+            } else {
+                println!("{} component(s):", components.len());
+                for c in components {
+                    println!("  {} {} — {}", c.name, c.version, c.description);
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 fn cmd_sessions(action: SessionsCommand) -> Result<()> {
