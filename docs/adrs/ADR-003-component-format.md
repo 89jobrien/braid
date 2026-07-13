@@ -1,6 +1,6 @@
-# ADR-003: Component Format (Planned)
+# ADR-003: Component Format
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-07-13
 **Deciders:** Joseph O'Brien
 
@@ -27,44 +27,54 @@ version = "0.1.0"
 name = "summarize"
 file = "commands/summarize.md"
 
-[[skills]]
-name = "extract"
-file = "skills/extract.md"
-
 [[prompts]]
 name = "system"
 file = "prompts/system.txt"
 ```
 
-A `ComponentRegistry` trait (in `braid-ports`) exposes:
+Supported manifest keys: `[component]` (required: `name`, `version`; optional:
+`description`), `[[commands]]`, `[[prompts]]`. Each entry has `name` and `file`
+(path relative to the component directory). All referenced files are validated at
+load time — a missing file is a startup error.
+
+`ComponentRegistry` (in `braid-ports`) and `ComponentInfo` (returned by queries):
 
 ```rust
+pub struct ComponentInfo {
+    pub name: String,
+    pub version: String,
+    pub description: String,
+}
+
 pub trait ComponentRegistry {
-    fn load(&self, path: &Path) -> Result<ComponentHandle>;
-    fn get(&self, name: &str) -> Option<&ComponentHandle>;
-    fn list(&self) -> Vec<&ComponentHandle>;
+    fn load(&mut self, path: &Path) -> Result<()>;
+    fn get(&self, name: &str) -> Option<ComponentInfo>;
+    fn list(&self) -> Vec<ComponentInfo>;
 }
 ```
 
-The engine resolves component references by name at session-start time. Unknown
-component names are a startup error, not a runtime error.
+`FileSystemRegistry` (in `braid-components`) implements `ComponentRegistry` by
+scanning a root directory: each immediate subdirectory containing `component.toml`
+is loaded. Direct manifest access (for reading file contents) is available via
+`FileSystemRegistry::get_manifest(name) -> Option<&ComponentManifest>`.
 
-Loading follows the same pattern as `BraidConfig::load`: read TOML from disk,
-deserialize into a typed struct, validate required fields, return `anyhow::Result`.
+The built-in `hello-world` component ships under
+`crates/braid-components/components/hello-world/` and serves as the reference
+implementation.
 
 ## Consequences
 
-- **No recompilation**: new components are added by dropping a directory and
-  updating a registry config path, not by changing Rust code.
+- **No recompilation**: new components are added by dropping a directory into
+  `~/.braid/components/` and restarting braid.
 - **TOML-first**: consistent with `braid-bootstrap` config; no new serialization
   formats introduced.
 - **Registry as port**: `ComponentRegistry` lives in `braid-ports`, keeping
   `braid-components` as a leaf crate with no reverse dependencies.
 - **Startup validation**: missing component files or malformed manifests fail
   fast at load time rather than mid-session.
-- **Not yet implemented**: this ADR records the intended shape. Implementation
-  begins in Phase 4. Details may change; update status to Accepted when a
-  working `ComponentRegistry` impl lands in `braid-components`.
+- **`ComponentInfo` not `ComponentHandle`**: registry queries return owned
+  `ComponentInfo` structs (name, version, description). File-content access
+  requires the concrete `FileSystemRegistry::get_manifest` method.
 
 ## Alternatives Considered
 

@@ -123,6 +123,40 @@ Delete the oldest sessions, keeping the `N` most recent. Prints `deleted <N> ses
 
 ---
 
+### `braid components`
+
+Manage installed components.
+
+```
+braid components <ACTION>
+```
+
+#### `braid components list [--dir <PATH>]`
+
+List all components installed in the component directory.
+
+```
+braid components list [--dir <PATH>]
+```
+
+| Flag          | Default                  | Description                              |
+| ------------- | ------------------------ | ---------------------------------------- |
+| `--dir <PATH>`| `~/.braid/components`    | Directory to scan for component manifests.|
+
+Each component subdirectory must contain a `component.toml`. Output format:
+
+```
+3 component(s):
+  hello-world 0.1.0 — Built-in demonstration component
+  my-tool 1.2.0 — ...
+```
+
+If the components directory does not exist, a message is printed suggesting
+`braid setup`, and the command exits 0. If the directory is empty of valid
+components, `no components installed in <path>` is printed.
+
+---
+
 ### `braid doctor`
 
 Run environment health checks and print a summary table. Checks performed:
