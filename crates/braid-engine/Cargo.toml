@@ -11,8 +11,8 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-braid-model = { path = "../braid-model", version = "0.3.0" }
-braid-ports = { path = "../braid-ports", version = "0.3.0" }
+braid-model = { workspace = true }
+braid-ports = { workspace = true }
 chrono.workspace = true
 
 [dev-dependencies]

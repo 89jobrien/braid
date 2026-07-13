@@ -14,12 +14,12 @@ test-support = []
 
 [dependencies]
 anyhow.workspace = true
-braid-model = { path = "../braid-model", version = "0.3.0" }
-braid-ports = { path = "../braid-ports", version = "0.3.0" }
-reqwest = { version = "0.12", features = ["blocking", "json"] }
+braid-model = { workspace = true }
+braid-ports = { workspace = true }
+openssl.workspace = true
+reqwest = { workspace = true }
 serde_json.workspace = true
 tracing.workspace = true
-openssl.workspace = true
 
 [package.metadata.cargo-machete]
 ignored = ["openssl"]

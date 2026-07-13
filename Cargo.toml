@@ -22,23 +22,36 @@ edition = "2024"
 license = "MIT"
 version = "0.3.0"
 authors = ["Joseph O'Brien <joeobrien516@gmail.com>"]
-rust-version = "1.88"
+rust-version = "1.88.0"
 repository = "https://github.com/89jobrien/braid"
 homepage = "https://github.com/89jobrien/braid"
 documentation = "https://docs.rs/braid-engine"
 
 [workspace.dependencies]
 anyhow = "1"
+braid-bootstrap = { path = "crates/braid-bootstrap", version = "^0.3.0" }
+braid-components = { path = "crates/braid-components", version = "^0.3.0" }
+braid-context = { path = "crates/braid-context", version = "^0.3.0" }
+braid-engine = { path = "crates/braid-engine", version = "^0.3.0" }
+braid-hooks = { path = "crates/braid-hooks", version = "^0.3.0" }
+braid-mcp = { path = "crates/braid-mcp", version = "^0.3.0" }
+braid-model = { path = "crates/braid-model", version = "^0.3.0" }
+braid-observe = { path = "crates/braid-observe", version = "^0.3.0" }
+braid-ports = { path = "crates/braid-ports", version = "^0.3.0" }
+braid-providers = { path = "crates/braid-providers", version = "^0.3.0" }
+braid-redact = { path = "crates/braid-redact", version = "^0.3.0" }
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+openssl = { version = "0.10", features = ["vendored"] }
+regex = "1"
+reqwest = { version = "^0.12.28", features = ["blocking", "json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tempfile = "^3.27.0"
 thiserror = "2"
-tracing = "0.1"
-openssl = { version = "0.10", features = ["vendored"] }
-clap = { version = "4", features = ["derive"] }
-regex = "1"
 tokio = { version = "1", features = ["rt", "macros", "io-std", "io-util"] }
-chrono = { version = "0.4", features = ["serde"] }
 toml = "0.8"
+tracing = "0.1"
 
 [workspace.lints.rust]
 unsafe_code = "deny"

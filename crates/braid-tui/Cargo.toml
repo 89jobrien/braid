@@ -16,14 +16,14 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow.workspace = true
-serde_json.workspace = true
-braid-model = { path = "../braid-model", version = "0.3.0" }
-braid-observe = { path = "../braid-observe", version = "0.3.0" }
+braid-model = { workspace = true }
+braid-observe = { workspace = true }
 crossterm = "0.28"
 ratatui = "0.29"
+serde_json.workspace = true
 
 [dev-dependencies]
-tempfile = "3"
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

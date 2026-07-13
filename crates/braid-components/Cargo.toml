@@ -11,13 +11,13 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-braid-ports = { path = "../braid-ports", version = "0.3.0" }
+braid-ports = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-toml = "0.8"
+toml = { workspace = true }
 tracing.workspace = true
 
 [dev-dependencies]
-tempfile = "3"
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

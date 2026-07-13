@@ -14,14 +14,14 @@ test-support = []
 
 [dependencies]
 anyhow.workspace = true
-braid-model = { path = "../braid-model", version = "0.3.0" }
-braid-ports = { path = "../braid-ports", version = "0.3.0" }
+braid-model = { workspace = true }
+braid-ports = { workspace = true }
 serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
-braid-redact = { path = "../braid-redact", version = "0.3.0" }
-tempfile = "3"
+braid-redact = { workspace = true }
+tempfile = { workspace = true }
 
 [lints]
 workspace = true
