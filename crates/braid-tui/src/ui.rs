@@ -9,17 +9,49 @@ use ratatui::{
 use crate::app::LoadedSession;
 use crate::keys::{AppState, DetailState, Focus};
 
-/// Strip terminal control characters from a string before rendering.
-/// Replaces escape sequences and other non-printable chars (except tab/newline)
-/// with '·' to prevent ANSI injection from untrusted session content.
+/// Strip ANSI/VT escape sequences and other non-printable characters from a string
+/// before rendering, preventing escape injection from untrusted session payloads.
+///
+/// Sequences handled:
+/// - `ESC [ <params> <final>` — CSI sequences (colors, cursor movement, etc.)
+/// - `ESC <non-[>` — two-character Fe/Fs sequences
+/// - bare ESC (incomplete or unrecognised) — dropped
+/// - other control chars < 0x20 (except tab/newline) and DEL — replaced with `·`
 fn sanitize(s: &str) -> String {
-    s.chars()
-        .map(|c| match c {
-            '\t' | '\n' => c,
-            c if (c as u32) < 0x20 || c == '\x7f' => '·',
-            _ => c,
-        })
-        .collect()
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        match c {
+            '\x1b' => {
+                // Consume the escape sequence without emitting it.
+                match chars.peek() {
+                    Some(&'[') => {
+                        // CSI sequence: ESC [ <parameter bytes 0x30–0x3F>* <intermediate 0x20–0x2F>* <final 0x40–0x7E>
+                        chars.next(); // consume '['
+                        for ch in chars.by_ref() {
+                            if ('\x40'..='\x7e').contains(&ch) {
+                                break; // final byte consumed, sequence done
+                            }
+                            // parameter and intermediate bytes are skipped
+                        }
+                    }
+                    Some(_) => {
+                        // Two-character escape sequence — consume the second char.
+                        chars.next();
+                    }
+                    None => {
+                        // Bare ESC at end of string — drop it.
+                    }
+                }
+            }
+            '\t' | '\n' => out.push(c),
+            c if (c as u32) < 0x20 || c == '\x7f' => out.push('·'),
+            _ => out.push(c),
+        }
+    }
+
+    out
 }
 
 pub fn render(frame: &mut Frame, state: &AppState, loaded: Option<&LoadedSession>) {
@@ -238,4 +270,52 @@ fn render_detail(frame: &mut Frame, state: &AppState, loaded: Option<&LoadedSess
         .wrap(Wrap { trim: false });
 
     frame.render_widget(p, area);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sanitize;
+
+    #[test]
+    fn sanitize_strips_csi_color_sequence() {
+        assert_eq!(sanitize("\x1b[0;31mred\x1b[0m"), "red");
+    }
+
+    #[test]
+    fn sanitize_strips_bare_csi_reset() {
+        assert_eq!(sanitize("\x1b[m"), "");
+    }
+
+    #[test]
+    fn sanitize_strips_two_char_escape() {
+        // ESC M (reverse index) — should be consumed silently
+        assert_eq!(sanitize("\x1bMtext"), "text");
+    }
+
+    #[test]
+    fn sanitize_preserves_normal_text() {
+        assert_eq!(sanitize("hello world"), "hello world");
+    }
+
+    #[test]
+    fn sanitize_preserves_tab_and_newline() {
+        assert_eq!(sanitize("a\tb\nc"), "a\tb\nc");
+    }
+
+    #[test]
+    fn sanitize_replaces_other_control_chars() {
+        // BEL (0x07) and BS (0x08) should become ·
+        assert_eq!(sanitize("a\x07b\x08c"), "a·b·c");
+    }
+
+    #[test]
+    fn sanitize_handles_bare_esc_at_end() {
+        assert_eq!(sanitize("text\x1b"), "text");
+    }
+
+    #[test]
+    fn sanitize_strips_cursor_movement_sequence() {
+        // ESC[2J — erase display
+        assert_eq!(sanitize("\x1b[2Jclear"), "clear");
+    }
 }
