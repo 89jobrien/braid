@@ -22,12 +22,20 @@ impl OpenAiProvider {
     pub fn new(model: impl Into<String>) -> Result<Self> {
         let api_key = std::env::var("OPENAI_API_KEY")
             .context("OPENAI_API_KEY environment variable not set")?;
+        let api_key = Self::validate_api_key(&api_key)?;
         Ok(Self {
             api_key,
             model: model.into(),
             base_url: "https://api.openai.com/v1".into(),
             client: build_client(),
         })
+    }
+    fn validate_api_key(api_key: &str) -> Result<String> {
+        let api_key = api_key.trim().to_owned();
+        if api_key.is_empty() {
+            bail!("OPENAI_API_KEY environment variable is empty");
+        }
+        Ok(api_key)
     }
 
     pub fn default_model() -> Result<Self> {
@@ -265,6 +273,12 @@ mod tests {
         let provider = OpenAiProvider::ollama("qwen2.5:3b");
         assert_eq!(provider.base_url, "http://localhost:11434/v1");
         assert_eq!(provider.model, "qwen2.5:3b");
+    }
+
+    #[test]
+    fn rejects_blank_api_key() {
+        let err = OpenAiProvider::validate_api_key("   ".into()).expect_err("should fail");
+        assert!(err.to_string().contains("empty"));
     }
 
     #[test]

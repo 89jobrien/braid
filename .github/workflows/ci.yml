@@ -62,7 +62,7 @@ jobs:
 
       - name: Run braid agent end-to-end
         run: |
-          ./target/release/braid agent \
+          ./target/release/braid-cli agent \
             --prompt "echo hello" \
             --provider ollama \
             --model qwen2:0.5b \
