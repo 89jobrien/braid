@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
 use braid_context::{
     ContextAssembler, ContextAssemblerProvider, DoobSource, RefreshContextTool, RepoSource,
 };
-use braid_core::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
+use braid_engine::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
 use braid_hooks::{DestructiveCommandGuard, HookRegistry, HookedExecutor};
 use braid_model::{ContentPart, Message, Role, SessionId};
 use braid_observe::SessionStore;

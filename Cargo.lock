@@ -108,7 +108,7 @@ checksum = "b4388bee8683e3d04af747c73422af53102d2bd24d9eadb6cbc100baef4b43f8"
 
 [[package]]
 name = "braid-bootstrap"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "reqwest",
@@ -120,13 +120,13 @@ dependencies = [
 
 [[package]]
 name = "braid-cli"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-bootstrap",
  "braid-components",
  "braid-context",
- "braid-core",
+ "braid-engine",
  "braid-hooks",
  "braid-mcp",
  "braid-model",
@@ -141,7 +141,7 @@ dependencies = [
 
 [[package]]
 name = "braid-components"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-ports",
@@ -153,7 +153,7 @@ dependencies = [
 
 [[package]]
 name = "braid-context"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -164,8 +164,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "braid-core"
-version = "0.1.0"
+name = "braid-engine"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -176,7 +176,7 @@ dependencies = [
 
 [[package]]
 name = "braid-hooks"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "braid-mcp"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "braid-model"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "serde",
@@ -205,7 +205,7 @@ dependencies = [
 
 [[package]]
 name = "braid-observe"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -218,7 +218,7 @@ dependencies = [
 
 [[package]]
 name = "braid-ports"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -226,7 +226,7 @@ dependencies = [
 
 [[package]]
 name = "braid-providers"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -239,7 +239,7 @@ dependencies = [
 
 [[package]]
 name = "braid-redact"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "braid-model",
  "braid-ports",
@@ -249,7 +249,7 @@ dependencies = [
 
 [[package]]
 name = "braid-tui"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "braid-model",
@@ -2228,7 +2228,7 @@ checksum = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4"
 
 [[package]]
 name = "xtask"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "toml",

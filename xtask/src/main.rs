@@ -35,27 +35,32 @@ struct Rule {
 
 /// All boundary rules for the braid hexagonal architecture.
 ///
-/// Chain:  braid-cli → braid-providers → braid-core → braid-ports → braid-model
+/// Chain:  braid-cli → braid-providers → braid-engine → braid-ports → braid-model
 ///
 /// "Support" crates (redact, hooks, mcp, observe, context, tui, bootstrap) may
-/// only depend on crates at `braid-core` or below in the chain — never on
+/// only depend on crates at `braid-engine` or below in the chain — never on
 /// `braid-providers` or `braid-cli`.
 const RULES: &[Rule] = &[
     // --- Main chain: no upward dependencies ---
     Rule {
         dependent: "braid-model",
-        forbidden: &["braid-ports", "braid-core", "braid-providers", "braid-cli"],
+        forbidden: &[
+            "braid-ports",
+            "braid-engine",
+            "braid-providers",
+            "braid-cli",
+        ],
         reason: "braid-model is the leaf; it must not depend on any other braid crate",
     },
     Rule {
         dependent: "braid-ports",
-        forbidden: &["braid-core", "braid-providers", "braid-cli"],
-        reason: "braid-ports sits below braid-core in the chain",
+        forbidden: &["braid-engine", "braid-providers", "braid-cli"],
+        reason: "braid-ports sits below braid-engine in the chain",
     },
     Rule {
-        dependent: "braid-core",
+        dependent: "braid-engine",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "braid-core must not depend on braid-providers or braid-cli",
+        reason: "braid-engine must not depend on braid-providers or braid-cli",
     },
     Rule {
         dependent: "braid-providers",
@@ -66,37 +71,37 @@ const RULES: &[Rule] = &[
     Rule {
         dependent: "braid-redact",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "support crate braid-redact must only depend on braid-core/braid-ports/braid-model",
+        reason: "support crate braid-redact must only depend on braid-engine/braid-ports/braid-model",
     },
     Rule {
         dependent: "braid-hooks",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "support crate braid-hooks must only depend on braid-core/braid-ports/braid-model",
+        reason: "support crate braid-hooks must only depend on braid-engine/braid-ports/braid-model",
     },
     Rule {
         dependent: "braid-mcp",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "support crate braid-mcp must only depend on braid-core/braid-ports/braid-model",
+        reason: "support crate braid-mcp must only depend on braid-engine/braid-ports/braid-model",
     },
     Rule {
         dependent: "braid-observe",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "support crate braid-observe must only depend on braid-core/braid-ports/braid-model",
+        reason: "support crate braid-observe must only depend on braid-engine/braid-ports/braid-model",
     },
     Rule {
         dependent: "braid-context",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "support crate braid-context must only depend on braid-core/braid-ports/braid-model",
+        reason: "support crate braid-context must only depend on braid-engine/braid-ports/braid-model",
     },
     Rule {
         dependent: "braid-tui",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "support crate braid-tui must only depend on braid-core/braid-ports/braid-model",
+        reason: "support crate braid-tui must only depend on braid-engine/braid-ports/braid-model",
     },
     Rule {
         dependent: "braid-bootstrap",
         forbidden: &["braid-providers", "braid-cli"],
-        reason: "support crate braid-bootstrap must only depend on braid-core/braid-ports/braid-model",
+        reason: "support crate braid-bootstrap must only depend on braid-engine/braid-ports/braid-model",
     },
 ];
 

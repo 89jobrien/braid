@@ -104,7 +104,7 @@ where
                 Ok(_) => {} // empty snapshot — proceed without
                 Err(e) => {
                     eprintln!(
-                        "[braid-core] context assembly failed, proceeding without context: {e:#}"
+                        "[braid-engine] context assembly failed, proceeding without context: {e:#}"
                     );
                 }
             }

@@ -13,7 +13,7 @@ rust-version.workspace = true
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
-braid-core = { path = "../braid-core", version = "0.3.0" }
+braid-engine = { path = "../braid-engine", version = "0.3.0" }
 braid-hooks = { path = "../braid-hooks", version = "0.3.0" }
 braid-model = { path = "../braid-model", version = "0.3.0" }
 braid-ports = { path = "../braid-ports", version = "0.3.0" }

@@ -4,7 +4,7 @@
 mod tests {
     use std::sync::{Arc, Mutex};
 
-    use braid_core::{Engine, Provider, RunInput, SimpleLoopPlanner, StaticTool};
+    use braid_engine::{Engine, Provider, RunInput, SimpleLoopPlanner, StaticTool};
     use braid_model::{
         ContentPart, EventKind, Message, ProviderRequest, ProviderResponse, Role, SessionId,
     };

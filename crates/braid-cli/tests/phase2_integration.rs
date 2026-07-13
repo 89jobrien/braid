@@ -8,7 +8,7 @@
 //! These tests deliberately cross crate boundaries to catch wiring bugs that
 //! per-crate unit tests cannot see.
 
-use braid_core::{StaticTool, ToolExecutor};
+use braid_engine::{StaticTool, ToolExecutor};
 use braid_hooks::{HookRegistry, HookedExecutor, guards::DestructiveCommandGuard};
 use braid_model::{SessionId, ToolCall};
 use braid_redact::{RedactionPipeline, patterns::SecretPatternRule};

@@ -1,6 +1,6 @@
 [package]
-name = "braid-core"
-description = "Runtime engine for the braid agent platform"
+name = "braid-engine"
+description = "Agent loop engine for the braid platform"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
