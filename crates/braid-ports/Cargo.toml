@@ -1,5 +1,9 @@
 [package]
 name = "braid-ports"
+description = "Port traits for the braid agent platform (Provider, ToolExecutor, EventSink, ComponentRegistry)"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true

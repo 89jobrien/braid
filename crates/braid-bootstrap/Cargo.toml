@@ -1,5 +1,9 @@
 [package]
 name = "braid-bootstrap"
+description = "Environment setup and health checks for the braid agent platform"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true

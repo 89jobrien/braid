@@ -1,5 +1,9 @@
 [package]
 name = "braid-observe"
+description = "Session observability, storage, and replay for braid"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true

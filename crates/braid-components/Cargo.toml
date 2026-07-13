@@ -1,5 +1,9 @@
 [package]
 name = "braid-components"
+description = "Filesystem-backed component registry for braid"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -1,5 +1,9 @@
 [package]
 name = "braid-providers"
+description = "LLM provider adapters for the braid agent platform (OpenAI, Ollama)"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true

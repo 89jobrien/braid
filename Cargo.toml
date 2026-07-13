@@ -21,8 +21,11 @@ resolver = "2"
 edition = "2024"
 license = "MIT"
 version = "0.3.0"
-authors = ["Joe"]
+authors = ["Joseph O'Brien <joeobrien516@gmail.com>"]
 rust-version = "1.88"
+repository = "https://github.com/89jobrien/braid"
+homepage = "https://github.com/89jobrien/braid"
+documentation = "https://docs.rs/braid-core"
 
 [workspace.dependencies]
 anyhow = "1"
@@ -53,7 +56,7 @@ todo = "deny"
 wildcard_imports = "deny"
 
 # Allow: too noisy / not worth the churn
-cargo_common_metadata = "allow"       # private workspace, no publishing
+cargo_common_metadata = "allow"       # descriptions set per-crate; keywords/categories optional
 derive_partial_eq_without_eq = "allow" # serde_json::Value doesn't impl Eq
 missing_errors_doc = "allow"          # doc coverage not required
 missing_panics_doc = "allow"          # doc coverage not required

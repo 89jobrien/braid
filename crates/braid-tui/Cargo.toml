@@ -1,9 +1,14 @@
 [package]
 name = "braid-tui"
+description = "Terminal UI session inspector for braid"
+publish = false
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 
 [[bin]]
 name = "braid-tui"

@@ -1,9 +1,13 @@
 [package]
 name = "braid-model"
+description = "Canonical domain types for the braid agent platform"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 
 [dependencies]
 chrono.workspace = true

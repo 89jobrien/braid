@@ -1,5 +1,9 @@
 [package]
 name = "braid-redact"
+description = "Redaction pipeline for secrets and PII in braid agent sessions"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true
