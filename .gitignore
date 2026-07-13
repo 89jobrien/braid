@@ -1,8 +1,14 @@
 /target
 **/*.rs.bk
+.DS_Store
 *.local.md
 .worktrees/
+.pytest_cache/
+.ruff_cache/
+.venv/
+.claude/
 .envrc
+.envrc.disabled
 HANDOFF.*.yaml
 
 # handoff-begin

@@ -146,9 +146,12 @@ fn ollama_provider_satisfies_contract() {
 #[test]
 #[ignore = "requires OPENAI_API_KEY"]
 fn openai_provider_satisfies_contract() {
-    if std::env::var("OPENAI_API_KEY").is_err() {
-        eprintln!("skipping: OPENAI_API_KEY not set");
-        return;
+    match std::env::var("OPENAI_API_KEY") {
+        Ok(key) if !key.trim().is_empty() => {}
+        _ => {
+            eprintln!("skipping: OPENAI_API_KEY not set or empty");
+            return;
+        }
     }
     let provider = OpenAiProvider::default_model().expect("OPENAI_API_KEY must be set");
     verify_text_completion(&provider).unwrap();
