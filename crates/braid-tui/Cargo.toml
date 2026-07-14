@@ -16,11 +16,23 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow.workspace = true
+braid-components = { workspace = true }
+braid-context = { workspace = true }
+braid-engine = { workspace = true }
+braid-hooks = { workspace = true }
 braid-model = { workspace = true }
 braid-observe = { workspace = true }
+braid-ports = { workspace = true }
+braid-providers = { workspace = true }
+braid-redact = { workspace = true }
 crossterm = "0.28"
-ratatui = "0.29"
+ratatui = "0.30"
+ratatui-macros = "0.7.2"
+ratatui-tea = { git = "https://github.com/akitaonrails/ratatui-bubbletea" }
+ratatui-bubbletea-components = { git = "https://github.com/akitaonrails/ratatui-bubbletea" }
+ratatui-bubbletea-theme = { git = "https://github.com/akitaonrails/ratatui-bubbletea" }
 serde_json.workspace = true
+tui-popup = "0.7.6"
 
 [dev-dependencies]
 tempfile = { workspace = true }

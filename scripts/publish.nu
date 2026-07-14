@@ -14,12 +14,12 @@ def publish_with_retry [crate: string, dry_run: bool] {
     mut attempts = 0
     loop {
         $attempts = $attempts + 1
-        let result = do { cargo ...$args } | complete
+        let result = do { op plugin run -- cargo ...$args } | complete
         if $result.exit_code == 0 {
             return "published"
         }
         let stderr = $result.stderr
-        if ($stderr | str contains "already uploaded") {
+        if ($stderr | str contains "already uploaded") or ($stderr | str contains "already exists") {
             return "skipped"
         }
         if ($stderr | str contains "429") or ($stderr | str contains "Too Many Requests") {

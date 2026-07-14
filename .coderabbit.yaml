@@ -23,7 +23,7 @@ reviews:
         - Rust edition 2024 conventions; minimum rust-version 1.88.
         - Prefer returning errors over panicking — no bare .unwrap()/.expect() at runtime.
         - Use tracing::{warn,error} for observable failures.
-        - Hexagonal architecture: domain logic stays in braid-core/braid-model; I/O and adapters
+        - Hexagonal architecture: domain logic stays in braid-engine/braid-model; I/O and adapters
           in braid-providers, braid-mcp, etc. Never let adapter concerns leak into core.
         - `unsafe_code = "deny"` workspace-wide. Tests that need unsafe (e.g. set_var) must add
           `#[allow(unsafe_code)]` to the mod tests block only — not the whole crate.

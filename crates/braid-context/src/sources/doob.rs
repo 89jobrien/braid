@@ -42,7 +42,7 @@ impl ContextSource for DoobSource {
 
     fn fetch(&self) -> Result<Vec<ContextChunk>> {
         let mut cmd = Command::new("doob");
-        cmd.args(["todo", "list", "--format", "json"]);
+        cmd.args(["todo", "list", "--json"]);
         if let Some(proj) = &self.project {
             cmd.args(["--project", proj]);
         }
@@ -50,14 +50,13 @@ impl ContextSource for DoobSource {
         let output = match run_with_timeout(cmd, TIMEOUT) {
             Ok(o) => o,
             Err(e) => {
-                eprintln!("[braid-context] doob subprocess error: {e}");
+                let _ = e;
                 return Ok(vec![]);
             }
         };
 
         if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            eprintln!("[braid-context] doob exited with error: {stderr}");
+            let _ = &output.stderr;
             return Ok(vec![]);
         }
 
@@ -67,7 +66,7 @@ impl ContextSource for DoobSource {
         let todos: Vec<serde_json::Value> = match serde_json::from_str(&stdout) {
             Ok(v) => v,
             Err(e) => {
-                eprintln!("[braid-context] doob JSON parse error: {e}");
+                let _ = e;
                 return Ok(vec![]);
             }
         };
