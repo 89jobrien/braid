@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 use anyhow::Result;
 use braid_model::{ContentPart, Message, ProviderRequest, Role, ToolDefinition};
 use braid_ports::Provider;

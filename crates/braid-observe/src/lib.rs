@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod ingest;
 pub mod render;
 pub mod replay;

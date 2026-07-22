@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 //! Session format stability tests.
 //!
 //! Verifies that the full pipeline — ingest fixture → store → load →

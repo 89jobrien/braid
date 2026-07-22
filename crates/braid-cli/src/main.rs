@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 use std::io::{self, IsTerminal, Read, Write};
 use std::sync::Arc;
 

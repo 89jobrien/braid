@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod engine;
 pub mod planner;
 pub mod registry;

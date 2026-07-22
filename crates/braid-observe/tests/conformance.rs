@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 //! Ingester conformance suite.
 //!
 //! Validates that BraidIngester, DevloopIngester, and ClaudeCodeIngester all

@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod context;
 pub mod event;
 pub mod message;

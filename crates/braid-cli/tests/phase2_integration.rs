@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 //! Phase 2 cross-crate integration tests
 //!
 //! Tests the composed behavior of the safety/tool-exposure layer:

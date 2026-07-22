@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 //! Integration tests for braid-context.
 //! These tests shell out to real git and doob — run with:
 //!   cargo test -p braid-context -- --include-ignored

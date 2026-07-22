@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod assembler;
 pub mod provider;
 pub mod sources;

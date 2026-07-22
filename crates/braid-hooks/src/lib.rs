@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod contract;
 pub mod executor;
 pub mod guards;

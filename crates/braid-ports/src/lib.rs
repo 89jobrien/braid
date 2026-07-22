@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 use anyhow::Result;
 use braid_model::{
     Event, Message, ProviderRequest, ProviderResponse, SessionId, ToolCall, ToolResult,

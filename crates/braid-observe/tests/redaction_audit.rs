@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 //! Redaction coverage audit for all persist paths in braid-observe.
 //!
 //! Design invariant: redact-before-persist.  Every path through which events

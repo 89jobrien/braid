@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 use braid_model::*;
 use serde_json;
 

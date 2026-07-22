@@ -1,3 +1,4 @@
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 mod catalog;
 mod chat;
 mod completion;
