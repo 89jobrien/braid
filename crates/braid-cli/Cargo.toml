@@ -24,6 +24,8 @@ braid-ports = { workspace = true }
 braid-providers = { workspace = true }
 braid-redact = { workspace = true }
 clap.workspace = true
+clap_complete = "4"
+clap_complete_nushell = "4"
 serde_json.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 
