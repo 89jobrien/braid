@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 //! Ingester conformance suite.
 //!
-//! Validates that BraidIngester, DevloopIngester, and ClaudeCodeIngester all
+//! Validates that `BraidIngester`, `DevloopIngester`, and `ClaudeCodeIngester` all
 //! produce normalized session events that satisfy the same structural invariants
 //! for the same logical session shape. Each ingester reads a different source
 //! format but must converge on the same normalized `Event` model.
@@ -119,7 +119,7 @@ fn devloop_ingester_conformance() {
 }
 
 /// All three ingesters must produce sessions whose event sequences share
-/// the same structural shape: [SessionStarted, ..., SessionCompleted].
+/// the same structural shape: [`SessionStarted`, ..., `SessionCompleted`].
 /// This test runs all three and cross-checks the shape property holds
 /// for each independently, confirming convergence on the normalized model.
 #[test]

@@ -73,7 +73,7 @@ mod tests {
             .execute(ToolCall {
                 id: "call_1".into(),
                 name: "missing".into(),
-                input: "".into(),
+                input: String::new(),
             })
             .unwrap_err();
         assert!(err.to_string().contains("tool not found: missing"));

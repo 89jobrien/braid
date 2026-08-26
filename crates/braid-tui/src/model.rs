@@ -26,9 +26,9 @@ pub fn load_session(
 
 /// Apply key action and return (`should_quit`, `session_changed`).
 #[cfg(test)]
-pub fn apply_key(state: &mut AppState, action: KeyAction) -> (bool, bool) {
+pub fn apply_key(state: &mut AppState, action: &KeyAction) -> (bool, bool) {
     let prev_session = state.selected_session;
-    let should_quit = handle_key(state, &action);
+    let should_quit = handle_key(state, action);
     let session_changed = state.selected_session != prev_session;
     (should_quit, session_changed)
 }
@@ -397,7 +397,7 @@ mod tests {
         let (_dir, _store, ids) = make_store_with_sessions(2);
         let mut state = AppState::new(ids);
         state.mode = crate::keys::AppMode::Inspect;
-        let (quit, changed) = apply_key(&mut state, KeyAction::Down);
+        let (quit, changed) = apply_key(&mut state, &KeyAction::Down);
         assert!(!quit);
         assert!(changed);
     }

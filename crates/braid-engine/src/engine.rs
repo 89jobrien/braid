@@ -262,7 +262,7 @@ mod tests {
                 message: Message {
                     role: Role::Assistant,
                     content: vec![ContentPart::Text {
-                        text: format!("provider saw: {}", first_text),
+                        text: format!("provider saw: {first_text}"),
                     }],
                 },
                 token_count: None,
