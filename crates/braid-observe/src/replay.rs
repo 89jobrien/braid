@@ -160,7 +160,7 @@ mod tests {
     // --- Replay tests via SessionWriter ---
 
     /// Write events through `SessionWriter`, then load via `ReplaySession` and
-    /// verify the round-trip: same count, same order, same EventKind values.
+    /// verify the round-trip: same count, same order, same `EventKind` values.
     #[test]
     fn session_writer_roundtrips_via_replay() {
         use crate::store::SessionWriter;

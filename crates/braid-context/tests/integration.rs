@@ -9,9 +9,10 @@ use braid_context::sources::{DoobSource, RepoSource};
 #[test]
 #[ignore = "requires git repo in current directory"]
 fn repo_source_returns_snapshot_in_braid_repo() {
-    let repo_root = std::env::var("CARGO_MANIFEST_DIR")
-        .map(|d| std::path::PathBuf::from(d).join("../.."))
-        .unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let repo_root = std::env::var("CARGO_MANIFEST_DIR").map_or_else(
+        |_| std::path::PathBuf::from("."),
+        |d| std::path::PathBuf::from(d).join("../.."),
+    );
 
     let source = RepoSource::with_root(repo_root);
     let assembler = ContextAssembler::new(vec![Box::new(source)]);

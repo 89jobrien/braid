@@ -30,7 +30,7 @@ fn make_call(name: &str, input: &str) -> ToolCall {
 // Redact-before-persist invariant
 // ---------------------------------------------------------------------------
 
-/// If a tool returns output containing a secret, the RedactionPipeline must
+/// If a tool returns output containing a secret, the `RedactionPipeline` must
 /// strip it before the result is persisted or forwarded.
 /// This tests the "Redact-before-persist: privacy by default" design invariant.
 #[test]
@@ -77,7 +77,7 @@ fn redact_passes_through_clean_output() {
 // Fail-closed hooks invariant
 // ---------------------------------------------------------------------------
 
-/// DestructiveCommandGuard must deny a `rm -rf` call and the error must
+/// `DestructiveCommandGuard` must deny a `rm -rf` call and the error must
 /// propagate before the inner tool executes.
 #[test]
 fn hooks_fail_closed_on_destructive_command() {
@@ -98,7 +98,7 @@ fn hooks_fail_closed_on_destructive_command() {
     assert!(!msg.contains("should not reach here"));
 }
 
-/// Safe commands must pass through the DestructiveCommandGuard.
+/// Safe commands must pass through the `DestructiveCommandGuard`.
 #[test]
 fn hooks_allow_safe_commands() {
     let tool = StaticTool::new("shell", "total 8");
@@ -157,7 +157,7 @@ fn phase2_hook_denial_produces_no_output_to_redact() {
 // MCP registry wired to HookedExecutor
 // ---------------------------------------------------------------------------
 
-/// McpToolRegistry can be wired to a HookedExecutor.  Calling an unregistered
+/// `McpToolRegistry` can be wired to a `HookedExecutor`.  Calling an unregistered
 /// tool returns an actionable error ("unknown tool"), not a panic.
 #[test]
 fn mcp_registry_rejects_unknown_tool_with_error() {
@@ -180,7 +180,7 @@ fn mcp_registry_rejects_unknown_tool_with_error() {
     );
 }
 
-/// McpToolRegistry wired to a HookedExecutor: when the hook denies a tool
+/// `McpToolRegistry` wired to a `HookedExecutor`: when the hook denies a tool
 /// call, the registry propagates the error — the tool's output is never
 /// returned.
 #[test]
@@ -192,16 +192,7 @@ fn mcp_registry_propagates_hook_denial() {
         let hook_registry = HookRegistry::new().register(DestructiveCommandGuard::new());
         let tool = StaticTool::new(&call.name, "should not appear");
         let executor = HookedExecutor::new(tool, hook_registry, SessionId("s1".into()));
-        executor
-            .execute(ToolCall {
-                id: call.id,
-                name: call.name,
-                input: call.input,
-            })
-            .map(|r| braid_model::ToolResult {
-                name: r.name,
-                output: r.output,
-            })
+        executor.execute(call)
     })
     .register(echo_tool());
 
@@ -220,11 +211,11 @@ fn mcp_registry_propagates_hook_denial() {
 // Fail-closed hook error propagation (cross-crate boundary)
 // ---------------------------------------------------------------------------
 
-/// A hook that panics/errors with fail_closed=true must cause the executor
+/// A hook that panics/errors with `fail_closed=true` must cause the executor
 /// to deny the call — the inner tool never runs.
 ///
-/// This tests the registry→executor boundary: the fail_closed verdict must
-/// surface as an error from HookedExecutor::execute, not be swallowed.
+/// This tests the registry→executor boundary: the `fail_closed` verdict must
+/// surface as an error from `HookedExecutor::execute`, not be swallowed.
 #[test]
 fn fail_closed_hook_error_propagates_through_executor() {
     use braid_hooks::contract::{Hook, HookContext, HookVerdict};
@@ -260,15 +251,12 @@ fn fail_closed_hook_error_propagates_through_executor() {
 // Post-execute hook notification fires on allowed calls
 // ---------------------------------------------------------------------------
 
-/// When a hook allows a call, post_execute must be called with the tool result.
+/// When a hook allows a call, `post_execute` must be called with the tool result.
 /// This tests the executor notifies hooks after successful execution.
 #[test]
 fn post_execute_hook_fires_after_successful_tool_call() {
     use braid_hooks::contract::{Hook, HookContext, HookVerdict};
     use std::sync::{Arc, Mutex};
-
-    let fired = Arc::new(Mutex::new(false));
-    let fired_clone = Arc::clone(&fired);
 
     struct TrackingHook {
         fired: Arc<Mutex<bool>>,
@@ -285,6 +273,8 @@ fn post_execute_hook_fires_after_successful_tool_call() {
         }
     }
 
+    let fired = Arc::new(Mutex::new(false));
+    let fired_clone = Arc::clone(&fired);
     let tool = StaticTool::new("echo", "pong");
     let registry = HookRegistry::new().register(TrackingHook { fired: fired_clone });
     let executor = HookedExecutor::new(tool, registry, SessionId("s1".into()));
@@ -301,8 +291,8 @@ fn post_execute_hook_fires_after_successful_tool_call() {
 // Redact Message with ToolUse input (cross-crate: braid-redact + braid-model)
 // ---------------------------------------------------------------------------
 
-/// When a message contains a ToolUse part with a secret embedded in the JSON
-/// input, redact_message must strip it — preserving the structure.
+/// When a message contains a `ToolUse` part with a secret embedded in the JSON
+/// input, `redact_message` must strip it — preserving the structure.
 ///
 /// This tests the cross-crate flow: braid-model Message → braid-redact pipeline
 /// → secret removed from nested JSON without corrupting the content part.

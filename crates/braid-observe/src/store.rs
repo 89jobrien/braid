@@ -528,7 +528,7 @@ mod tests {
         assert!(matches!(&events[0].kind, EventKind::Unknown { .. }));
     }
 
-    /// Drop without calling finish() leaves events readable but no meta.json.
+    /// Drop without calling `finish()` leaves events readable but no meta.json.
     #[test]
     fn drop_without_finish_leaves_events_readable() {
         let dir = tempfile::tempdir().expect("should succeed");
@@ -581,7 +581,7 @@ mod tests {
         assert_eq!(events[0].kind, EventKind::SessionStarted);
     }
 
-    /// finish() writes meta.json atomically: the tmp file is renamed, so there
+    /// `finish()` writes meta.json atomically: the tmp file is renamed, so there
     /// is no window where a partial meta.json is visible to concurrent readers.
     #[test]
     fn finish_is_atomic_no_tmp_left_behind() {

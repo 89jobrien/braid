@@ -205,7 +205,7 @@ mod tests {
     #[test]
     fn handle_initialize() {
         let registry = make_registry();
-        let req = make_request("initialize", Value::Object(Default::default()));
+        let req = make_request("initialize", Value::Object(serde_json::Map::default()));
         let resp = handle_request(&registry, &req);
         assert!(resp.result.is_some());
         let result = resp.result.expect("should be present");
@@ -216,7 +216,7 @@ mod tests {
     #[test]
     fn handle_tools_list() {
         let registry = make_registry();
-        let req = make_request("tools/list", Value::Object(Default::default()));
+        let req = make_request("tools/list", Value::Object(serde_json::Map::default()));
         let resp = handle_request(&registry, &req);
         let result = resp.result.expect("should be present");
         let tools = result["tools"].as_array().expect("should be present");
@@ -243,7 +243,7 @@ mod tests {
     #[test]
     fn handle_unknown_method() {
         let registry = make_registry();
-        let req = make_request("unknown/method", Value::Object(Default::default()));
+        let req = make_request("unknown/method", Value::Object(serde_json::Map::default()));
         let resp = handle_request(&registry, &req);
         assert!(resp.error.is_some());
         assert_eq!(resp.error.expect("should be present").code, -32601);

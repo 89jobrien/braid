@@ -106,7 +106,7 @@ mod tests {
             tool_call: ToolCall {
                 id: "call_1".into(),
                 name: "test".into(),
-                input: "".into(),
+                input: String::new(),
             },
         }
     }

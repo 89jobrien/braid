@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn rejects_blank_api_key() {
-        let err = OpenAiProvider::validate_api_key("   ".into()).expect_err("should fail");
+        let err = OpenAiProvider::validate_api_key("   ").expect_err("should fail");
         assert!(err.to_string().contains("empty"));
     }
 

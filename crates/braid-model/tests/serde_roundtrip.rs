@@ -1,6 +1,5 @@
 #![allow(clippy::unwrap_used)]
 use braid_model::*;
-use serde_json;
 
 fn roundtrip<T>(value: &T)
 where
@@ -98,7 +97,7 @@ fn task_context_roundtrip() {
     });
     roundtrip(&TaskContext {
         task_id: None,
-        summary: "".into(),
+        summary: String::new(),
     });
 }
 

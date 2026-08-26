@@ -231,9 +231,9 @@ mod tests {
         assert!(has_tool_called, "expected ToolCalled for read_file");
     }
 
-    /// Forward-compat round-trip: EventKind::Unknown must survive ingestion → storage → replay
-    /// without dropping any fields. BraidIngester accepts native JSONL including the Unknown
-    /// variant; ReplaySession must surface it with its payload intact.
+    /// Forward-compat round-trip: `EventKind::Unknown` must survive ingestion → storage → replay
+    /// without dropping any fields. `BraidIngester` accepts native JSONL including the Unknown
+    /// variant; `ReplaySession` must surface it with its payload intact.
     #[test]
     fn unknown_event_kind_round_trips_through_ingestion_and_replay() {
         use crate::replay::ReplaySession;

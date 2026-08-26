@@ -114,8 +114,8 @@ fn ingest_to_render_pipeline_produces_stable_output() {
 // Meta-absent render (in-progress / writer-crashed session)
 // ---------------------------------------------------------------------------
 
-/// When a session has no meta.json (e.g. writer crashed before finish()),
-/// render_session must still produce valid output from the event list alone.
+/// When a session has no meta.json (e.g. writer crashed before `finish()`),
+/// `render_session` must still produce valid output from the event list alone.
 ///
 /// This is a safety contract: partial sessions must always be inspectable.
 #[test]
@@ -140,13 +140,11 @@ fn render_without_meta_uses_event_list_for_session_id() {
     // Header must include session id extracted from events (not "unknown")
     assert!(
         first_line.contains("fix-1"),
-        "meta-absent render must use session_id from first event: {:?}",
-        first_line
+        "meta-absent render must use session_id from first event: {first_line:?}"
     );
     assert!(
         !first_line.contains("unknown"),
-        "session_id must not fall back to 'unknown' when events are present: {:?}",
-        first_line
+        "session_id must not fall back to 'unknown' when events are present: {first_line:?}"
     );
 }
 
@@ -178,12 +176,10 @@ fn render_row_format_matches_column_spec() {
     for (i, row) in event_rows.iter().enumerate() {
         let idx = i + 1;
         // Row must start with right-aligned index (1 or 2 digits, right-padded to 4 chars)
-        let idx_str = format!("{:>4}", idx);
+        let idx_str = format!("{idx:>4}");
         assert!(
             row.starts_with(&idx_str),
-            "row {} must start with right-aligned index '{idx_str}': {:?}",
-            idx,
-            row
+            "row {idx} must start with right-aligned index '{idx_str}': {row:?}"
         );
     }
 }
@@ -234,7 +230,7 @@ fn all_ingesters_render_without_error() {
 // Format evolution: unknown event kinds survive store round-trip and render
 // ---------------------------------------------------------------------------
 
-/// An unknown EventKind (future schema addition) written to the store must
+/// An unknown `EventKind` (future schema addition) written to the store must
 /// survive load and render without error — the render must show it as "Unknown".
 ///
 /// This locks in the forward-compat contract for the render path.

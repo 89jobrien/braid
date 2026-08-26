@@ -40,7 +40,7 @@ fn verify_text_completion(provider: &impl Provider) -> Result<()> {
     Ok(())
 }
 
-fn verify_error_on_empty_messages(provider: &impl Provider) -> Result<()> {
+fn verify_error_on_empty_messages(provider: &impl Provider) {
     let request = ProviderRequest {
         messages: vec![],
         tools: vec![],
@@ -51,8 +51,6 @@ fn verify_error_on_empty_messages(provider: &impl Provider) -> Result<()> {
         result.is_err(),
         "provider must return Err for empty messages"
     );
-
-    Ok(())
 }
 
 fn verify_tool_calling(provider: &impl Provider) -> Result<()> {
@@ -108,7 +106,7 @@ fn verify_tool_calling(provider: &impl Provider) -> Result<()> {
                     text: "What is the current weather in Paris? Use the get_weather tool.".into(),
                 }],
             },
-            response.message.clone(),
+            response.message,
             Message {
                 role: Role::Tool,
                 content: vec![ContentPart::ToolResult {
@@ -141,7 +139,7 @@ fn ollama_provider_satisfies_contract() {
     let provider = OpenAiProvider::ollama("qwen2.5:3b");
     verify_text_completion(&provider).unwrap();
     verify_tool_calling(&provider).unwrap();
-    verify_error_on_empty_messages(&provider).unwrap();
+    verify_error_on_empty_messages(&provider);
 }
 
 #[test]
@@ -157,7 +155,7 @@ fn openai_provider_satisfies_contract() {
     let provider = OpenAiProvider::default_model().expect("OPENAI_API_KEY must be set");
     verify_text_completion(&provider).unwrap();
     verify_tool_calling(&provider).unwrap();
-    verify_error_on_empty_messages(&provider).unwrap();
+    verify_error_on_empty_messages(&provider);
 }
 
 #[test]
