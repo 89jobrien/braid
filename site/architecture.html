@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Braid's hexagonal crate boundaries and runtime data flow." />
+    <title>Architecture &mdash; Braid</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Braid</a>
+      <a href="index.html">Overview</a>
+      <a href="architecture.html" aria-current="page">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="safety.html">Safety</a>
+      <a href="testing.html">Testing</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="changelog.html">Changelog</a>
+    </nav>
+
+    <main id="main" class="wide-page prose" tabindex="-1">
+      <header class="page-header">
+        <p class="eyebrow">System map</p>
+        <h1>Architecture that keeps its seams visible.</h1>
+        <p class="subtitle">
+          Domain values point inward. Infrastructure implements ports outside the core. CLI and
+          TUI binaries compose the graph without becoming part of the engine.
+        </p>
+      </header>
+
+      <h2>Dependency rings</h2>
+      <p>
+        <code>braid-model</code> is the leaf. <code>braid-ports</code> defines the contracts.
+        <code>braid-engine</code> coordinates a session. Outer crates implement providers,
+        policy, persistence, context, components, protocol exposure, and operator setup.
+      </p>
+      <figure class="diagram">
+        <img src="architecture.svg" alt="Braid dependency rings and runtime call sequence" />
+        <figcaption>
+          Teal arrows show dependency direction. The coral thread shows one session moving
+          through context, planning, provider, tool, and event boundaries.
+        </figcaption>
+      </figure>
+
+      <h2>The engine boundary</h2>
+      <div class="two-column">
+        <article class="card coral">
+          <span class="kicker">Inputs</span>
+          <h3>A session and a planner</h3>
+          <p>
+            <code>RunInput</code> carries a session ID, messages, and an optional turn limit.
+            A planner receives session state and selects the next action.
+          </p>
+        </article>
+        <article class="card">
+          <span class="kicker">Injected dependencies</span>
+          <h3>Five explicit seams</h3>
+          <p>
+            Provider, tool executor, event sink, redactor, and optional context provider are
+            supplied to the generic engine rather than constructed inside it.
+          </p>
+        </article>
+      </div>
+
+      <h2>Runtime sequence</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Hop</th><th scope="col">Owner</th><th scope="col">What crosses the boundary</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Context assembly</td><td><code>ContextProvider</code></td><td>A bounded snapshot rendered as a system message</td></tr>
+            <tr><td>Planning</td><td><code>Planner</code></td><td>Current messages, pending calls, turn count, and last response</td></tr>
+            <tr><td>Completion</td><td><code>Provider</code></td><td>Redacted messages in a provider-neutral request</td></tr>
+            <tr><td>Execution</td><td><code>ToolExecutor</code></td><td>A structured tool call and result</td></tr>
+            <tr><td>Observation</td><td><code>EventSink</code></td><td>Session lifecycle and tool/provider events</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Composition roots</h2>
+      <p>
+        The CLI and TUI choose concrete providers, context sources, redaction rules, hooks,
+        tools, and storage. That duplication is visible and currently tracked as an architectural
+        pressure rather than hidden inside the engine.
+      </p>
+      <div class="callout teal">
+        <strong>Boundary rule:</strong> MCP owns protocol and tool exposure, hooks own external
+        policy, redaction owns scrubbing, and observation owns session evidence. None of those
+        concerns belongs in planner business logic.
+      </div>
+
+      <h2>Stable contracts</h2>
+      <p>
+        Canonical messages, content parts, tool calls, provider requests, events, transcripts,
+        and context snapshots live in <code>braid-model</code>. The port crate then defines the
+        behavior expected from each replaceable adapter.
+      </p>
+      <p class="source-note">
+        Sources:
+        <a href="https://github.com/89jobrien/braid/blob/main/crates/braid-engine/src/engine.rs">engine.rs</a>,
+        <a href="https://github.com/89jobrien/braid/blob/main/crates/braid-ports/src/lib.rs">braid-ports</a>,
+        and <a href="https://github.com/89jobrien/braid/blob/main/xtask/src/main.rs">architecture checks</a>.
+      </p>
+    </main>
+
+    <footer>Braid <span class="thread" aria-hidden="true"></span> <a href="https://github.com/89jobrien/braid">Source on GitHub</a></footer>
+  </body>
+</html>

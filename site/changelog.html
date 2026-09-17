@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A curated release history for the Braid agent platform." />
+    <title>Changelog &mdash; Braid</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Braid</a>
+      <a href="index.html">Overview</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="safety.html">Safety</a>
+      <a href="testing.html">Testing</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="changelog.html" aria-current="page">Changelog</a>
+    </nav>
+
+    <main id="main" class="page prose" tabindex="-1">
+      <header class="page-header">
+        <p class="eyebrow">Release history</p>
+        <h1>The weave, release by release.</h1>
+        <p class="subtitle">
+          A curated view of the checked-in changelog. The repository changelog remains the
+          authoritative record for advisories and infrastructure details.
+        </p>
+      </header>
+
+      <section class="release">
+        <div><span class="pill active">Unreleased</span></div>
+        <div>
+          <h2>Next</h2>
+          <p>No release notes are recorded under the current Unreleased heading.</p>
+        </div>
+      </section>
+
+      <section class="release">
+        <div><span class="pill shipped">0.3.0</span><p class="release-date">2026-07-13</p></div>
+        <div>
+          <h2>Components and enforceable maintenance</h2>
+          <ul>
+            <li>Added <code>braid-components</code> with manifest validation and a filesystem registry.</li>
+            <li>Added a built-in hello-world component and component-listing CLI path.</li>
+            <li>Added event, tool-contract, and component-format architecture decisions.</li>
+            <li>Enabled branch protection and workspace dead-code warnings.</li>
+            <li>Resolved audit configuration and TLS dependency advisories recorded in the release.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="release">
+        <div><span class="pill shipped">0.2.0</span><p class="release-date">2026-07-12</p></div>
+        <div>
+          <h2>Replay, architecture checks, and operator contracts</h2>
+          <ul>
+            <li>Added session writer/replay round-trip coverage.</li>
+            <li>Added CI-enforced <code>xtask check-deps</code> architecture checks.</li>
+            <li>Documented CLI commands, provider configuration, sessions, and MCP mode.</li>
+            <li>Improved ANSI handling in TUI session rendering.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="release">
+        <div><span class="pill shipped">0.1.1</span><p class="release-date">2026-04-07</p></div>
+        <div>
+          <h2>Bootstrap and stronger gates</h2>
+          <ul>
+            <li>Implemented doctor and setup through <code>braid-bootstrap</code>.</li>
+            <li>Added a secret-gated OpenAI provider contract job.</li>
+            <li>Added nightly unsafe-code auditing and release builds to pre-commit checks.</li>
+            <li>Enforced workspace clippy warnings and denied unsafe code.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="release">
+        <div><span class="pill shipped">0.1.0</span><p class="release-date">2026-03-28</p></div>
+        <div>
+          <h2>Initial vertical slice</h2>
+          <ul>
+            <li>Shipped model, engine, provider, and CLI foundations.</li>
+            <li>Added redaction, hook, MCP, and observation adapters.</li>
+            <li>Added context assembly and the initial bootstrap shape.</li>
+            <li>Added the Ratatui session inspector and shared port contracts.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="actions">
+        <a class="button" href="https://github.com/89jobrien/braid/blob/main/CHANGELOG.md">Read the full changelog &rarr;</a>
+        <a class="button secondary" href="roadmap.html">See what comes next</a>
+      </div>
+    </main>
+
+    <footer>Braid <span class="thread" aria-hidden="true"></span> <a href="https://github.com/89jobrien/braid">Source on GitHub</a></footer>
+  </body>
+</html>

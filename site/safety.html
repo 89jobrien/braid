@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Braid's redaction, hook policy, and runtime trust boundaries." />
+    <title>Safety &mdash; Braid</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Braid</a>
+      <a href="index.html">Overview</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="safety.html" aria-current="page">Safety</a>
+      <a href="testing.html">Testing</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="changelog.html">Changelog</a>
+    </nav>
+
+    <main id="main" class="page prose" tabindex="-1">
+      <header class="page-header">
+        <p class="eyebrow">Trust boundaries</p>
+        <h1>Safety is layered, not implied.</h1>
+        <p class="subtitle">
+          Redaction protects data crossing model boundaries. Hooks govern requested actions.
+          Storage preserves evidence. Each layer has a separate job and a visible seam.
+        </p>
+      </header>
+
+      <h2>Redaction before exposure</h2>
+      <p>
+        The engine maps provider-bound messages through the injected <code>Redactor</code> before
+        calling <code>Provider::complete</code>. Tool results are converted into messages and
+        redacted before they re-enter the transcript.
+      </p>
+      <div class="two-column">
+        <article class="card coral">
+          <span class="kicker">Ordered rules</span>
+          <h3><code>RedactionPipeline</code></h3>
+          <p>Composes secret-pattern, environment-variable, and home-path rules in registration order.</p>
+        </article>
+        <article class="card">
+          <span class="kicker">Boundary contract</span>
+          <h3><code>Redactor</code></h3>
+          <p>Keeps the engine generic while making message scrubbing an explicit runtime dependency.</p>
+        </article>
+      </div>
+
+      <div class="callout">
+        <strong>Known gap:</strong> event persistence does not yet have one guaranteed redaction
+        boundary. That hardening work is tracked in
+        <a href="https://github.com/89jobrien/braid/issues/42">roadmap epic #42</a>.
+      </div>
+
+      <h2>Hooks around execution</h2>
+      <p>
+        <code>HookedExecutor</code> evaluates registered pre-hooks before dispatching a tool. A
+        deny verdict carries both a reason and remediation. Successful execution is followed by
+        post-hooks, keeping policy outside tool business logic.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Stage</th><th scope="col">Contract</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            <tr><td>Before</td><td><code>Hook::pre_execute</code></td><td>Allow or deny with actionable context</td></tr>
+            <tr><td>Execute</td><td><code>ToolExecutor::execute</code></td><td>Structured tool result or propagated error</td></tr>
+            <tr><td>After</td><td><code>Hook::post_execute</code></td><td>External observation or follow-up policy</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Hardening before autonomy</h2>
+      <p>
+        The first roadmap epic closes concrete safety gaps before Braid adds review loops,
+        worktrees, or scheduled agents.
+      </p>
+      <ul class="plain-list">
+        <li><strong>Persistence:</strong> make redact-before-persist unavoidable and regression-tested.</li>
+        <li><strong>Paths:</strong> contain session and component paths beneath configured roots.</li>
+        <li><strong>Concurrency:</strong> partition buffered events by session.</li>
+        <li><strong>Protocol:</strong> reject oversized MCP frames before payload allocation.</li>
+        <li><strong>Tools:</strong> advertise the definitions available to the engine.</li>
+        <li><strong>Tests:</strong> remove process-global environment races.</li>
+      </ul>
+
+      <h2>Workspace policy</h2>
+      <div class="two-column">
+        <article class="panel">
+          <span class="kicker">Compiler boundary</span>
+          <h3><code>unsafe_code = "deny"</code></h3>
+          <p>The workspace denies unsafe code. Narrow test modules that must mutate process environment carry explicit allowances.</p>
+        </article>
+        <article class="panel">
+          <span class="kicker">Dependency boundary</span>
+          <h3><code>cargo xtask check-deps</code></h3>
+          <p>CI checks forbidden cross-crate edges so the dependency rings remain enforceable.</p>
+        </article>
+      </div>
+
+      <p class="source-note">
+        Sources:
+        <a href="https://github.com/89jobrien/braid/blob/main/crates/braid-engine/src/engine.rs">engine redaction flow</a>,
+        <a href="https://github.com/89jobrien/braid/blob/main/crates/braid-hooks/src/executor.rs">hooked executor</a>,
+        and <a href="https://github.com/89jobrien/braid/issues/42">foundation hardening epic</a>.
+      </p>
+    </main>
+
+    <footer>Braid <span class="thread" aria-hidden="true"></span> <a href="https://github.com/89jobrien/braid">Source on GitHub</a></footer>
+  </body>
+</html>

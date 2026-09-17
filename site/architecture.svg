@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Braid workspace dependency and runtime flow</title>
+  <desc id="desc">The CLI and TUI compose outer adapters around the engine. The engine and adapters depend inward on ports and canonical model types. A side thread shows context, planning, provider calls, tools, and event persistence.</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#cfc5b4" stroke-width="1" opacity=".45"/>
+    </pattern>
+    <marker id="arrow-coral" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0 0L9 3L0 6Z" fill="#d9573f"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0 0L9 3L0 6Z" fill="#125c60"/>
+    </marker>
+    <style>
+      .label { font: 700 18px Georgia, serif; fill: #222522; }
+      .small { font: 14px "Courier New", monospace; fill: #68675f; }
+      .tiny { font: 12px "Courier New", monospace; fill: #68675f; }
+      .coretiny { font: 12px "Courier New", monospace; fill: #fffaf0; }
+      .box { fill: #fffaf0; stroke: #222522; stroke-width: 2; }
+      .adapter { fill: #d9e7e3; stroke: #125c60; stroke-width: 1.5; }
+      .core { fill: #d9573f; stroke: #222522; stroke-width: 2; }
+      .coretext { fill: #fffaf0; font: 700 20px Georgia, serif; }
+      .thread { fill: none; stroke: #d9573f; stroke-width: 3; marker-end: url(#arrow-coral); }
+      .dep { fill: none; stroke: #125c60; stroke-width: 2; marker-end: url(#arrow-teal); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="720" rx="20" fill="#f3eee4"/>
+  <rect width="1200" height="720" rx="20" fill="url(#grid)"/>
+
+  <text x="48" y="48" class="label">Dependency rings</text>
+  <text x="48" y="70" class="small">outer composition depends inward</text>
+
+  <rect x="48" y="95" width="720" height="92" rx="16" class="box"/>
+  <text x="72" y="125" class="small">OPERATOR SURFACES</text>
+  <rect x="72" y="140" width="170" height="32" rx="16" class="adapter"/>
+  <text x="101" y="162" class="small">braid-cli</text>
+  <rect x="260" y="140" width="170" height="32" rx="16" class="adapter"/>
+  <text x="291" y="162" class="small">braid-tui</text>
+  <text x="462" y="160" class="small">composition roots</text>
+
+  <rect x="82" y="214" width="652" height="132" rx="20" class="box"/>
+  <text x="106" y="244" class="small">ADAPTERS</text>
+  <g class="small">
+    <rect x="106" y="262" width="134" height="31" rx="5" class="adapter"/><text x="119" y="283">providers</text>
+    <rect x="252" y="262" width="112" height="31" rx="5" class="adapter"/><text x="270" y="283">hooks</text>
+    <rect x="376" y="262" width="112" height="31" rx="5" class="adapter"/><text x="390" y="283">redact</text>
+    <rect x="500" y="262" width="112" height="31" rx="5" class="adapter"/><text x="513" y="283">observe</text>
+    <rect x="106" y="302" width="134" height="31" rx="5" class="adapter"/><text x="119" y="323">context</text>
+    <rect x="252" y="302" width="112" height="31" rx="5" class="adapter"/><text x="265" y="323">components</text>
+    <rect x="376" y="302" width="112" height="31" rx="5" class="adapter"/><text x="402" y="323">mcp</text>
+    <rect x="500" y="302" width="112" height="31" rx="5" class="adapter"/><text x="511" y="323">bootstrap</text>
+  </g>
+
+  <rect x="150" y="380" width="516" height="96" rx="22" class="core"/>
+  <text x="278" y="420" class="coretext">braid-engine</text>
+  <text x="255" y="450" class="coretiny">planner + loop + tool registry</text>
+
+  <rect x="218" y="510" width="380" height="70" rx="18" class="box"/>
+  <text x="335" y="540" class="label">braid-ports</text>
+  <text x="280" y="563" class="tiny">replaceable runtime contracts</text>
+
+  <rect x="284" y="616" width="248" height="58" rx="18" class="box"/>
+  <text x="341" y="650" class="label">braid-model</text>
+
+  <path d="M408 187V208" class="dep"/>
+  <path d="M408 346V372" class="dep"/>
+  <path d="M408 476V502" class="dep"/>
+  <path d="M408 580V608" class="dep"/>
+  <path d="M666 279C718 312 714 489 592 534" class="dep"/>
+
+  <text x="820" y="48" class="label">Runtime thread</text>
+  <text x="820" y="70" class="small">one session through the engine</text>
+
+  <g>
+    <rect x="820" y="104" width="310" height="62" rx="10" class="box"/>
+    <text x="842" y="131" class="small">1  ASSEMBLE CONTEXT</text>
+    <text x="842" y="151" class="tiny">ContextProvider -&gt; system message</text>
+    <path d="M975 166V195" class="thread"/>
+
+    <rect x="820" y="204" width="310" height="62" rx="10" class="box"/>
+    <text x="842" y="231" class="small">2  PLAN ACTION</text>
+    <text x="842" y="251" class="tiny">Planner -&gt; provider, tool, or finish</text>
+    <path d="M975 266V295" class="thread"/>
+
+    <rect x="820" y="304" width="310" height="62" rx="10" class="box"/>
+    <text x="842" y="331" class="small">3  REDACT + COMPLETE</text>
+    <text x="842" y="351" class="tiny">Redactor -&gt; Provider</text>
+    <path d="M975 366V395" class="thread"/>
+
+    <rect x="820" y="404" width="310" height="62" rx="10" class="box"/>
+    <text x="842" y="431" class="small">4  GATE + EXECUTE</text>
+    <text x="842" y="451" class="tiny">HookedExecutor -&gt; ToolExecutor</text>
+    <path d="M975 466V495" class="thread"/>
+
+    <rect x="820" y="504" width="310" height="62" rx="10" class="box"/>
+    <text x="842" y="531" class="small">5  FINISH + FLUSH</text>
+    <text x="842" y="551" class="tiny">SessionCompleted -&gt; sink flush</text>
+  </g>
+
+  <path d="M804 106C778 204 785 439 790 558" fill="none" stroke="#125c60" stroke-width="5" opacity=".35"/>
+  <text x="774" y="438" class="tiny" transform="rotate(-90 774 438)">EventSink records throughout the loop</text>
+</svg>

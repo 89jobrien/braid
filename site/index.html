@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Braid is a Rust-first environment for bounded, observable, policy-governed agents." />
+    <title>Braid &mdash; The harness is the product</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Braid</a>
+      <a href="index.html" aria-current="page">Overview</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="safety.html">Safety</a>
+      <a href="testing.html">Testing</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="changelog.html">Changelog</a>
+    </nav>
+
+    <main id="main" tabindex="-1">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow reveal">Rust 2024 / local-first agent platform</p>
+          <h1 class="reveal">Braid the model into a <span class="thread-word">system.</span></h1>
+          <p class="lede reveal">
+            Models are replaceable. The lasting product is the environment around them:
+            tools, context, safety policy, feedback, and an inspectable record of every run.
+          </p>
+          <div class="actions reveal">
+            <a class="button" href="architecture.html">Trace the runtime &rarr;</a>
+            <a class="button secondary" href="https://github.com/89jobrien/braid">View source</a>
+          </div>
+        </div>
+
+        <div class="loom reveal" role="img" aria-label="Provider, context, policy, tools, and events woven through the Braid engine">
+          <span class="loom-node">provider</span>
+          <span class="loom-node">context</span>
+          <span class="loom-node">policy</span>
+          <span class="loom-node">tools</span>
+          <span class="loom-node">events</span>
+          <span class="loom-core">engine</span>
+        </div>
+      </header>
+
+      <div class="fact-strip" role="list" aria-label="Project facts">
+        <div class="fact" role="listitem"><strong>13</strong><span>product crates plus xtask</span></div>
+        <div class="fact" role="listitem"><strong>5</strong><span>injected engine boundaries</span></div>
+        <div class="fact" role="listitem"><strong>4</strong><span>roadmap epics in sequence</span></div>
+        <div class="fact" role="listitem"><strong>1.88</strong><span>minimum supported Rust</span></div>
+      </div>
+
+      <section class="section">
+        <p class="section-label">Runtime thread</p>
+        <h2>One loop. Explicit boundaries.</h2>
+        <p class="subtitle">
+          The engine does not own providers, tools, storage, redaction, or context. It receives
+          each capability through a port and coordinates them through a planner.
+        </p>
+        <div class="flow">
+          <article class="flow-step">
+            <h3>Assemble</h3>
+            <p>Build a bounded snapshot and inject it as leading system context.</p>
+          </article>
+          <article class="flow-step">
+            <h3>Plan</h3>
+            <p>Choose a provider call, tool execution, or finish action.</p>
+          </article>
+          <article class="flow-step">
+            <h3>Redact</h3>
+            <p>Scrub outbound messages before the provider boundary.</p>
+          </article>
+          <article class="flow-step">
+            <h3>Gate</h3>
+            <p>Run policy hooks around each requested tool action.</p>
+          </article>
+          <article class="flow-step">
+            <h3>Finish</h3>
+            <p>Record completion and flush the session for inspection.</p>
+          </article>
+        </div>
+        <div class="callout teal">
+          <strong>Observation is cross-cutting:</strong> the event sink records session start,
+          provider response, tool call, tool completion, and session completion around the loop.
+        </div>
+        <p class="source-note">
+          Sources:
+          <a href="https://github.com/89jobrien/braid/blob/main/crates/braid-engine/src/engine.rs">crates/braid-engine/src/engine.rs</a>,
+          <a href="https://github.com/89jobrien/braid/blob/main/crates/braid-hooks/src/executor.rs">crates/braid-hooks/src/executor.rs</a>,
+          and <a href="https://github.com/89jobrien/braid/blob/main/crates/braid-cli/src/main.rs">crates/braid-cli/src/main.rs</a>.
+        </p>
+      </section>
+
+      <div class="band">
+        <section class="band-inner">
+          <p class="section-label">The current weave</p>
+          <h2>A small core with deliberate outer layers.</h2>
+          <div class="weave-grid">
+            <article class="card emphasis">
+              <span class="kicker">Orchestration</span>
+              <h3>The engine coordinates; ports define the seams.</h3>
+              <p>
+                <code>Engine&lt;P, T, S, R, C&gt;</code> keeps provider, tool, event,
+                redaction, and context dependencies visible in its type.
+              </p>
+              <p>
+                The planner owns control flow. Frontends stay thin. Infrastructure remains
+                replaceable.
+              </p>
+            </article>
+            <article class="card coral">
+              <span class="kicker">Safety</span>
+              <h3>Policy wraps execution.</h3>
+              <p>Ordered hooks can deny destructive commands before a tool runs.</p>
+            </article>
+            <article class="card">
+              <span class="kicker">Privacy</span>
+              <h3>Redaction is a first-class port.</h3>
+              <p>Messages cross provider and tool-result boundaries through explicit scrubbers.</p>
+            </article>
+            <article class="card">
+              <span class="kicker">Context</span>
+              <h3>A map, not a manual.</h3>
+              <p>Repository and task sources feed freshness-aware, budgeted snapshots.</p>
+            </article>
+            <article class="card coral">
+              <span class="kicker">Evidence</span>
+              <h3>Sessions remain inspectable.</h3>
+              <p>Lifecycle events can be persisted, replayed, rendered, and browsed in the TUI.</p>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <section class="section">
+        <p class="section-label">Operator surfaces</p>
+        <h2>One runtime, several ways in.</h2>
+        <div class="two-column">
+          <article class="panel">
+            <span class="kicker">Command line</span>
+            <h3>Run, inspect, and configure</h3>
+            <p>
+              The CLI exposes local runs, harness mode, environment checks, setup, MCP,
+              stored sessions, and installed components.
+            </p>
+            <pre><span class="prompt">$</span> braid-cli run "summarize this repository"
+<span class="prompt">$</span> braid-cli sessions list
+<span class="prompt">$</span> braid-cli doctor</pre>
+            <p><a href="https://github.com/89jobrien/braid/blob/main/docs/cli-contract.md">Read the CLI contract &rarr;</a></p>
+          </article>
+          <article class="panel">
+            <span class="kicker">Terminal UI</span>
+            <h3>Steer and inspect</h3>
+            <p>
+              Ratatui panes turn stored events into a timeline and detail view. The TUI is a
+              steering surface over the same engine, not a second orchestration layer.
+            </p>
+            <p><a href="architecture.html">See how composition stays outside the core &rarr;</a></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="section-label">Next thread</p>
+        <h2>Harden, review, understand, automate.</h2>
+        <p class="subtitle">
+          Four dependency-ordered epics move Braid from a capable local runner toward a safer
+          repository harness with structured review and bounded recurring work.
+        </p>
+        <div class="actions">
+          <a class="button" href="roadmap.html">Open the roadmap &rarr;</a>
+          <a class="button secondary" href="https://github.com/89jobrien/braid/issues/42">Start with hardening</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Braid <span class="thread" aria-hidden="true"></span>
+      <a href="https://github.com/89jobrien/braid">Source on GitHub</a>
+    </footer>
+  </body>
+</html>

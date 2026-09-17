@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="The crates and dependency roles in the Braid Rust workspace." />
+    <title>Crates &mdash; Braid</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Braid</a>
+      <a href="index.html">Overview</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html" aria-current="page">Crates</a>
+      <a href="safety.html">Safety</a>
+      <a href="testing.html">Testing</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="changelog.html">Changelog</a>
+    </nav>
+
+    <main id="main" class="wide-page prose" tabindex="-1">
+      <header class="page-header">
+        <p class="eyebrow">Workspace inventory</p>
+        <h1>Thirteen product crates. One direction of travel.</h1>
+        <p class="subtitle">
+          Each crate has a narrow responsibility. Shared values and contracts sit inside;
+          integrations and operator surfaces sit outside.
+        </p>
+      </header>
+
+      <h2>Inner rings</h2>
+      <div class="card-grid">
+        <article class="card coral">
+          <span class="kicker">Domain leaf</span>
+          <h3><code>braid-model</code></h3>
+          <p>Canonical messages, content parts, tool calls, provider data, events, sessions, transcripts, tasks, and context types.</p>
+        </article>
+        <article class="card">
+          <span class="kicker">Ports</span>
+          <h3><code>braid-ports</code></h3>
+          <p>Provider, tool, redaction, event, storage, context, hook, and component contracts. Depends only on the model crate internally.</p>
+        </article>
+        <article class="card emphasis">
+          <span class="kicker">Application core</span>
+          <h3><code>braid-engine</code></h3>
+          <p>The generic agent loop, planner boundary, session state, tool registry, and runtime lifecycle events.</p>
+          <p>Depends inward on <code>braid-ports</code> and <code>braid-model</code>.</p>
+        </article>
+      </div>
+
+      <h2>Adapters</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Crate</th><th scope="col">Responsibility</th><th scope="col">Internal edge</th></tr></thead>
+          <tbody>
+            <tr><td><code>braid-providers</code></td><td>OpenAI-compatible HTTP provider plus feature-gated mock support</td><td>ports + model</td></tr>
+            <tr><td><code>braid-redact</code></td><td>Ordered secret, environment-variable, and home-path redaction</td><td>ports + model</td></tr>
+            <tr><td><code>braid-hooks</code></td><td>Pre/post execution policy and destructive-command guard</td><td>ports + model</td></tr>
+            <tr><td><code>braid-observe</code></td><td>Session JSONL storage, ingestion, replay, and rendering</td><td>ports + model</td></tr>
+            <tr><td><code>braid-context</code></td><td>Freshness-aware context collection, budgeting, and summarization</td><td>ports + model</td></tr>
+            <tr><td><code>braid-components</code></td><td>Filesystem component manifests and registry</td><td>ports</td></tr>
+            <tr><td><code>braid-mcp</code></td><td>Content-Length framed MCP JSON-RPC server and tool registry</td><td>model</td></tr>
+            <tr><td><code>braid-bootstrap</code></td><td>Setup, configuration, rendering, and environment health checks</td><td>none</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Composition and tooling</h2>
+      <div class="card-grid">
+        <article class="card coral">
+          <span class="kicker">Binary</span>
+          <h3><code>braid-cli</code></h3>
+          <p>Composes run, agent, doctor, setup, MCP, session, component, and shell-completion workflows.</p>
+        </article>
+        <article class="card">
+          <span class="kicker">Binary</span>
+          <h3><code>braid-tui</code></h3>
+          <p>Ratatui session inspection and chat steering over the same engine and adapters.</p>
+        </article>
+        <article class="card">
+          <span class="kicker">Workspace tool</span>
+          <h3><code>xtask</code></h3>
+          <p>Checks static crate dependency boundaries so architecture rules remain executable.</p>
+        </article>
+      </div>
+
+      <div class="callout">
+        <strong>Naming note:</strong> the runtime crate was renamed from <code>braid-core</code>
+        to <code>braid-engine</code>. Current documentation and dependencies should use the new
+        name.
+      </div>
+
+      <p class="source-note">
+        Sources: <a href="https://github.com/89jobrien/braid/blob/main/Cargo.toml">workspace Cargo.toml</a>,
+        <a href="https://github.com/89jobrien/braid/tree/main/crates">crate manifests and roots</a>,
+        and <a href="architecture.html">the dependency map</a>.
+      </p>
+    </main>
+
+    <footer>Braid <span class="thread" aria-hidden="true"></span> <a href="https://github.com/89jobrien/braid">Source on GitHub</a></footer>
+  </body>
+</html>

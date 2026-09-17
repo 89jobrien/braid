@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Braid's local quality gates, test layers, and CI jobs." />
+    <title>Testing &mdash; Braid</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Braid</a>
+      <a href="index.html">Overview</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="safety.html">Safety</a>
+      <a href="testing.html" aria-current="page">Testing</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="changelog.html">Changelog</a>
+    </nav>
+
+    <main id="main" class="wide-page prose" tabindex="-1">
+      <header class="page-header">
+        <p class="eyebrow">Quality gates</p>
+        <h1>Test the contracts, not just the happy path.</h1>
+        <p class="subtitle">
+          Fast local gates cover formatting, lints, architecture, and behavior. CI adds provider,
+          coverage, dependency, and end-to-end checks around the same workspace.
+        </p>
+      </header>
+
+      <h2>Local gate</h2>
+      <pre><span class="prompt">$</span> cargo fmt --all
+<span class="prompt">$</span> cargo clippy --workspace -- -D warnings
+<span class="prompt">$</span> cargo nextest run --workspace</pre>
+      <p>
+        The repository's <code>just pre-commit</code> workflow also includes a release build.
+        Nextest is the preferred runner for parallel workspace tests.
+      </p>
+
+      <h2>Test layers</h2>
+      <div class="weave-grid">
+        <article class="card emphasis">
+          <span class="kicker">Contract center</span>
+          <h3>Canonical formats stay stable.</h3>
+          <p>
+            Model round trips protect public serialized types. Observation conformance and
+            format-stability suites pin session behavior and JSONL compatibility.
+          </p>
+        </article>
+        <article class="card coral">
+          <span class="kicker">Unit</span>
+          <h3>Focused behavior</h3>
+          <p>Planner decisions, engine loops, registries, rules, guards, parsing, and rendering helpers.</p>
+        </article>
+        <article class="card">
+          <span class="kicker">Integration</span>
+          <h3>Cross-crate seams</h3>
+          <p>Provider contracts, redaction audits, replay, session stability, and CLI safety composition.</p>
+        </article>
+        <article class="card">
+          <span class="kicker">Architecture</span>
+          <h3>Dependency direction</h3>
+          <p><code>xtask</code> rejects forbidden crate edges before they become conventions.</p>
+        </article>
+        <article class="card coral">
+          <span class="kicker">End to end</span>
+          <h3>Real provider path</h3>
+          <p>CI builds the release binary and runs one bounded agent turn against Ollama.</p>
+        </article>
+      </div>
+
+      <h2>CI matrix</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Job</th><th scope="col">Gate</th><th scope="col">Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>compile-check</td><td>check, fmt, clippy, xtask</td><td>Compiler, style, lint, and dependency-ring enforcement</td></tr>
+            <tr><td>test</td><td>nextest workspace</td><td>Behavior across all default workspace targets</td></tr>
+            <tr><td>integration-agent</td><td>Ollama + release binary</td><td>One real local-provider agent path</td></tr>
+            <tr><td>coverage</td><td>cargo-llvm-cov</td><td>LCOV generation with non-blocking Codecov upload</td></tr>
+            <tr><td>audit</td><td>cargo-deny + cargo-audit</td><td>Branch-restricted license, ban, and advisory policy</td></tr>
+            <tr><td>machete</td><td>cargo-machete</td><td>Branch-restricted unused direct dependency detection</td></tr>
+            <tr><td>provider-contract</td><td>ignored OpenAI contract test</td><td>Secret-context-gated verification against the external provider</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Isolation rules</h2>
+      <div class="callout teal">
+        Tests receive temporary directories through dependency injection. Process environment
+        mutation must be restored, and tests are expected to remain safe under nextest's parallel
+        execution model.
+      </div>
+      <p>
+        The roadmap's foundation epic explicitly includes the remaining environment-isolation
+        hazards and concurrent session-storage behavior.
+      </p>
+
+      <p class="source-note">
+        Sources:
+        <a href="https://github.com/89jobrien/braid/blob/main/.github/workflows/ci.yml">CI workflow</a>,
+        <a href="https://github.com/89jobrien/braid/blob/main/AGENTS.md">development guide</a>,
+        and crate-local test modules under <code>crates/</code>.
+      </p>
+    </main>
+
+    <footer>Braid <span class="thread" aria-hidden="true"></span> <a href="https://github.com/89jobrien/braid">Source on GitHub</a></footer>
+  </body>
+</html>

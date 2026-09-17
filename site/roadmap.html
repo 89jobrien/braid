@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Braid's dependency-ordered roadmap from hardening to bounded autonomy." />
+    <title>Roadmap &mdash; Braid</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Braid</a>
+      <a href="index.html">Overview</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="safety.html">Safety</a>
+      <a href="testing.html">Testing</a>
+      <a href="roadmap.html" aria-current="page">Roadmap</a>
+      <a href="changelog.html">Changelog</a>
+    </nav>
+
+    <main id="main" class="page prose" tabindex="-1">
+      <header class="page-header">
+        <p class="eyebrow">Delivery sequence</p>
+        <h1>Harden first. Add autonomy last.</h1>
+        <p class="subtitle">
+          Four GitHub epics form one dependency chain. Each phase has an observable exit
+          condition; issue state remains the source of truth.
+        </p>
+      </header>
+
+      <h2>Delivered foundation</h2>
+      <div class="card">
+        <span class="pill shipped">Shipped</span>
+        <h3>Runtime, safety adapters, context, and operator surfaces</h3>
+        <p>
+          Braid already has canonical models and ports, the generic engine, provider adapters,
+          redaction, hooks, MCP, session observation, bounded context, components, bootstrap,
+          CLI, and TUI crates.
+        </p>
+      </div>
+
+      <h2>Future phases</h2>
+      <div class="roadmap-line">
+        <article class="roadmap-item">
+          <header><h3>Foundation hardening</h3><span class="pill active">P1 / #42</span></header>
+          <p>
+            Secure persistence and path boundaries, isolate concurrent sessions, bound MCP
+            frames, advertise tools, and align executable architecture checks.
+          </p>
+          <p><strong>Exit:</strong> the new safety and contract regressions pass the full workspace gate.</p>
+          <a href="https://github.com/89jobrien/braid/issues/42">Track epic #42 &rarr;</a>
+        </article>
+
+        <article class="roadmap-item">
+          <header><h3>Harness core</h3><span class="pill planned">P2 / #43</span></header>
+          <p>
+            Add bounded validation and review phases, structured agent review, and one isolated
+            git worktree per harness session.
+          </p>
+          <p><strong>Depends on:</strong> #42.</p>
+          <p><strong>Exit:</strong> concurrent sessions review their work without touching the caller's tree.</p>
+          <a href="https://github.com/89jobrien/braid/issues/43">Track epic #43 &rarr;</a>
+        </article>
+
+        <article class="roadmap-item">
+          <header><h3>Structured repository knowledge</h3><span class="pill planned">P2 / #44</span></header>
+          <p>
+            Add relevant documentation, active-plan, and quality sources while preserving
+            freshness, provenance, and hard context budgets.
+          </p>
+          <p><strong>Depends on:</strong> #43.</p>
+          <p><strong>Exit:</strong> sessions receive a bounded map of repository intent and active work.</p>
+          <a href="https://github.com/89jobrien/braid/issues/44">Track epic #44 &rarr;</a>
+        </article>
+
+        <article class="roadmap-item">
+          <header><h3>Autonomy layer</h3><span class="pill planned">P3 / #45</span></header>
+          <p>
+            Schedule opt-in documentation gardening, quality auditing, and debt sweeping through
+            the standard engine, worktree, hook, context, and persistence path.
+          </p>
+          <p><strong>Depends on:</strong> #42, #43, and #44.</p>
+          <p><strong>Exit:</strong> bounded recurring work produces ordinary inspectable sessions.</p>
+          <a href="https://github.com/89jobrien/braid/issues/45">Track epic #45 &rarr;</a>
+        </article>
+      </div>
+
+      <h2>Guardrails</h2>
+      <ul>
+        <li>GitHub issue state is authoritative for implementation status.</li>
+        <li>Completed capabilities are not recreated because an older checklist is stale.</li>
+        <li>Braid does not become CI/CD, a distributed scheduler, or an unbounded autonomous agent.</li>
+        <li>Material scope changes update both the issue and the repository roadmap.</li>
+      </ul>
+
+      <p class="source-note">
+        Source: <a href="https://github.com/89jobrien/braid/blob/main/ROADMAP.md">ROADMAP.md</a>
+        and the linked GitHub epics.
+      </p>
+    </main>
+
+    <footer>Braid <span class="thread" aria-hidden="true"></span> <a href="https://github.com/89jobrien/braid">Source on GitHub</a></footer>
+  </body>
+</html>

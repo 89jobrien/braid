@@ -4,27 +4,34 @@ Rust-first workspace for the Braid personal agent platform.
 
 ## Crates
 
-**Phase 1 — Core**
+**Core runtime**
+
 - `braid-model`: canonical domain types (messages, tool calls, transcripts, context)
 - `braid-ports`: inner-ring port traits (`Provider`, `ToolExecutor`, `EventSink`, `SessionStorage`, `ContextProvider`)
-- `braid-core`: runtime engine (`Engine<P, T, S, R, C>`), `SimpleLoopPlanner`, tool registry
+- `braid-engine`: runtime engine (`Engine<P, T, S, R, C>`), `SimpleLoopPlanner`, tool registry
 - `braid-providers`: provider adapters (`MockProvider`, `OpenAiProvider`)
-- `braid-cli`: thin operator entrypoint for local runs
 
-**Phase 2 — Safety**
+**Safety and integration**
+
 - `braid-redact`: `RedactionPipeline` with ordered rule chain (secrets, env vars, home paths)
 - `braid-hooks`: `HookedExecutor` wrapping any `ToolExecutor` with pre/post hook gating
 - `braid-mcp`: MCP server over stdio (JSON-RPC), tool registration and dispatch
-- `braid-observe`: session event store; persists `Event` stream to disk
 
-**Phase 3 — Context**
+**State and context**
+
+- `braid-observe`: session event storage, ingest, replay, and terminal rendering
 - `braid-context`: context assembly from `DoobSource` (todos) and `RepoSource` (git diff/log); two-stage compaction (staleness filter + token budget with rolling LLM summarization); injected into engine at session start via `ContextProvider` port
+- `braid-components`: manifest-backed command and prompt component registry
+- `braid-bootstrap`: setup, configuration, and environment health checks
 
-**UI**
+**Operator interfaces**
+
+- `braid-cli`: command-line entrypoint for runs, agents, setup, sessions, MCP, and components
 - `braid-tui`: multi-pane session inspector (Ratatui)
 
 ## Docs
 
+- [Roadmap](./ROADMAP.md)
 - [Planning Docs](./docs/planning/README.md)
 - [Workspace Overview](./docs/architecture/workspace-overview.md)
 - [Braid](./docs/planning/Braid.md)
