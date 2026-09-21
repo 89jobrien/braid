@@ -48,6 +48,7 @@ pub trait Check: Send + Sync {
 ### Checks
 
 **Existing (extracted from `braid-cli::mod doctor`):**
+
 - `RustToolchainCheck` — verifies `rustc >= 1.88`
 - `OpenAiKeyCheck` — checks `OPENAI_API_KEY` env var is set
 - `OllamaConnectivityCheck` — HTTP probe to `http://localhost:11434/api/tags`
@@ -55,6 +56,7 @@ pub trait Check: Send + Sync {
 - `WorkspaceHealthCheck` — runs `cargo check --workspace`
 
 **New:**
+
 - `GitCheck` — `git --version` is present and runnable
 - `DoobCheck` — `doob --version` is present; Warn (not Fail) if missing
 - `CargoNextestCheck` — `cargo nextest --version` is present
@@ -75,7 +77,8 @@ impl TerminalRenderer {
 ANSI codes hand-rolled (`\x1b[32m` green / `\x1b[33m` yellow / `\x1b[31m` red). No new deps.
 
 Output format per check:
-```
+
+```text
 git                    ... ok (git version 2.44.0)
 doob                   ... warn (not found — install with: cargo install doob)
 OPENAI_API_KEY         ... ok
@@ -128,11 +131,13 @@ impl Default for BraidConfig {
 `braid_bootstrap::setup::run() -> Result<()>`
 
 Non-interactive, idempotent. Creates:
+
 - `~/.braid/` directory
 - `~/.braid/config.toml` serialized from `BraidConfig::default()` via `toml::to_string_pretty()` (does not overwrite if exists)
 
 Prints each action taken:
-```
+
+```text
 created  ~/.braid/
 created  ~/.braid/config.toml
 skipped  ~/.braid/config.toml (already exists)
@@ -149,7 +154,7 @@ Returns `Err` only on filesystem errors (e.g., permission denied creating the di
 
 ## Module layout
 
-```
+```text
 crates/braid-bootstrap/
   src/
     lib.rs          — re-exports

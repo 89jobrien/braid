@@ -1,3 +1,5 @@
+//! Defines testable keyboard actions and pure TUI state transitions.
+
 use braid_model::SessionId;
 
 /// Top-level mode: session inspector or agent harness.
@@ -42,6 +44,7 @@ pub struct AppState {
 }
 
 impl AppState {
+    /// Creates harness-focused state for the supplied session list.
     pub const fn new(sessions: Vec<SessionId>) -> Self {
         Self {
             sessions,
@@ -219,7 +222,7 @@ mod tests {
         assert_eq!(state.timeline_cursor, 1);
         handle_key(&mut state, &KeyAction::Down);
         assert_eq!(state.timeline_cursor, 2);
-        // Clamps
+        // A further Down action leaves the cursor on the final event.
         handle_key(&mut state, &KeyAction::Down);
         assert_eq!(state.timeline_cursor, 2);
     }

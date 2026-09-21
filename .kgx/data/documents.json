@@ -1,0 +1,30 @@
+{
+  "documents": [
+    {
+      "id": "braid-context-map-52d57b5",
+      "title": "Braid Workspace Context Map at 52d57b5",
+      "source": "/Users/joe/dev/braid/.ctx/godmode/memory-bank/system-patterns.md",
+      "raw_content": "Braid is a Rust 2024 agent platform whose workspace members are declared in Cargo.toml:1-17. braid-model contains canonical domain types (crates/braid-model/src/lib.rs:2-18). braid-ports depends on braid-model and defines Provider, ToolExecutor, Redactor, EventSink, SessionStorage, ContextProvider, Hook, and ComponentRegistry contracts (crates/braid-ports/src/lib.rs:11-175; crates/braid-ports/Cargo.toml:12-15). braid-engine depends on braid-ports and braid-model and implements the generic agent loop, Planner interaction, and tool registry (crates/braid-engine/src/engine.rs:40-211; crates/braid-engine/Cargo.toml:12-16). braid-providers, braid-redact, braid-hooks, braid-observe, and braid-context depend on braid-ports and braid-model through their Cargo.toml manifests. braid-components depends on braid-ports (crates/braid-components/Cargo.toml:12-20). braid-cli and braid-tui are composition roots depending on the adapter crates (crates/braid-cli/Cargo.toml:13-30; crates/braid-tui/Cargo.toml:17-35). At runtime braid-cli or braid-tui constructs Provider, ContextProvider, Redactor, EventSink, HookedExecutor, and ToolRegistry dependencies and passes them to Engine (crates/braid-cli/src/main.rs:148-210; crates/braid-tui/src/chat.rs:105-149). Engine calls ContextProvider to inject context, calls Planner for actions, passes redacted requests to Provider, dispatches tool calls through ToolExecutor, and emits events to EventSink (crates/braid-engine/src/engine.rs:84-200). HookedExecutor runs pre-hooks, executes a tool, and runs post-hooks (crates/braid-hooks/src/executor.rs:25-48). SessionStore implements event persistence as per-session JSONL (crates/braid-observe/src/store.rs:201-220). The architecture follows hexagonal architecture with model and ports inside, adapters outside, and CLI/TUI composition roots (crates/braid-ports/src/lib.rs:11-175; xtask/src/main.rs:23-106). The required gates are cargo fmt --all, cargo clippy --workspace -- -D warnings, and cargo nextest run --workspace (AGENTS.md; .github/workflows/ci.yml:12-39).",
+      "chunks": [
+        {
+          "id": "e542e0bb-554c-49f1-aae0-3f5a0e189390",
+          "doc_id": "braid-context-map-52d57b5",
+          "text": "Braid is a Rust 2024 agent platform whose workspace members are declared in Cargo.toml:1-17. braid-model contains canonical domain types (crates/braid-model/src/lib.rs:2-18). braid-ports depends on braid-model and defines Provider, ToolExecutor, Redactor, EventSink, SessionStorage, ContextProvider, Hook, and ComponentRegistry contracts (crates/braid-ports/src/lib.rs:11-175; crates/braid-ports/Cargo.toml:12-15). braid-engine depends on braid-ports and braid-model and implements the generic agent loop, Planner interaction, and tool registry (crates/braid-engine/src/engine.rs:40-211; crates/braid-engine/Cargo.toml:12-16). braid-providers, braid-redact, braid-hooks, braid-observe, and braid-context depend on braid-ports and braid-model through their Cargo.toml manifests. braid-components depends on braid-ports (crates/braid-components/Cargo.toml:12-20). braid-cli and braid-tui are composition roots depending on the adapter crates (crates/braid-cli/Cargo.toml:13-30; crates/braid-tui/Cargo.t",
+          "offset": 0
+        },
+        {
+          "id": "af9f1a0c-629c-4e67-8594-70782d97c885",
+          "doc_id": "braid-context-map-52d57b5",
+          "text": "ds on braid-ports (crates/braid-components/Cargo.toml:12-20). braid-cli and braid-tui are composition roots depending on the adapter crates (crates/braid-cli/Cargo.toml:13-30; crates/braid-tui/Cargo.toml:17-35). At runtime braid-cli or braid-tui constructs Provider, ContextProvider, Redactor, EventSink, HookedExecutor, and ToolRegistry dependencies and passes them to Engine (crates/braid-cli/src/main.rs:148-210; crates/braid-tui/src/chat.rs:105-149). Engine calls ContextProvider to inject context, calls Planner for actions, passes redacted requests to Provider, dispatches tool calls through ToolExecutor, and emits events to EventSink (crates/braid-engine/src/engine.rs:84-200). HookedExecutor runs pre-hooks, executes a tool, and runs post-hooks (crates/braid-hooks/src/executor.rs:25-48). SessionStore implements event persistence as per-session JSONL (crates/braid-observe/src/store.rs:201-220). The architecture follows hexagonal architecture with model and ports inside, adapters outside,",
+          "offset": 800
+        },
+        {
+          "id": "2e82afc6-f5d9-4449-a4b5-fad4fba68275",
+          "doc_id": "braid-context-map-52d57b5",
+          "text": "ssionStore implements event persistence as per-session JSONL (crates/braid-observe/src/store.rs:201-220). The architecture follows hexagonal architecture with model and ports inside, adapters outside, and CLI/TUI composition roots (crates/braid-ports/src/lib.rs:11-175; xtask/src/main.rs:23-106). The required gates are cargo fmt --all, cargo clippy --workspace -- -D warnings, and cargo nextest run --workspace (AGENTS.md; .github/workflows/ci.yml:12-39).",
+          "offset": 1600
+        }
+      ]
+    }
+  ]
+}

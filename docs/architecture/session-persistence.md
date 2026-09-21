@@ -4,7 +4,7 @@
 
 ## On-Disk Layout
 
-```
+```text
 ~/.braid/sessions/
 ├── 1743300000/
 │   ├── events.jsonl     ← one event per line, flushed immediately
@@ -22,7 +22,7 @@
 
 Used by `cmd_sessions` and by ingesters after normalizing external data.
 
-```
+```text
 SessionStore::open(root)
   │
   ├─ .write(&id, &[Event])
@@ -49,7 +49,7 @@ SessionStore::open(root)
 
 Used by `cmd_run` via `Engine::with_event_callback` to persist events incrementally during a live session.
 
-```
+```text
 SessionWriter::open(root, &id)
   │  creates {root}/{id}/ directory
   │  opens events.jsonl in append mode
@@ -69,7 +69,7 @@ SessionWriter::open(root, &id)
 
 ## Write Path (cmd_run)
 
-```
+```text
 Engine emits event
     │
     ▼  event_callback
@@ -84,7 +84,7 @@ SessionWriter.finish()                 ← meta.json written atomically
 
 ## Read Path (cmd_sessions show)
 
-```
+```text
 SessionStore.load(&id)          → Vec<Event>
 SessionStore.load_meta(&id)     → Option<SessionMeta>
     │
@@ -105,7 +105,7 @@ Session: 1743300000  (2026-03-30 03:00:00 UTC)  5 events
 
 For importing sessions from external tools (Claude Code, devloop, etc.).
 
-```
+```text
 External JSONL file
     │
     ▼  Ingester::ingest(&source, &store)
@@ -147,7 +147,7 @@ External JSONL file
 
 `ReplaySession` wraps a loaded session for TUI and tooling consumption. It reads JSONL directly (not via `SessionStore::load`) to preserve the raw JSON payload of each event.
 
-```
+```text
 ReplaySession::load(&store, &id)
     │  reads events.jsonl line-by-line
     │  assigns 1-based index to each parseable line

@@ -9,7 +9,7 @@ documented here.
 
 ## Invocation
 
-```
+```text
 braid <SUBCOMMAND> [OPTIONS]
 ```
 
@@ -23,7 +23,7 @@ All subcommands are required. Running `braid` without a subcommand prints help a
 
 Run a single prompt against a provider and print the response to stdout.
 
-```
+```text
 braid run [PROMPT] [--provider <NAME>] [--model <MODEL>]
 ```
 
@@ -50,7 +50,7 @@ runs on all messages before they are persisted to the session store.
 Same engine pipeline as `run`, but emits every session event as a JSON line on stdout,
 followed by a final `response` JSON line. Intended for warpx and editor integrations.
 
-```
+```text
 braid agent [--prompt <TEXT>] [--provider <NAME>] [--model <MODEL>] [--max-turns <N>]
 ```
 
@@ -87,7 +87,7 @@ The `tokens` field is `null` when the provider does not return token counts.
 
 Start an MCP (Model Context Protocol) server over stdio. See MCP Mode below.
 
-```
+```text
 braid mcp
 ```
 
@@ -99,7 +99,7 @@ No flags. Reads JSON-RPC messages from stdin, writes responses to stdout. Runs u
 
 Manage stored sessions.
 
-```
+```text
 braid sessions <ACTION>
 ```
 
@@ -127,7 +127,7 @@ Delete the oldest sessions, keeping the `N` most recent. Prints `deleted <N> ses
 
 Manage installed components.
 
-```
+```text
 braid components <ACTION>
 ```
 
@@ -135,7 +135,7 @@ braid components <ACTION>
 
 List all components installed in the component directory.
 
-```
+```text
 braid components list [--dir <PATH>]
 ```
 
@@ -145,7 +145,7 @@ braid components list [--dir <PATH>]
 
 Each component subdirectory must contain a `component.toml`. Output format:
 
-```
+```text
 3 component(s):
   hello-world 0.1.0 — Built-in demonstration component
   my-tool 1.2.0 — ...
@@ -180,7 +180,7 @@ Exits 0 regardless of individual check results.
 
 Create the `~/.braid/` directory structure if it does not already exist.
 
-```
+```text
 braid setup
 ```
 
@@ -198,7 +198,7 @@ this.
 
 Sessions are stored under `~/.braid/sessions/` (requires `HOME` to be set):
 
-```
+```text
 ~/.braid/sessions/
   <session-id>/
     events.jsonl   # one JSON object per line, append-only
@@ -256,7 +256,7 @@ When `--provider` is not specified:
 
 ### OpenAI
 
-```
+```text
 OPENAI_API_KEY=sk-... braid run "hello"
 braid run "hello" --provider openai --model gpt-4o-mini
 ```
@@ -267,7 +267,7 @@ auto-detect after key is removed), the provider construction fails and the comma
 
 ### Ollama
 
-```
+```text
 braid run "hello" --provider ollama --model llama3.2
 ```
 
@@ -293,7 +293,7 @@ protocol. It is suitable for wiring braid as a tool server to any MCP-compliant 
 
 Content-Length framed JSON-RPC 2.0 over stdin/stdout:
 
-```
+```text
 Content-Length: <N>\r\n
 \r\n
 <N bytes of JSON>
@@ -365,7 +365,7 @@ structured event streams rather than plain text.
 
 Set `OZ_RUN_ID` in the environment to inject a session ID from the calling process:
 
-```
+```text
 OZ_RUN_ID=my-session-42 braid agent --prompt "summarise this file"
 ```
 

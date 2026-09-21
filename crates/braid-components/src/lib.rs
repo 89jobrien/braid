@@ -1,3 +1,5 @@
+//! Loads component manifests and exposes them through a filesystem-backed registry.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 mod manifest;
 mod registry;

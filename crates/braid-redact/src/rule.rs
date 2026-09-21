@@ -1,3 +1,5 @@
+//! Defines the contract for one text redaction transformation.
+
 /// A single redaction rule that transforms sensitive content in text.
 pub trait RedactionRule: Send + Sync {
     /// Human-readable name for this rule.

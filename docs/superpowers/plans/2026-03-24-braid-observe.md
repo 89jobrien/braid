@@ -34,10 +34,10 @@
 ## Task 1: Scaffold the crate
 
 **Files:**
+
 - Create: `crates/braid-observe/Cargo.toml`
 - Create: `crates/braid-observe/src/lib.rs`
 - Modify: `Cargo.toml` (root)
-
 - [ ] **Step 1: Create `crates/braid-observe/Cargo.toml`**
 
 ```toml
@@ -86,6 +86,7 @@ Expected: errors about missing modules `render` and `store` — that's expected.
 ## Task 2: `SessionStore` — write and load
 
 **Files:**
+
 - Create: `crates/braid-observe/src/store.rs`
 
 All tests in this task live inside `store.rs` in a `#[cfg(test)]` module.
@@ -349,6 +350,7 @@ Expected: `test store::tests::writes_and_loads_roundtrip ... ok`
 ## Task 3: `SessionStore` — list, prune, and edge cases
 
 **Files:**
+
 - Modify: `crates/braid-observe/src/store.rs` (add tests to `#[cfg(test)]`)
 
 - [ ] **Step 1: Add remaining store tests**
@@ -465,6 +467,7 @@ git commit -m "feat(braid-observe): add SessionStore with write/load/list/prune"
 ## Task 4: `render_session()`
 
 **Files:**
+
 - Create: `crates/braid-observe/src/render.rs`
 
 - [ ] **Step 1: Write failing render tests**
@@ -647,9 +650,9 @@ git commit -m "feat(braid-observe): add render_session() plain-ASCII formatter"
 ## Task 5: Wire into `braid-cli` — persist after `cmd_run`
 
 **Files:**
+
 - Modify: `crates/braid-cli/Cargo.toml`
 - Modify: `crates/braid-cli/src/main.rs`
-
 - [ ] **Step 1: Add `braid-observe` to CLI dependencies**
 
 In `crates/braid-cli/Cargo.toml`, add under `[dependencies]`:
@@ -766,6 +769,7 @@ git commit -m "feat(braid-cli): persist session events via braid-observe after c
 ## Task 6: `braid sessions` subcommands
 
 **Files:**
+
 - Modify: `crates/braid-cli/src/main.rs`
 
 - [ ] **Step 1: Add `Sessions` subcommand variants to the CLI**

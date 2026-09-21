@@ -4,7 +4,7 @@ This document traces the complete path of a `braid run "say hello"` invocation f
 
 ## Overview
 
-```
+```text
 CLI args
   │
   ▼
@@ -34,7 +34,7 @@ RunOutput
 
 ### 1. Provider Resolution
 
-```
+```text
 if OPENAI_API_KEY in env → OpenAiProvider::new(model)   (api.openai.com)
 else                     → OpenAiProvider::ollama(model)  (localhost:11434)
 ```
@@ -43,7 +43,7 @@ else                     → OpenAiProvider::ollama(model)  (localhost:11434)
 
 ### 2. Prompt Resolution
 
-```
+```text
 if PROMPT arg provided → use it
 else                   → read all of stdin until EOF
 ```
@@ -62,7 +62,7 @@ This gives sessions a human-readable, monotonically increasing ID (e.g., `174330
 
 Two pipelines are built with identical rules:
 
-```
+```text
 SecretPatternRule   →  redacts AWS keys, GitHub tokens, Bearer tokens, sk-* keys
 EnvVarRule          →  redacts KEY=value where KEY looks like a secret name
 HomePathRule        →  replaces /Users/joe/... with ~/...
@@ -81,13 +81,14 @@ let writer: Arc<Mutex<Option<SessionWriter>>> = Arc::new(Mutex::new(
 ```
 
 Using `Arc<Mutex<Option<...>>>` because:
+
 - `Arc` — shared ownership between the callback closure and the post-run finalization
 - `Mutex` — the callback may run multiple times (once per event); needs exclusive access
 - `Option` — graceful degradation if the store directory can't be opened
 
 ### 6. Engine Configuration
 
-```
+```text
 Engine::new(ToolRegistry::new(), provider)
     .with_redactor(|msg| msg_pipeline.redact_message(msg))
     .with_event_callback(|event| {
@@ -98,7 +99,7 @@ Engine::new(ToolRegistry::new(), provider)
 
 ### 7. Engine Run
 
-```
+```text
 engine.run(RunInput {
     session_id: session_id.clone(),
     messages: [Message { role: User, content: [Text { text: prompt }] }],
@@ -108,7 +109,7 @@ engine.run(RunInput {
 
 As the engine runs, each event fires the callback:
 
-```
+```text
 SessionStarted    → redact → write to events.jsonl (flushed immediately)
 ProviderResponded → redact → write
 ToolCalled        → redact → write
@@ -126,7 +127,7 @@ writer.lock() → writer.take() → writer.finish()
 
 `finish()` writes `meta.json` atomically via temp-file rename:
 
-```
+```text
 ~/.braid/sessions/1743300000/
 ├── events.jsonl    ← streaming events (written during run)
 └── meta.json       ← {session_id, written_at, event_count} (written after run)
@@ -134,14 +135,14 @@ writer.lock() → writer.take() → writer.finish()
 
 ### 9. Output
 
-```
+```text
 stdout: <response text>
 stderr: tokens: 42 in, 18 out
 ```
 
 ## Full Data Flow Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │ braid-cli: cmd_run()                                                │
 │                                                                     │

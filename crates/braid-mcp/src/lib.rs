@@ -1,3 +1,5 @@
+//! Content-Length-framed MCP server and tool registry for Braid.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod server;
 pub mod tools;

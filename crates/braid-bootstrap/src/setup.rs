@@ -1,3 +1,5 @@
+//! Creates the initial Braid configuration directory and default config file.
+
 use anyhow::Result;
 use std::path::Path;
 

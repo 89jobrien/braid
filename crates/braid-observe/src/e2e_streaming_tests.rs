@@ -1,3 +1,5 @@
+//! Exercises event persistence and replay across complete engine sessions.
+
 /// End-to-end test: Engine events are persisted in order via SessionWriter and
 /// can be replayed losslessly through ReplaySession.
 #[cfg(test)]
@@ -14,10 +16,7 @@ mod tests {
         store::{SessionStore, SessionWriter},
     };
 
-    // ---------------------------------------------------------------------------
-    // Minimal providers
-    // ---------------------------------------------------------------------------
-
+    // Provider test doubles used by the end-to-end scenarios.
     /// Returns a single text response with no tool calls.
     struct TextProvider {
         response: String,
@@ -84,20 +83,12 @@ mod tests {
         }
     }
 
-    // ---------------------------------------------------------------------------
-    // Helper
-    // ---------------------------------------------------------------------------
-
     fn user_msg(text: &str) -> Message {
         Message {
             role: Role::User,
             content: vec![ContentPart::Text { text: text.into() }],
         }
     }
-
-    // ---------------------------------------------------------------------------
-    // Tests
-    // ---------------------------------------------------------------------------
 
     /// Simplest case: a single-turn session (no tools) is persisted and replayed
     /// with events in the correct order and correct count.

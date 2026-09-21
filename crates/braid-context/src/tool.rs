@@ -1,3 +1,5 @@
+//! Exposes context refresh through the tool-execution port.
+
 use std::sync::Arc;
 
 use anyhow::Result;

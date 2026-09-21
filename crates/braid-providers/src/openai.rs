@@ -1,3 +1,5 @@
+//! Adapts `OpenAI`-compatible chat-completion APIs to Braid's provider port.
+
 use anyhow::{Context, Result, bail};
 use braid_model::{ContentPart, Message, ProviderRequest, ProviderResponse, Role, TokenCount};
 use braid_ports::Provider;
@@ -19,6 +21,7 @@ fn build_client() -> reqwest::blocking::Client {
 }
 
 impl OpenAiProvider {
+    /// Creates an `OpenAI` provider using `OPENAI_API_KEY` and the public API endpoint.
     pub fn new(model: impl Into<String>) -> Result<Self> {
         let api_key = std::env::var("OPENAI_API_KEY")
             .context("OPENAI_API_KEY environment variable not set")?;
@@ -38,10 +41,12 @@ impl OpenAiProvider {
         Ok(api_key)
     }
 
+    /// Creates an `OpenAI` provider configured for `gpt-4o`.
     pub fn default_model() -> Result<Self> {
         Self::new("gpt-4o")
     }
 
+    /// Creates a provider for a custom `OpenAI`-compatible endpoint.
     pub fn with_base_url(
         base_url: impl Into<String>,
         model: impl Into<String>,
@@ -55,6 +60,7 @@ impl OpenAiProvider {
         }
     }
 
+    /// Creates a provider targeting the local Ollama `OpenAI`-compatible endpoint.
     pub fn ollama(model: impl Into<String>) -> Self {
         Self::with_base_url("http://localhost:11434/v1", model, "ollama")
     }
@@ -353,11 +359,9 @@ mod tests {
         );
     }
 
-    // -------------------------------------------------------------------------
     // Request serialization contracts (Ollama-compatible wire format)
     // These tests verify the exact JSON the provider sends on the wire.
     // They run without a live server and must pass in CI.
-    // -------------------------------------------------------------------------
 
     #[test]
     fn serializes_text_message_as_string_content() {
@@ -418,9 +422,7 @@ mod tests {
         assert_eq!(j["content"], "42");
     }
 
-    // -------------------------------------------------------------------------
     // Response parsing contracts
-    // -------------------------------------------------------------------------
 
     fn mock_text_response(text: &str) -> Value {
         serde_json::json!({

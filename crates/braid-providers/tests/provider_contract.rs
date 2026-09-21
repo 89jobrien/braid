@@ -1,3 +1,5 @@
+//! Verifies shared completion, tool-call, and validation behavior for live providers.
+
 #![allow(clippy::unwrap_used)]
 use anyhow::Result;
 use braid_model::{ContentPart, Message, ProviderRequest, Role, ToolDefinition};

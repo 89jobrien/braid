@@ -1,3 +1,5 @@
+//! Evaluates ordered pre-execution hooks and dispatches post-execution notifications.
+
 use braid_model::ToolResult;
 
 use crate::contract::{Hook, HookContext, HookVerdict};
@@ -10,6 +12,7 @@ pub struct HookRegistry {
 }
 
 impl HookRegistry {
+    /// Creates an empty registry that ignores hook evaluation errors.
     pub fn new() -> Self {
         Self {
             hooks: vec![],

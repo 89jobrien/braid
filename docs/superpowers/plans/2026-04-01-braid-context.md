@@ -30,10 +30,10 @@
 ### Task 1: Add `chrono` to workspace dependencies and scaffold the crate
 
 **Files:**
+
 - Modify: `Cargo.toml` (workspace root)
 - Create: `crates/braid-context/Cargo.toml`
 - Create: `crates/braid-context/src/lib.rs`
-
 - [ ] **Step 1: Add `chrono` to workspace `[workspace.dependencies]`**
 
 Open `/Users/joe/dev/braid/Cargo.toml` and add after `tokio = ...`:
@@ -108,6 +108,7 @@ Expected: error about missing modules (lib.rs references modules not yet created
 ### Task 2: Define core types
 
 **Files:**
+
 - Create: `crates/braid-context/src/types.rs`
 
 - [ ] **Step 1: Write the failing test**
@@ -259,6 +260,7 @@ mod tests {
 - [ ] **Step 2: Create stub source and assembler modules so `lib.rs` compiles**
 
 Create `crates/braid-context/src/sources/mod.rs`:
+
 ```rust
 pub mod doob;
 pub mod repo;
@@ -268,6 +270,7 @@ pub use repo::RepoSource;
 ```
 
 Create `crates/braid-context/src/sources/doob.rs` (stub):
+
 ```rust
 use anyhow::Result;
 use chrono::Duration;
@@ -283,6 +286,7 @@ impl ContextSource for DoobSource {
 ```
 
 Create `crates/braid-context/src/sources/repo.rs` (stub):
+
 ```rust
 use anyhow::Result;
 use chrono::Duration;
@@ -298,11 +302,13 @@ impl ContextSource for RepoSource {
 ```
 
 Create `crates/braid-context/src/assembler.rs` (stub):
+
 ```rust
 pub struct ContextAssembler;
 ```
 
 Create `crates/braid-context/src/provider.rs` (stub):
+
 ```rust
 pub struct ContextAssemblerProvider;
 ```
@@ -327,6 +333,7 @@ git commit -m "feat(braid-context): scaffold crate with core types and token est
 ### Task 3: Add `ContextProvider` port to `braid-ports`
 
 **Files:**
+
 - Modify: `crates/braid-ports/src/lib.rs`
 
 The port trait needs to reference `ContextSnapshot` — but `braid-ports` must not depend on `braid-context` (circular). `ContextSnapshot` belongs in `braid-model` for sharing.
@@ -402,6 +409,7 @@ impl ContextSnapshot {
 - [ ] **Step 2: Add `chrono` to `braid-model`'s `Cargo.toml`**
 
 Open `crates/braid-model/Cargo.toml` and add:
+
 ```toml
 chrono.workspace = true
 ```
@@ -409,6 +417,7 @@ chrono.workspace = true
 - [ ] **Step 3: Export from `braid-model`**
 
 Open `crates/braid-model/src/lib.rs` and add:
+
 ```rust
 pub mod context;
 pub use context::{ContextChunk, ContextSnapshot, ContextSummary};
@@ -551,6 +560,7 @@ git commit -m "feat(braid-model): add ContextChunk/Snapshot/Summary types; feat(
 ### Task 4: Implement `ContextAssembler` — staleness filter + token budget drop
 
 **Files:**
+
 - Modify: `crates/braid-context/src/assembler.rs`
 
 - [ ] **Step 1: Write the failing tests**
@@ -907,6 +917,7 @@ git commit -m "feat(braid-context): implement ContextAssembler with staleness fi
 ### Task 5: Implement LLM summarization path with mock provider test
 
 **Files:**
+
 - Modify: `crates/braid-context/src/assembler.rs` (add summarization test)
 
 The summarization code is already written in Task 4's `assembler.rs`. This task adds the mock provider test to verify the summarization path.
@@ -994,12 +1005,14 @@ Add to the `#[cfg(test)]` block at the bottom of `crates/braid-context/src/assem
 In `assembler.rs`, the `assemble_with_prior` method currently propagates `?` from `self.summarize(...)`. Change it to fall back on error:
 
 Find the block:
+
 ```rust
         if let Some(provider) = &self.provider {
             let summary = self.summarize(provider, &all_chunks, prior.as_ref())?;
 ```
 
 Replace with:
+
 ```rust
         if let Some(provider) = &self.provider {
             match self.summarize(provider, &all_chunks, prior.as_ref()) {
@@ -1042,6 +1055,7 @@ git commit -m "test(braid-context): add mock provider tests for summarization pa
 ### Task 6: Implement `DoobSource`
 
 **Files:**
+
 - Modify: `crates/braid-context/src/sources/doob.rs`
 
 - [ ] **Step 1: Write the implementation**
@@ -1137,6 +1151,7 @@ git commit -m "feat(braid-context): implement DoobSource subprocess adapter"
 ### Task 7: Implement `RepoSource`
 
 **Files:**
+
 - Modify: `crates/braid-context/src/sources/repo.rs`
 
 - [ ] **Step 1: Write the implementation**
@@ -1232,6 +1247,7 @@ git commit -m "feat(braid-context): implement RepoSource git diff+log adapter"
 ### Task 8: Implement `ContextAssemblerProvider` and contract tests
 
 **Files:**
+
 - Modify: `crates/braid-context/src/provider.rs`
 
 - [ ] **Step 1: Write the implementation**
@@ -1347,6 +1363,7 @@ git commit -m "feat(braid-context): implement ContextAssemblerProvider port adap
 ### Task 9: Wire `ContextProvider` into the engine
 
 **Files:**
+
 - Modify: `crates/braid-core/src/engine.rs`
 - Modify: `crates/braid-core/Cargo.toml` (no new dep needed — uses `braid-ports`)
 
@@ -1357,6 +1374,7 @@ The engine gets an optional `ContextProvider`. At session start, it calls `assem
 Open `crates/braid-core/src/engine.rs`.
 
 Change the `Engine` struct from:
+
 ```rust
 pub struct Engine<P, T, S, R> {
     provider: P,
@@ -1365,7 +1383,9 @@ pub struct Engine<P, T, S, R> {
     redactor: R,
 }
 ```
+
 to:
+
 ```rust
 pub struct Engine<P, T, S, R, C = NoopContextProvider> {
     provider: P,
@@ -1377,6 +1397,7 @@ pub struct Engine<P, T, S, R, C = NoopContextProvider> {
 ```
 
 Add a `NoopContextProvider` at the top of the file (before the struct):
+
 ```rust
 use braid_ports::ContextProvider;
 
@@ -1402,6 +1423,7 @@ impl ContextProvider for NoopContextProvider {
 - [ ] **Step 2: Update `Engine::new` and add `Engine::with_context`**
 
 Change `Engine::new`:
+
 ```rust
 impl<P, T, S, R> Engine<P, T, S, R>
 where
@@ -1423,6 +1445,7 @@ where
 ```
 
 Add a separate `impl` block for adding context:
+
 ```rust
 impl<P, T, S, R, C> Engine<P, T, S, R, C>
 where
@@ -1480,6 +1503,7 @@ In `run_inner`, after building `state`, add context injection:
 - [ ] **Step 4: Add `chrono` to `braid-core/Cargo.toml`**
 
 Open `crates/braid-core/Cargo.toml` and add:
+
 ```toml
 chrono.workspace = true
 ```
@@ -1504,6 +1528,7 @@ git commit -m "feat(braid-core): wire optional ContextProvider into engine sessi
 ### Task 10: Add `refresh_context` tool to `braid-cli`
 
 **Files:**
+
 - Modify: `crates/braid-cli/src/` (check existing tool registration pattern)
 
 - [ ] **Step 1: Find the tool registration pattern**
@@ -1517,6 +1542,7 @@ Read `crates/braid-cli/src/main.rs` and any `tools.rs` or `cmd_run.rs` to unders
 - [ ] **Step 2: Add `refresh_context` tool**
 
 In the file where tools are registered for `cmd_run`, add a `RefreshContextTool` that:
+
 - Returns the current context snapshot rendered as a string when called
 - Accepts an optional `ContextAssemblerProvider` reference
 
@@ -1547,6 +1573,7 @@ git commit -m "feat(braid-cli): add refresh_context tool for on-demand context r
 ### Task 11: Integration test
 
 **Files:**
+
 - Create: `crates/braid-context/tests/integration.rs`
 
 - [ ] **Step 1: Create the integration test file**
@@ -1622,6 +1649,7 @@ git commit -m "test(braid-context): add ignored integration tests for DoobSource
 ### Task 12: Final check and workspace registration
 
 **Files:**
+
 - Review all new files for clippy warnings
 
 - [ ] **Step 1: Run clippy**
@@ -1664,6 +1692,7 @@ git commit -m "docs: mark braid-context Phase 3 checklist items complete"
 ## Self-Review Notes
 
 **Spec coverage check:**
+
 - ✅ `ContextSource` trait + `ContextChunk`/`ContextSnapshot`/`ContextSummary` — Task 2/3
 - ✅ `ContextProvider` port in `braid-ports` — Task 3
 - ✅ `ContextAssembler` with staleness filter + token budget — Task 4
@@ -1680,6 +1709,7 @@ git commit -m "docs: mark braid-context Phase 3 checklist items complete"
 - ✅ `dropped_chunks` always populated — Task 4 contract test
 
 **Type consistency:**
+
 - `ContextChunk::new` used consistently throughout with `(source, label, content)` signature
 - `ContextAssembler::assemble()` / `refresh(prior)` used in Task 4, 8, 9 consistently
 - `ContextProvider` trait methods `assemble()` / `refresh()` match port definition in Task 3

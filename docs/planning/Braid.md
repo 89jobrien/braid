@@ -11,10 +11,12 @@ tags: [platform, consolidation, agents, architecture, roadmap]
 **Braid** is the program you have been going for: a personal agent platform, not a loose collection of adjacent tools.
 
 Implementation decision:
+
 - build it from scratch in Rust
 - treat old repos as idea donors, not merge targets
 
 Its center of gravity is:
+
 - `looprs` as the runtime/platform
 - `hooks` as the external policy/guard layer
 - `personal-mcp` as the tool-exposure layer
@@ -24,11 +26,12 @@ Its center of gravity is:
 
 Everything else should either feed Braid, remain a reference, or be archived.
 
-# What The Program Is
+## What The Program Is
 
 This is not “another coding agent.”
 
 It is a **full local agent operating environment** with:
+
 - a Rust-native agent runtime
 - hook-governed safety and workflow enforcement
 - MCP-based tool exposure
@@ -36,9 +39,9 @@ It is a **full local agent operating environment** with:
 - structured observability and replay
 - reproducible machine bootstrap
 
-# Canonical Shape
+## Canonical Shape
 
-## 1. Runtime Core
+### 1. Runtime Core
 
 - **Canonical repo**: `looprs`
 - **Owns**: agent loop, providers, tools, commands, skills, agents, rules
@@ -48,7 +51,7 @@ It is a **full local agent operating environment** with:
   - `neocode` deterministic loop, RL-pipeline, compaction, small-diff patterns
   - `slash` spec/parser ideas
 
-## 2. Policy / Guard Layer
+### 2. Policy / Guard Layer
 
 - **Canonical repo**: `hooks`
 - **Owns**: pre/post tool guards, enforcement, safety, session lifecycle hooks
@@ -57,7 +60,7 @@ It is a **full local agent operating environment** with:
   - useful `threesheets` freshness/context guard ideas
 - **Must not become**: internal runtime orchestration logic that belongs in `looprs`
 
-## 3. Tool Exposure Layer
+### 3. Tool Exposure Layer
 
 - **Canonical repo**: `personal-mcp`
 - **Owns**: MCP-exposed tools and stable tool contracts
@@ -66,7 +69,7 @@ It is a **full local agent operating environment** with:
   - useful sync/operator ideas from work vault tooling when generalized
 - **Must not become**: another orchestrator
 
-## 4. Observability Pipeline
+### 4. Observability Pipeline
 
 - **Canonical repos**:
   - `devloop` for runtime/operator observability
@@ -82,7 +85,7 @@ It is a **full local agent operating environment** with:
   - `roxy`
   - `tbh`
 
-## 5. Task / Context Layer
+### 5. Task / Context Layer
 
 - **Canonical repos**:
   - `doob`
@@ -92,7 +95,7 @@ It is a **full local agent operating environment** with:
   - `joecc` data model ideas
   - `threesheets` bounded context persistence
 
-## 6. Bootstrap / Environment Layer
+### 6. Bootstrap / Environment Layer
 
 - **Canonical repos**:
   - `dotfiles`
@@ -103,22 +106,23 @@ It is a **full local agent operating environment** with:
 - **Must decide**:
   - whether `pj` stays tightly personal or becomes a more reusable front door
 
-## 7. Component / Content Layer
+### 7. Component / Content Layer
 
 - **Canonical donor repo**: `steve`
 - **Owns today**: component inventory only
 - **Long-term role**: source of agents, commands, skills, templates for `looprs`, not an endlessly growing destination
 
-# What Should Stay Separate
+## What Should Stay Separate
 
 - `ai-vault` stays a vault-native orchestrator, not the universal platform
 - `maestro` stays a work platform and pattern donor only
 - `cwc` may stay standalone unless its indexing core clearly belongs in a shared library
 - `obfsck` should remain a dependency-grade utility, not be folded into a larger repo
 
-# What Gets Archived
+## What Gets Archived
 
 Archive after extraction/reference capture:
+
 - `goder`
 - `gaw`
 - `ctx`
@@ -132,9 +136,9 @@ Archive after extraction/reference capture:
 - `tbh`
 - low-value/empty repos already identified in `Consolidation Strategy`
 
-# Project-By-Project Extraction Priorities
+## Project-By-Project Extraction Priorities
 
-## Highest Value
+### Highest Value
 
 - `looprs` -> runtime loop, session/event flow, command/skill/rule wiring
 - `hooks` -> guard contract, deny-message UX, hook lifecycle shape
@@ -156,7 +160,7 @@ Archive after extraction/reference capture:
 - `mcp-joecc` -> adapter/sync orchestration ideas
 - `maestro` -> generic runtime isolation and local orchestration patterns only
 
-## Already Strong and Should Be Compounded
+### Already Strong and Should Be Compounded
 
 - `looprs` runtime core
 - `hooks` production hook contract
@@ -168,49 +172,49 @@ Archive after extraction/reference capture:
 - `dotfiles` bootstrap substrate
 - `pj` operator control plane
 
-# Build Order
+## Build Order
 
-## Phase 1: Finish The Core Program Boundary
+### Phase 1: Finish The Core Program Boundary
 
 1. Wire agents and rules in `looprs`
 2. Keep extracting `ctx` into `hooks`
 3. Add contract tests and surface discipline to `personal-mcp`
 4. Decide `pj` vs `dotfiles` boundary explicitly
 
-## Phase 2: Unify Observability
+### Phase 2: Unify Observability
 
 5. Define the shared event schema across `devloop`, `message-extractor`, and `inflection`
 6. Replace hand-rolled redaction with `obfsck` where applicable
 7. Decide Ratatui vs Dioxus in `devloop`
 
-## Phase 3: Extract Reference-Tier Gold
+### Phase 3: Extract Reference-Tier Gold
 
 8. Pull `neocode` deterministic loop and compaction ideas into `looprs`
 9. Pull `joecc` planner/sandbox ideas into the runtime/task layers
 10. Pull `goder` routing/EventBus ideas into platform notes or code
 11. Pull `threesheets` freshness/context patterns into hooks/context systems
 
-## Phase 4: Reduce Sprawl
+### Phase 4: Reduce Sprawl
 
 12. Strip down `steve` into a real donor repo
 13. Resolve `gaw` vs `cwc` indexing future
 14. Archive drained reference repos aggressively
 
-# Implementation Mode
+## Implementation Mode
 
 The canonical implementation path is now tracked in [Braid - Rust Workspace Blueprint](./Braid%20-%20Rust%20Workspace%20Blueprint.md).
 
-# The Program In One Sentence
+## The Program In One Sentence
 
 **A local-first, hook-governed, MCP-powered Braid platform with strong runtime boundaries, reproducible bootstrap, and structured observability.**
 
-# Criticisms / Improvement Areas
+## Criticisms / Improvement Areas
 
 - The biggest historical problem was not lack of good ideas; it was allowing too many sibling repos to behave like partial future centers of gravity at the same time.
 - If this note is not used as a real boundary document, it will just become another accurate summary of sprawl.
 - The hardest part is not implementation. It is refusing to build a new umbrella monolith and instead extracting the right ideas into the right canonical repos.
 
-# Links
+## Links
 
 - `Consolidation Strategy`
 - [Braid - Rust Workspace Blueprint](./Braid%20-%20Rust%20Workspace%20Blueprint.md)

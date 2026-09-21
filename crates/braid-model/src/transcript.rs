@@ -1,3 +1,5 @@
+//! Persistable session transcripts and aggregate token counts.
+
 use serde::{Deserialize, Serialize};
 
 use crate::message::Message;

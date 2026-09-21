@@ -18,7 +18,7 @@
 
 ## Crate Layout
 
-```
+```text
 crates/braid-observe/
   Cargo.toml
   src/
@@ -33,7 +33,7 @@ Dependencies: `braid-model`, `anyhow`, `serde`, `serde_json`, `thiserror` (all w
 
 ## Storage Layout
 
-```
+```text
 <root>/                        # default: ~/.braid/sessions/
   <session-id>/
     events.jsonl               # one JSON-serialized Event per line
@@ -122,7 +122,7 @@ pub fn render_session(
 
 Output format (plain ASCII, no color, works in piped output):
 
-```
+```text
 Session: abc  (2026-03-24 05:00:00 UTC)  5 events
 --------------------------------------------------
   1  SessionStarted
@@ -133,6 +133,7 @@ Session: abc  (2026-03-24 05:00:00 UTC)  5 events
 ```
 
 Rules:
+
 - Fixed-width index column; event kind left-aligned; optional detail (e.g. tool name) right
 - Separator drawn to terminal width, capped at 72 characters
 - `written_at` from `meta.json`; omitted gracefully if meta absent
@@ -169,7 +170,7 @@ if let Err(e) = store.write(&session_id, &redacted_events) {
 
 ### New subcommands
 
-```
+```text
 braid sessions list              # print session IDs, newest first
 braid sessions show <id>         # print a session's event timeline
 braid sessions prune [--keep N]  # delete oldest, keep N (default: 50)

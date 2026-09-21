@@ -20,7 +20,7 @@ A new `braid-ports` crate (deps: `braid-model` only) becomes the inner ring of t
 
 ## Dependency Graph
 
-```
+```text
 braid-model          (domain types — leaf, unchanged)
      ↑
 braid-ports          (NEW — all port trait definitions, deps: braid-model only)
@@ -131,6 +131,7 @@ pub struct RunOutput { pub provider_response: ProviderResponse }
 **Interior mutability:** `EventSink::record()` takes `&self`. Implementations that buffer events (like `SessionStore`) must use `Mutex<Vec<Event>>` internally to satisfy `&self` + `Send`. This is explicitly required by the contract.
 
 **SessionStorage** is the durable backend. `SessionStore` (filesystem JSONL) in `braid-observe` implements it. `SessionStore` also implements `EventSink` by:
+
 1. Buffering events in `Mutex<Vec<Event>>` on `record()`
 2. Writing atomically to JSONL + meta on `flush()`
 3. Also flushing on `Drop` as a best-effort safety net (not the primary flush path)
@@ -155,28 +156,33 @@ Each port gets an in-memory double, gated behind a `test-support` feature flag:
 ## Adapter Changes per Crate
 
 **braid-providers:**
+
 - `OpenAiProvider` now implements `Provider` from `braid-ports`
 - Drops `braid-core` dep; adds `braid-ports`
 - Adds `MockProvider` behind `test-support` feature
 
 **braid-hooks:**
+
 - `Hook`, `HookContext`, `HookVerdict` move to `braid-ports`
 - `HookedExecutor<T: ToolExecutor>` now uses `ToolExecutor` from `braid-ports`
 - Drops `braid-core` dep entirely; depends only on `braid-ports`
 - `DestructiveCommandGuard` and `FreshnessGuard` unchanged (move with the crate, still implement `Hook`)
 
 **braid-redact:**
+
 - `RedactionRule` stays in `braid-redact` (internal pipeline building block, not a port)
 - `RedactionPipeline` implements the new `Redactor` port from `braid-ports`
 - Adds `braid-ports` dep; retains `braid-model` dep (needed for `Message`, `ContentPart`, `Event`)
 
 **braid-observe:**
+
 - `SessionStore` implements both `SessionStorage` and `EventSink`
 - `SessionStore` gains a `Mutex<Vec<Event>>` buffer field; `flush()` writes atomically
 - `SessionMeta` and `render_session()` unchanged
 - Adds `InMemorySessionStorage` behind `test-support`
 
 **braid-mcp:**
+
 - No changes — `McpToolRegistry` uses a closure executor, deps remain `braid-model` only
 
 ## Composition Root (`braid-cli`)

@@ -1,0 +1,366 @@
+{
+  "nodes": [
+    {
+      "id": "4b6db3c3-4732-4833-bb59-e4452b0d42cf",
+      "name": "braid",
+      "type": "system",
+      "supporting_text": "Braid is a Rust 2024 agent platform whose workspace members are declared in Cargo.toml:1-17.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "a635dfce-ac0f-47a0-bed7-ec7009fbd78c",
+      "name": "braid cli",
+      "type": "system",
+      "supporting_text": "braid-cli and braid-tui are composition roots depending on the adapter crates.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "56c501c7-03eb-46f9-85cf-c08d49362c3e",
+      "name": "braid components",
+      "type": "system",
+      "supporting_text": "braid-components depends on braid-ports (crates/braid-components/Cargo.toml:12-20).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "86e4774f-09f2-434f-8bb3-2169f136aa2f",
+      "name": "braid context",
+      "type": "system",
+      "supporting_text": "braid-providers, braid-redact, braid-hooks, braid-observe, and braid-context depend on braid-ports and braid-model through their Cargo.toml manifests.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "name": "braid engine",
+      "type": "system",
+      "supporting_text": "braid-engine depends on braid-ports and braid-model and implements the generic agent loop, Planner interaction, and tool registry.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "8f051329-093b-4d51-989b-9c64ee184d9b",
+      "name": "braid hooks",
+      "type": "system",
+      "supporting_text": "braid-providers, braid-redact, braid-hooks, braid-observe, and braid-context depend on braid-ports and braid-model through their Cargo.toml manifests.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "9e310efd-0aee-4159-b2c9-725117210a2f",
+      "name": "braid model",
+      "type": "system",
+      "supporting_text": "braid-model contains canonical domain types (crates/braid-model/src/lib.rs:2-18).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "92f652f8-48d9-41b4-aace-fdaaae98092a",
+      "name": "braid observe",
+      "type": "system",
+      "supporting_text": "braid-providers, braid-redact, braid-hooks, braid-observe, and braid-context depend on braid-ports and braid-model through their Cargo.toml manifests.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "name": "braid ports",
+      "type": "system",
+      "supporting_text": "braid-ports depends on braid-model and defines Provider, ToolExecutor, Redactor, EventSink, SessionStorage, ContextProvider, Hook, and ComponentRegistry contracts.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "216389f9-8354-4c23-863e-7e9c7fcd99e0",
+      "name": "braid providers",
+      "type": "system",
+      "supporting_text": "braid-providers, braid-redact, braid-hooks, braid-observe, and braid-context depend on braid-ports and braid-model through their Cargo.toml manifests.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "8e7a085d-4262-4ca1-8a14-8f70131ac6a2",
+      "name": "braid redact",
+      "type": "system",
+      "supporting_text": "braid-providers, braid-redact, braid-hooks, braid-observe, and braid-context depend on braid-ports and braid-model through their Cargo.toml manifests.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "aab33b8a-7d1d-48fc-a3c7-48c9051d442d",
+      "name": "braid tui",
+      "type": "system",
+      "supporting_text": "braid-cli and braid-tui are composition roots depending on the adapter crates.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "e349bb13-cb8c-461b-b306-5e0b6afa1d9b",
+      "name": "cargo nextest",
+      "type": "tool",
+      "supporting_text": "The required gates include cargo nextest run --workspace (AGENTS.md; .github/workflows/ci.yml:12-39).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "a485f1c5-6adb-4fa0-8ce7-574ec85561fb",
+      "name": "hexagonal architecture",
+      "type": "concept",
+      "supporting_text": "The architecture follows hexagonal architecture with model and ports inside, adapters outside, and CLI/TUI composition roots.",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "00036af7-c23d-4cd8-8fd4-12f27c8dbdc2",
+      "name": "hooked executor",
+      "type": "concept",
+      "supporting_text": "HookedExecutor runs pre-hooks, executes a tool, and runs post-hooks (crates/braid-hooks/src/executor.rs:25-48).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "d05ee82d-81f8-46ed-b777-37d4678c8f11",
+      "name": "planner",
+      "type": "concept",
+      "supporting_text": "Engine calls Planner for actions (crates/braid-engine/src/engine.rs:84-200).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "0b753052-4926-4676-a2b2-d7497954a813",
+      "name": "provider",
+      "type": "concept",
+      "supporting_text": "Engine passes redacted requests to Provider (crates/braid-engine/src/engine.rs:84-200).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "417915b6-431b-47a4-bea2-b4f81a04ff70",
+      "name": "session store",
+      "type": "concept",
+      "supporting_text": "SessionStore implements event persistence as per-session JSONL (crates/braid-observe/src/store.rs:201-220).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    },
+    {
+      "id": "c5690639-8388-4bfb-951d-87dabce22146",
+      "name": "tool executor",
+      "type": "concept",
+      "supporting_text": "Engine dispatches tool calls through ToolExecutor (crates/braid-engine/src/engine.rs:84-200).",
+      "source_docs": [
+        "braid-context-map-52d57b5"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "2027d8c2-44f6-498e-bd06-168ede9d16b5",
+      "source": "4b6db3c3-4732-4833-bb59-e4452b0d42cf",
+      "target": "9e310efd-0aee-4159-b2c9-725117210a2f",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Braid workspace contains braid-model (Cargo.toml:1-17).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "e62548aa-4561-43c9-99bf-49baf999f302",
+      "source": "4b6db3c3-4732-4833-bb59-e4452b0d42cf",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Braid workspace contains braid-ports (Cargo.toml:1-17).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "08dbf84e-4512-42cf-9aa4-54bcfe948cf5",
+      "source": "4b6db3c3-4732-4833-bb59-e4452b0d42cf",
+      "target": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Braid workspace contains braid-engine (Cargo.toml:1-17).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "cfee397d-f81f-4b8b-a953-3aeaf8619d74",
+      "source": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "target": "9e310efd-0aee-4159-b2c9-725117210a2f",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-ports depends on braid-model (crates/braid-ports/Cargo.toml:12-15).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "f8705315-07f5-44b5-845c-006d863b61e5",
+      "source": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-engine depends on braid-ports (crates/braid-engine/Cargo.toml:12-16).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "02bec255-b2b0-4d33-81af-4a7fc940b714",
+      "source": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "target": "9e310efd-0aee-4159-b2c9-725117210a2f",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-engine depends on braid-model (crates/braid-engine/Cargo.toml:12-16).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "1615d47b-d16b-42d0-838a-73a41d4178c3",
+      "source": "216389f9-8354-4c23-863e-7e9c7fcd99e0",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-providers depends on braid-ports through its Cargo.toml manifest.",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "94827aa1-4afd-4d5e-9c7b-09b0b5cdd4dc",
+      "source": "8e7a085d-4262-4ca1-8a14-8f70131ac6a2",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-redact depends on braid-ports through its Cargo.toml manifest.",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "42eae6ca-5226-4f74-9b60-32d87964dfef",
+      "source": "8f051329-093b-4d51-989b-9c64ee184d9b",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-hooks depends on braid-ports through its Cargo.toml manifest.",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "a509267f-dde9-40f6-98c8-58aec332a08e",
+      "source": "92f652f8-48d9-41b4-aace-fdaaae98092a",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-observe depends on braid-ports through its Cargo.toml manifest.",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "a7a0829e-98b3-4218-8257-6ff43f67dc2d",
+      "source": "86e4774f-09f2-434f-8bb3-2169f136aa2f",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-context depends on braid-ports through its Cargo.toml manifest.",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "075ee531-6ef2-46e3-8e7c-05a94b82e6b8",
+      "source": "56c501c7-03eb-46f9-85cf-c08d49362c3e",
+      "target": "bd857fb5-9cab-49c9-913e-0bb3d5d3f7ca",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "braid-components depends on braid-ports (crates/braid-components/Cargo.toml:12-20).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "ad2fa168-be23-4f6a-94d0-dc16bb8b97fc",
+      "source": "a635dfce-ac0f-47a0-bed7-ec7009fbd78c",
+      "target": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "braid-cli constructs dependencies and passes them to Engine (crates/braid-cli/src/main.rs:148-210).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "37ac0849-0eb6-4ec1-b7f3-f554709bfcfa",
+      "source": "aab33b8a-7d1d-48fc-a3c7-48c9051d442d",
+      "target": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "braid-tui constructs dependencies and passes them to Engine (crates/braid-tui/src/chat.rs:105-149).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "9735e0d8-8e95-45ce-b36a-bc1d13c8e493",
+      "source": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "target": "d05ee82d-81f8-46ed-b777-37d4678c8f11",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "Engine calls Planner for actions (crates/braid-engine/src/engine.rs:84-200).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "582aa108-e25e-470c-9483-00a13de8d7a8",
+      "source": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "target": "0b753052-4926-4676-a2b2-d7497954a813",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "Engine passes redacted requests to Provider (crates/braid-engine/src/engine.rs:84-200).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "d68c35b7-b5b3-4dab-afc0-aeb7e2654f39",
+      "source": "5fb73ba9-e7fd-4cc2-874f-40456aa6869f",
+      "target": "c5690639-8388-4bfb-951d-87dabce22146",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "Engine dispatches tool calls through ToolExecutor (crates/braid-engine/src/engine.rs:84-200).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "0ba3934e-61a8-4913-b171-32bda2a8c451",
+      "source": "00036af7-c23d-4cd8-8fd4-12f27c8dbdc2",
+      "target": "c5690639-8388-4bfb-951d-87dabce22146",
+      "type": "implements",
+      "confidence": 1.0,
+      "supporting_text": "HookedExecutor runs pre-hooks, executes a tool, and runs post-hooks (crates/braid-hooks/src/executor.rs:25-48).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "6169cb28-53bd-4db3-b82f-bda358d096d8",
+      "source": "417915b6-431b-47a4-bea2-b4f81a04ff70",
+      "target": "92f652f8-48d9-41b4-aace-fdaaae98092a",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "SessionStore implements event persistence in braid-observe (crates/braid-observe/src/store.rs:201-220).",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "5cea0451-f77a-46de-8fdf-0c5c5e70abd3",
+      "source": "4b6db3c3-4732-4833-bb59-e4452b0d42cf",
+      "target": "a485f1c5-6adb-4fa0-8ce7-574ec85561fb",
+      "type": "implements",
+      "confidence": 0.95,
+      "supporting_text": "The architecture follows hexagonal architecture with model and ports inside, adapters outside, and CLI/TUI composition roots.",
+      "source_doc": "braid-context-map-52d57b5"
+    },
+    {
+      "id": "b3ef7ee9-3966-4cb4-b089-7c7886065f0a",
+      "source": "4b6db3c3-4732-4833-bb59-e4452b0d42cf",
+      "target": "e349bb13-cb8c-461b-b306-5e0b6afa1d9b",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "The required gates include cargo nextest run --workspace (AGENTS.md; .github/workflows/ci.yml:12-39).",
+      "source_doc": "braid-context-map-52d57b5"
+    }
+  ]
+}

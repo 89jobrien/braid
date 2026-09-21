@@ -92,11 +92,13 @@ File: `crates/braid-providers/tests/provider_contract.rs`
 Three contract checks:
 
 **`verify_text_completion(provider)`**
+
 - Send single user message "Say hello."
 - Assert response role is Assistant
 - Assert response contains at least one non-empty Text part
 
 **`verify_tool_calling(provider)`**
+
 - Define a `ToolDefinition` for `get_weather` with a `city` string parameter
 - Send user message "What's the weather in Paris?" with the tool definition
 - Assert response contains a `ToolUse` content part with non-empty id, name == "get_weather", and valid JSON input
@@ -105,6 +107,7 @@ Three contract checks:
 - Assert final response contains a Text part (the model's summary of the tool result)
 
 **`verify_error_on_empty_messages(provider)`**
+
 - Send `ProviderRequest` with empty messages vec
 - Assert result is `Err` — validate this client-side in the provider adapter (before making the HTTP call) to avoid depending on provider-specific API error behavior
 

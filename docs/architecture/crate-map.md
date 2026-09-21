@@ -17,7 +17,7 @@
 
 Arrows mean "depends on":
 
-```
+```text
 braid-cli
 ├── braid-observe   ──→ braid-model
 ├── braid-redact    ──→ braid-model
@@ -30,7 +30,7 @@ braid-cli
 
 ## Build Order (Phase Progression)
 
-```
+```text
 Phase 1 ──── braid-model ──── braid-core ──── braid-providers ──── braid-cli
                                                    (minimal runnable slice)
 
@@ -80,6 +80,7 @@ Standalone JSON-RPC 2.0 server over stdin/stdout. Exposes braid tools to MCP cli
 ### `braid-observe`
 
 Four sub-modules:
+
 - `store` — `SessionStore` (batch r/w) + `SessionWriter` (streaming append)
 - `ingest` — `Ingester` trait + `BraidIngester`, `ClaudeCodeIngester`, `DevloopIngester`
 - `replay` — `ReplaySession` with 1-based indexed, payload-preserving event view

@@ -93,7 +93,7 @@ This avoids changing the Engine struct. Callers pass `&SimpleLoopPlanner` by def
 
 ### Engine Loop
 
-```
+```text
 fn run(&self, input: RunInput, planner: &impl Planner) -> Result<RunOutput> {
     1. Initialize SessionState from input (messages, max_turns, empty pending_tool_calls)
     2. Loop:
@@ -130,6 +130,7 @@ The existing `SessionState` enum in `braid-model/src/session.rs` is renamed to `
 ### New EventKind Variants
 
 Add to `EventKind`:
+
 - `ToolCalled { tool_name: String }` — already exists
 - `ToolCompleted { tool_name: String }` — already exists
 - `SessionCompleted` — new, emitted when the loop finishes

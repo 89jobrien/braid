@@ -1,3 +1,5 @@
+//! Loads persisted JSONL events into indexed, inspectable replay sessions.
+
 use anyhow::Result;
 use braid_model::{Event, SessionId};
 
@@ -17,6 +19,7 @@ pub struct ReplaySession {
 }
 
 impl ReplaySession {
+    /// Loads parseable events and their raw JSON payloads from a stored session.
     pub fn load(store: &SessionStore, id: &SessionId) -> Result<Self> {
         use std::io::BufRead;
 
@@ -54,10 +57,12 @@ impl ReplaySession {
         })
     }
 
+    /// Iterates over replay events in persisted order.
     pub fn iter(&self) -> impl Iterator<Item = &ReplayEvent> {
         self.events.iter()
     }
 
+    /// Returns the event at a one-based replay index.
     pub fn get(&self, index: usize) -> Option<&ReplayEvent> {
         // index is 1-based; 0 is out of range
         if index == 0 {
@@ -66,10 +71,12 @@ impl ReplaySession {
         self.events.get(index - 1)
     }
 
+    /// Returns the number of replayable events.
     pub const fn len(&self) -> usize {
         self.events.len()
     }
 
+    /// Returns `true` when the session has no replayable events.
     pub const fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
@@ -160,7 +167,7 @@ mod tests {
     // --- Replay tests via SessionWriter ---
 
     /// Write events through `SessionWriter`, then load via `ReplaySession` and
-    /// verify the round-trip: same count, same order, same EventKind values.
+    /// verify the round-trip: same count, same order, same `EventKind` values.
     #[test]
     fn session_writer_roundtrips_via_replay() {
         use crate::store::SessionWriter;

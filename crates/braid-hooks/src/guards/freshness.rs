@@ -1,3 +1,5 @@
+//! Reserves the context-freshness policy hook used by future timestamped context.
+
 use std::time::Duration;
 
 use crate::contract::{Hook, HookContext, HookVerdict};
@@ -10,6 +12,7 @@ pub struct FreshnessGuard {
 }
 
 impl FreshnessGuard {
+    /// Creates a placeholder guard with the future maximum context age.
     pub const fn new(max_age: Duration) -> Self {
         Self { max_age }
     }

@@ -17,10 +17,10 @@
 ### Task 1: Rename SessionState → SessionPhase in braid-model
 
 **Files:**
+
 - Modify: `crates/braid-model/src/session.rs`
 - Modify: `crates/braid-model/src/lib.rs`
 - Modify: `crates/braid-model/tests/serde_roundtrip.rs`
-
 - [ ] **Step 1: Rename enum in session.rs**
 
 Replace `SessionState` with `SessionPhase` in `crates/braid-model/src/session.rs`:
@@ -77,13 +77,13 @@ git commit -m "refactor: rename SessionState to SessionPhase in braid-model"
 ### Task 2: Add ToolCall.id field and SessionCompleted event
 
 **Files:**
+
 - Modify: `crates/braid-model/src/tool.rs`
 - Modify: `crates/braid-model/src/event.rs`
 - Modify: `crates/braid-model/tests/serde_roundtrip.rs`
 - Modify: `crates/braid-core/src/tools.rs`
 - Modify: `crates/braid-core/src/registry.rs`
 - Modify: `crates/braid-cli/src/main.rs` (won't need changes — doesn't construct ToolCall directly anymore)
-
 - [ ] **Step 1: Add id field to ToolCall**
 
 Replace `crates/braid-model/src/tool.rs`:
@@ -245,9 +245,9 @@ git commit -m "feat: add ToolCall.id field and SessionCompleted event kind"
 ### Task 3: Add Action, Planner trait, SessionState, and SimpleLoopPlanner
 
 **Files:**
+
 - Create: `crates/braid-core/src/planner.rs`
 - Modify: `crates/braid-core/src/lib.rs`
-
 - [ ] **Step 1: Create planner.rs with all types, trait, and SimpleLoopPlanner**
 
 Create `crates/braid-core/src/planner.rs`:
@@ -461,6 +461,7 @@ git commit -m "feat: add Planner trait, Action enum, SessionState, and SimpleLoo
 ### Task 4: Rewrite Engine::run as a planner-driven loop
 
 **Files:**
+
 - Modify: `crates/braid-core/src/engine.rs`
 
 - [ ] **Step 1: Add max_turns to RunInput**
@@ -889,6 +890,7 @@ git commit -m "feat: rewrite Engine::run as planner-driven loop with tool call s
 ### Task 5: Update CLI to pass planner
 
 **Files:**
+
 - Modify: `crates/braid-cli/src/main.rs`
 
 - [ ] **Step 1: Update CLI to pass planner and max_turns**
@@ -896,11 +898,13 @@ git commit -m "feat: rewrite Engine::run as planner-driven loop with tool call s
 In `crates/braid-cli/src/main.rs`, update the `cmd_run` function. Add import for `SimpleLoopPlanner` and update the `engine.run()` call:
 
 Change the import line:
+
 ```rust
 use braid_core::{Engine, RunInput, SimpleLoopPlanner, ToolRegistry};
 ```
 
 Update `cmd_run`:
+
 ```rust
 fn cmd_run(prompt_arg: Option<String>, provider_flag: Option<String>, model: String) -> Result<()> {
     let provider = resolve_provider(provider_flag.as_deref(), &model)?;

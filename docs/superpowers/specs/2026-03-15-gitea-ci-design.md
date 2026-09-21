@@ -60,6 +60,7 @@ ENABLED = true
 ```
 
 Key decisions:
+
 - **SSH on port 2222** (built-in SSH server) to avoid conflicting with system SSH on 22
 - **Actions enabled** for CI runner support
 - **SQLite** — single-file DB, no external service needed

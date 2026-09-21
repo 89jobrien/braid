@@ -1,3 +1,5 @@
+//! Assembles and runs Braid's environment diagnostics.
+
 use crate::checks::{
     CheckResult,
     config_dir::BraidConfigDirCheck,
@@ -8,6 +10,7 @@ use crate::checks::{
     workspace::WorkspaceHealthCheck,
 };
 
+/// Runs all built-in bootstrap checks in diagnostic display order.
 pub fn run_checks() -> Vec<CheckResult> {
     let checks: Vec<Box<dyn crate::checks::Check>> = vec![
         Box::new(RustToolchainCheck),

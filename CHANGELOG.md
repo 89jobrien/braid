@@ -9,6 +9,7 @@ All notable changes to braid are documented here. Follows [Keep a Changelog](htt
 ## [0.3.0] — 2026-07-13
 
 ### Added
+
 - `braid-components` (Phase 4): new crate implementing the component system
   - `ComponentManifest`: loads `component.toml` from a directory, validates all
     referenced files exist at load time (startup error, not runtime panic)
@@ -26,11 +27,13 @@ All notable changes to braid are documented here. Follows [Keep a Changelog](htt
     `ComponentRegistry` port trait sketch (status: Proposed)
 
 ### Changed
+
 - `dead_code = "warn"` added to `[workspace.lints.rust]` — donor audit found zero
   items to remove; lint makes the policy self-enforcing going forward
 - Branch protection enabled on `main` (required checks: compile-check, test, audit, lint)
 
 ### Fixed
+
 - `deny.toml`: removed invalid `allow-workspace` field in `[bans]` section (caused
   `cargo deny` to fail to deserialize config)
 - `rustls-webpki` bumped `0.103.10 → 0.103.13` via `cargo update`, resolving
@@ -38,6 +41,7 @@ All notable changes to braid are documented here. Follows [Keep a Changelog](htt
   constraint validation bugs)
 
 ### Infra
+
 - `xtask/Cargo.toml`: added `license.workspace = true` (cargo-deny was flagging
   xtask as unlicensed)
 - `braid-providers/Cargo.toml`: `[package.metadata.cargo-machete] ignored = ["openssl"]`
@@ -50,6 +54,7 @@ All notable changes to braid are documented here. Follows [Keep a Changelog](htt
 ## [0.2.0] — 2026-07-12
 
 ### Added
+
 - `braid-observe`: replay tests verifying `SessionWriter` round-trip via `ReplaySession`
   (`crates/braid-observe/src/replay.rs`)
 - `xtask check-deps`: CI-enforced hexagonal crate-boundary check — detects illegal
@@ -63,15 +68,18 @@ All notable changes to braid are documented here. Follows [Keep a Changelog](htt
   `render_timeline` and `render_detail`
 
 ### Changed
+
 - Removed legacy `HANDOFF.md`, `HANDOFF.braid.workspace.yaml`, `scripts/tsi`, and
   `scripts/install-tsi.sh` (superseded by `hj` handoff journal)
 - `openai.rs`: `validate_api_key` now takes `&str` (clippy `needless_pass_by_value`)
 
 ### Fixed
+
 - `ci.yml`: integration-agent job called `./target/release/braid` — binary is
   `braid-cli`; corrected
 
 ### Infra
+
 - `ci.yml`: added `cargo xtask check-deps` step to compile-check job
 
 ---
@@ -79,6 +87,7 @@ All notable changes to braid are documented here. Follows [Keep a Changelog](htt
 ## [0.1.1] — 2026-04-07
 
 ### Added
+
 - `braid-bootstrap`: full `doctor` and `setup` subsystem — `Check` trait, tool/key/config/
   connectivity checks, TOML config, ANSI terminal renderer
 - `braid-cli`: `doctor` and `setup` subcommands delegated to `braid-bootstrap`
@@ -87,11 +96,13 @@ All notable changes to braid are documented here. Follows [Keep a Changelog](htt
 - `.githooks/` directory wired via `core.hooksPath`; release-build gate in pre-commit
 
 ### Changed
+
 - Workspace clippy lints tightened to `-D warnings`; all warnings resolved
 - `unsafe_code = "deny"` enforced workspace-wide; test modules that call `set_var`/
   `remove_var` carry `#[allow(unsafe_code)]` on the `mod tests` block
 
 ### Fixed
+
 - OpenSSL vendored for musl cross-compilation (`x86_64-unknown-linux-musl` targets)
 
 ---

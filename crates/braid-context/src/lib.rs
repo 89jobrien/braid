@@ -1,3 +1,5 @@
+//! Context collection, budgeting, summarization, and refresh support for Braid sessions.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod assembler;
 pub mod provider;

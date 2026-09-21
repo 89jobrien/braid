@@ -1,3 +1,5 @@
+//! Collects current todo context from the `doob` command-line client.
+
 use anyhow::Result;
 use braid_model::ContextChunk;
 use chrono::Duration;
@@ -14,10 +16,12 @@ pub struct DoobSource {
 }
 
 impl DoobSource {
+    /// Creates a source that queries todos across all projects.
     pub const fn new() -> Self {
         Self { project: None }
     }
 
+    /// Creates a source restricted to one doob project.
     pub fn with_project(project: impl Into<String>) -> Self {
         Self {
             project: Some(project.into()),

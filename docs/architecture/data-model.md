@@ -4,7 +4,7 @@ All types live in `braid-model`. Every other crate imports from here — no para
 
 ## Type Hierarchy
 
-```
+```text
 Session
 └── SessionId(String)                  ← opaque identifier
 └── SessionPhase                       ← Planned | Running | WaitingForTool | Completed
@@ -65,7 +65,7 @@ The `Unknown { raw }` variant is never produced by deserialization — unrecogni
 
 ## Message Flow Through the Engine
 
-```
+```text
 User prompt
     │
     ▼  Role::User, ContentPart::Text

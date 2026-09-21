@@ -1,3 +1,5 @@
+//! Loads installed components into a filterable command and prompt catalog.
+
 use braid_components::FileSystemRegistry;
 use braid_ports::ComponentRegistry;
 
@@ -16,6 +18,7 @@ pub enum EntryKind {
 }
 
 impl EntryKind {
+    /// Returns the fixed-width label displayed for this catalog entry kind.
     pub const fn label(&self) -> &'static str {
         match self {
             Self::Component => "comp",
@@ -32,6 +35,7 @@ pub struct Catalog {
 }
 
 impl Catalog {
+    /// Loads entries from `$HOME/.braid/components`, with an empty-state placeholder.
     pub fn load() -> Self {
         let mut entries = Vec::new();
 
@@ -92,6 +96,7 @@ impl Catalog {
         }
     }
 
+    /// Returns entries matching the current case-insensitive name or description filter.
     pub fn visible(&self) -> Vec<&CatalogEntry> {
         if self.filter.is_empty() {
             self.entries.iter().collect()
@@ -106,12 +111,14 @@ impl Catalog {
         }
     }
 
+    /// Moves the cursor up without passing the first visible entry.
     pub const fn move_up(&mut self) {
         if self.cursor > 0 {
             self.cursor -= 1;
         }
     }
 
+    /// Moves the cursor down without passing the last visible entry.
     pub fn move_down(&mut self) {
         let max = self.visible().len().saturating_sub(1);
         if self.cursor < max {
@@ -119,6 +126,7 @@ impl Catalog {
         }
     }
 
+    /// Returns the currently selected visible entry.
     #[allow(dead_code)]
     pub fn selected(&self) -> Option<&CatalogEntry> {
         self.visible().into_iter().nth(self.cursor)

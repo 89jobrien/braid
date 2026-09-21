@@ -1,3 +1,5 @@
+//! Verifies JSON round trips for Braid's public domain types.
+
 #![allow(clippy::unwrap_used)]
 use braid_model::*;
 use serde_json;

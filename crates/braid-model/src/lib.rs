@@ -1,3 +1,5 @@
+//! Canonical serializable domain types shared across Braid crates.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod context;
 pub mod event;

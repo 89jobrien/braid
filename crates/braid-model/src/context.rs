@@ -1,3 +1,5 @@
+//! Serializable context chunks, summaries, and assembled snapshots.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -16,6 +18,7 @@ pub struct ContextChunk {
 }
 
 impl ContextChunk {
+    /// Captures a labeled chunk with the current time and an estimated token count.
     pub fn new(source: &'static str, label: impl Into<String>, content: impl Into<String>) -> Self {
         let content = content.into();
         let token_estimate = estimate_tokens(&content);
@@ -47,6 +50,7 @@ pub struct ContextSnapshot {
 }
 
 impl ContextSnapshot {
+    /// Renders the summary and retained chunks as Markdown sections.
     pub fn render(&self) -> String {
         let mut parts = Vec::new();
         if let Some(summary) = &self.summary {
@@ -61,6 +65,7 @@ impl ContextSnapshot {
         parts.join("\n\n")
     }
 
+    /// Sums token estimates from the summary and retained chunks.
     pub fn total_tokens(&self) -> usize {
         let summary_tokens = self.summary.as_ref().map_or(0, |s| s.token_estimate);
         let chunk_tokens: usize = self.chunks.iter().map(|c| c.token_estimate).sum();

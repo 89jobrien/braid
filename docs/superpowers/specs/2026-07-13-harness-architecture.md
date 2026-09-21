@@ -32,7 +32,7 @@ Five capabilities are missing from the current architecture:
 The current `SimpleLoopPlanner` executes `CallProvider → ExecuteTool → Finish`. There is no
 concept of a validation gate or self-review pass between turns. The harness planner needs phases:
 
-```
+```text
 Clarify → Execute → Validate → Review → (loop or Finish)
 ```
 
@@ -67,7 +67,7 @@ producing structured feedback the first agent can act on.
 
 `braid-review` crate:
 
-```
+```text
 ReviewRequest { session_id, output, criteria: Vec<ReviewCriterion> }
 ReviewResult  { findings: Vec<Finding>, verdict: Verdict }
 
@@ -89,7 +89,7 @@ conflict and the agent can freely stage/commit without polluting the working tre
 
 `braid-worktree` crate (thin wrapper over `git worktree`):
 
-```
+```text
 WorktreeGuard::create(repo_root, branch_name) -> Result<WorktreeGuard>
 // Drops: removes the worktree and optionally the branch
 ```
@@ -107,7 +107,7 @@ and open fix-up PRs — requires a scheduler.
 
 `braid-schedule` crate:
 
-```
+```text
 ScheduledTask { id, cron: &str, prompt: String, max_turns: Option<u32> }
 Scheduler::run(tasks: Vec<ScheduledTask>, store: Arc<SessionStore>)
 ```
@@ -126,7 +126,7 @@ Initial scheduled tasks:
 
 ## Crate roadmap
 
-```
+```text
 Phase 3 (harness core):
   braid-review      — agent-to-agent review coordination
   braid-worktree    — per-task git worktree isolation
@@ -145,7 +145,7 @@ crate that depends on it. Decision deferred to implementation.
 
 ## Dependency graph (updated)
 
-```
+```text
 braid-cli
   → braid-providers
   → braid-review       (new)

@@ -38,10 +38,10 @@
 ## Task 1: Add `EventKind::Unknown`
 
 **Files:**
+
 - Modify: `crates/braid-model/src/event.rs`
 - Modify: `crates/braid-observe/src/render.rs`
 - Modify: `crates/braid-observe/src/store.rs` (update golden test)
-
 - [ ] **Step 1: Add the `Unknown` variant to `EventKind`**
 
 In `crates/braid-model/src/event.rs`, add `Unknown` to the enum:
@@ -136,9 +136,9 @@ git commit -m "feat(braid-model): add EventKind::Unknown for forward-compat inge
 ## Task 2: `SessionWriter` — streaming append to JSONL
 
 **Files:**
+
 - Modify: `crates/braid-observe/src/store.rs`
 - Modify: `crates/braid-observe/src/lib.rs`
-
 - [ ] **Step 1: Write the failing `SessionWriter` test**
 
 Add to the `#[cfg(test)] mod tests` block in `crates/braid-observe/src/store.rs`:
@@ -303,6 +303,7 @@ git commit -m "feat(braid-observe): add SessionWriter for streaming event persis
 ## Task 3: `Engine::with_event_callback`
 
 **Files:**
+
 - Modify: `crates/braid-core/src/engine.rs`
 
 - [ ] **Step 1: Write failing test for event callback**
@@ -488,6 +489,7 @@ git commit -m "feat(braid-core): add Engine::with_event_callback for streaming e
 ## Task 4: Wire `SessionWriter` into `cmd_run`
 
 **Files:**
+
 - Modify: `crates/braid-cli/src/main.rs`
 
 - [ ] **Step 1: Replace batch write with `SessionWriter` in `cmd_run`**
@@ -691,11 +693,11 @@ git commit -m "feat(braid-cli): stream events via SessionWriter during cmd_run"
 ## Task 5: `Ingester` trait and `BraidIngester`
 
 **Files:**
+
 - Create: `crates/braid-observe/src/ingest.rs`
 - Create: `crates/braid-observe/fixtures/braid-native.jsonl`
 - Modify: `crates/braid-observe/src/lib.rs`
 - Modify: `crates/braid-observe/Cargo.toml` (ensure `tempfile` is dev-dep)
-
 - [ ] **Step 1: Create the fixture file**
 
 Create `crates/braid-observe/fixtures/braid-native.jsonl` with:
@@ -857,6 +859,7 @@ git commit -m "feat(braid-observe): add Ingester trait and BraidIngester adapter
 ## Task 6: `ClaudeCodeIngester`
 
 **Files:**
+
 - Create: `crates/braid-observe/fixtures/claude-code.jsonl`
 - Modify: `crates/braid-observe/src/ingest.rs`
 
@@ -1014,6 +1017,7 @@ git commit -m "feat(braid-observe): implement ClaudeCodeIngester adapter"
 ## Task 7: `DevloopIngester`
 
 **Files:**
+
 - Create: `crates/braid-observe/fixtures/devloop.jsonl`
 - Modify: `crates/braid-observe/src/ingest.rs`
 
@@ -1159,9 +1163,9 @@ git commit -m "feat(braid-observe): implement DevloopIngester adapter"
 ## Task 8: `ReplaySession`
 
 **Files:**
+
 - Create: `crates/braid-observe/src/replay.rs`
 - Modify: `crates/braid-observe/src/lib.rs`
-
 - [ ] **Step 1: Write the failing `ReplaySession` tests**
 
 Create `crates/braid-observe/src/replay.rs`:

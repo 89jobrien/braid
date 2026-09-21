@@ -1,3 +1,5 @@
+//! Bootstrap diagnostics, configuration, and first-run setup for Braid.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod checks;
 pub mod config;

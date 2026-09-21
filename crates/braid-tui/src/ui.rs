@@ -1,3 +1,5 @@
+//! Renders session-inspection and agent-harness views with terminal-safe text.
+
 use braid_model::Role;
 use ratatui::{
     Frame,
@@ -56,6 +58,7 @@ fn sanitize(s: &str) -> String {
     out
 }
 
+/// Renders the active application mode or a minimum-size warning.
 pub fn render(
     frame: &mut Frame,
     state: &AppState,

@@ -1,3 +1,5 @@
+//! Registers MCP tool definitions and routes validated calls to an executor.
+
 pub mod echo;
 
 use anyhow::{Result, bail};
@@ -10,6 +12,7 @@ pub struct McpToolRegistry {
 }
 
 impl McpToolRegistry {
+    /// Creates an empty registry backed by the supplied call executor.
     pub fn new(executor: impl Fn(ToolCall) -> Result<ToolResult> + Send + Sync + 'static) -> Self {
         Self {
             tools: vec![],

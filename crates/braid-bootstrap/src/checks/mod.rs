@@ -1,3 +1,5 @@
+//! Defines bootstrap health checks and their result model.
+
 pub mod config_dir;
 pub mod connectivity;
 pub mod keys;
@@ -18,6 +20,7 @@ pub struct CheckResult {
 }
 
 pub trait Check: Send + Sync {
+    /// Evaluates this check and returns its status and diagnostic message.
     fn run(&self) -> CheckResult;
 }
 

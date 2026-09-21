@@ -1,3 +1,5 @@
+//! Drives provider, tool, context, redaction, and event-sink ports through a session loop.
+
 use anyhow::Result;
 use braid_model::{
     ContentPart, Event, EventKind, Message, ProviderRequest, Role, SessionId, ToolCall, ToolResult,
@@ -52,6 +54,7 @@ where
     S: EventSink,
     R: Redactor,
 {
+    /// Constructs an engine without context injection.
     pub const fn new(provider: P, tool_executor: T, event_sink: S, redactor: R) -> Self {
         Self {
             provider,
@@ -71,6 +74,7 @@ where
     R: Redactor,
     C: ContextProvider,
 {
+    /// Replaces the no-op context type with a concrete context provider.
     pub fn with_context<C2: ContextProvider>(self, ctx: C2) -> Engine<P, T, S, R, C2> {
         Engine {
             provider: self.provider,
@@ -81,6 +85,7 @@ where
         }
     }
 
+    /// Runs a planned session and flushes recorded events before returning.
     pub fn run(&self, input: RunInput, planner: &impl Planner) -> Result<RunOutput> {
         let result = self.run_inner(input, planner);
         let _ = self.event_sink.flush(); // best-effort on error path
@@ -311,8 +316,6 @@ mod tests {
             }
         }
     }
-
-    // ── tests ────────────────────────────────────────────────────────────────
 
     #[test]
     fn runs_a_minimal_session() {

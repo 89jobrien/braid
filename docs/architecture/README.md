@@ -17,7 +17,7 @@ This folder documents the braid agent platform — its crate structure, data mod
 
 Braid is a **personal agent platform** built as a Rust workspace. The architecture follows hexagonal design: a pure domain core (`braid-model`, `braid-core`) surrounded by adapters (providers, tools, hooks, redaction, persistence) wired together by a thin CLI.
 
-```
+```text
 braid-cli  ←→  braid-core  ←→  braid-model
                ↕    ↕    ↕
           providers hooks observe

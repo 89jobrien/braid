@@ -1,3 +1,5 @@
+//! Deterministic provider test double enabled by `test-support`.
+
 use anyhow::Result;
 use braid_model::{ContentPart, Message, ProviderRequest, ProviderResponse, Role};
 use braid_ports::Provider;
@@ -8,6 +10,7 @@ pub struct MockProvider {
 }
 
 impl MockProvider {
+    /// Creates a provider that always returns the supplied assistant text.
     pub fn with_text(text: impl Into<String>) -> Self {
         Self {
             response_text: text.into(),

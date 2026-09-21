@@ -1,3 +1,5 @@
+//! Collects fresh context chunks and fits them into a token budget.
+
 use std::sync::Arc;
 
 use std::fmt::Write as FmtWrite;
@@ -21,6 +23,7 @@ pub struct ContextAssembler {
 }
 
 impl ContextAssembler {
+    /// Creates an assembler with the default token budget and no summarization provider.
     pub fn new(sources: Vec<Box<dyn ContextSource>>) -> Self {
         Self {
             sources,
@@ -29,22 +32,26 @@ impl ContextAssembler {
         }
     }
 
+    /// Sets the maximum token estimate retained in assembled context.
     #[must_use]
     pub const fn with_budget(mut self, budget: usize) -> Self {
         self.budget = budget;
         self
     }
 
+    /// Sets the provider used to summarize context that exceeds half the budget.
     #[must_use]
     pub fn with_provider(mut self, provider: Arc<dyn Provider + Send + Sync>) -> Self {
         self.provider = Some(provider);
         self
     }
 
+    /// Fetches fresh chunks and assembles a new context snapshot.
     pub fn assemble(&self) -> Result<ContextSnapshot> {
         self.assemble_with_prior(None)
     }
 
+    /// Reassembles context, using a prior summary as input when summarization is needed.
     pub fn refresh(&self, prior: Option<&ContextSnapshot>) -> Result<ContextSnapshot> {
         self.assemble_with_prior(prior)
     }

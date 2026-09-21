@@ -1,3 +1,5 @@
+//! Persists session events and metadata in per-session filesystem directories.
+
 use anyhow::Result;
 use braid_model::{Event, SessionId};
 use braid_ports::{EventSink, SessionStorage};
@@ -20,6 +22,7 @@ pub struct SessionStore {
 }
 
 impl SessionStore {
+    /// Creates or opens a session-store root directory.
     pub fn open(root: PathBuf) -> Result<Self> {
         fs::create_dir_all(&root)?;
         Ok(Self {
@@ -28,6 +31,7 @@ impl SessionStore {
         })
     }
 
+    /// Replaces a session's JSONL event log and atomically writes its metadata.
     pub fn write(&self, id: &SessionId, events: &[Event]) -> Result<()> {
         let dir = self.session_dir(id);
         fs::create_dir_all(&dir)?;
@@ -59,6 +63,7 @@ impl SessionStore {
         Ok(())
     }
 
+    /// Loads parseable events from a session's JSONL log.
     pub fn load(&self, id: &SessionId) -> Result<Vec<Event>> {
         let path = self.session_dir(id).join("events.jsonl");
         if !path.exists() {
@@ -81,6 +86,7 @@ impl SessionStore {
         Ok(events)
     }
 
+    /// Loads session metadata when `meta.json` exists.
     pub fn load_meta(&self, id: &SessionId) -> Result<Option<SessionMeta>> {
         let path = self.session_dir(id).join("meta.json");
         if !path.exists() {
@@ -91,6 +97,7 @@ impl SessionStore {
         Ok(Some(meta))
     }
 
+    /// Lists session identifiers from newest to oldest.
     pub fn list(&self) -> Result<Vec<SessionId>> {
         let mut entries: Vec<(SessionId, String)> = Vec::new();
         for entry in fs::read_dir(&self.root)? {
@@ -118,6 +125,7 @@ impl SessionStore {
         Ok(entries.into_iter().map(|(id, _)| id).collect())
     }
 
+    /// Deletes older sessions while retaining the `keep` newest entries.
     pub fn prune(&self, keep: usize) -> Result<usize> {
         let all = self.list()?;
         if all.len() <= keep {
@@ -155,6 +163,7 @@ pub struct SessionWriter {
 }
 
 impl SessionWriter {
+    /// Opens an append-only event writer for a session.
     pub fn open(root: &std::path::Path, id: &SessionId) -> Result<Self> {
         let dir = root.join(&id.0);
         fs::create_dir_all(&dir)?;
@@ -170,6 +179,7 @@ impl SessionWriter {
         })
     }
 
+    /// Appends and flushes one event to the session's JSONL log.
     pub fn write_event(&mut self, event: &Event) -> Result<()> {
         let line = serde_json::to_string(event)?;
         writeln!(self.file, "{line}")?;
@@ -178,6 +188,7 @@ impl SessionWriter {
         Ok(())
     }
 
+    /// Finalizes the session by atomically writing event-count metadata.
     pub fn finish(self) -> Result<()> {
         let written_at = format_rfc3339(
             std::time::SystemTime::now()
@@ -528,7 +539,7 @@ mod tests {
         assert!(matches!(&events[0].kind, EventKind::Unknown { .. }));
     }
 
-    /// Drop without calling finish() leaves events readable but no meta.json.
+    /// Drop without calling `finish()` leaves events readable but no `meta.json`.
     #[test]
     fn drop_without_finish_leaves_events_readable() {
         let dir = tempfile::tempdir().expect("should succeed");
@@ -581,8 +592,8 @@ mod tests {
         assert_eq!(events[0].kind, EventKind::SessionStarted);
     }
 
-    /// finish() writes meta.json atomically: the tmp file is renamed, so there
-    /// is no window where a partial meta.json is visible to concurrent readers.
+    /// `finish()` writes `meta.json` atomically: the temporary file is renamed, so there
+    /// is no window where a partial `meta.json` is visible to concurrent readers.
     #[test]
     fn finish_is_atomic_no_tmp_left_behind() {
         let dir = tempfile::tempdir().expect("should succeed");

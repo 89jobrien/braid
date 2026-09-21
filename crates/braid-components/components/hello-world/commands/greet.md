@@ -4,7 +4,7 @@ Greet the user by name.
 
 ## Usage
 
-```
+```text
 braid run --component hello-world --command greet --arg name=<name>
 ```
 

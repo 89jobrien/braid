@@ -49,8 +49,8 @@ fn read_events_jsonl(store: &SessionStore, id: &SessionId) -> String {
 // 1. SessionStore::write() — batch path
 // ---------------------------------------------------------------------------
 
-/// Without redaction, a secret in a ToolCalled event survives to disk verbatim.
-/// This test documents the risk: callers MUST redact before calling write().
+/// Without redaction, a secret in a `ToolCalled` event survives to disk verbatim.
+/// This test documents the risk: callers MUST redact before calling `write()`.
 #[test]
 fn session_store_write_without_redaction_secret_visible_on_disk() {
     let dir = tempdir().unwrap();
@@ -68,7 +68,7 @@ fn session_store_write_without_redaction_secret_visible_on_disk() {
     );
 }
 
-/// With redaction applied before write(), the secret is absent from disk.
+/// With redaction applied before `write()`, the secret is absent from disk.
 #[test]
 fn session_store_write_with_redaction_secret_absent_from_disk() {
     let dir = tempdir().unwrap();
@@ -98,7 +98,7 @@ fn session_store_write_with_redaction_secret_absent_from_disk() {
 // 2. SessionWriter::write_event() — streaming path
 // ---------------------------------------------------------------------------
 
-/// Without redaction, a secret written via SessionWriter is visible on disk.
+/// Without redaction, a secret written via `SessionWriter` is visible on disk.
 #[test]
 fn session_writer_without_redaction_secret_visible_on_disk() {
     let dir = tempdir().unwrap();
@@ -118,7 +118,7 @@ fn session_writer_without_redaction_secret_visible_on_disk() {
     );
 }
 
-/// With redaction applied before write_event(), the secret is absent from disk.
+/// With redaction applied before `write_event()`, the secret is absent from disk.
 #[test]
 fn session_writer_with_redaction_secret_absent_from_disk() {
     let dir = tempdir().unwrap();
@@ -147,7 +147,7 @@ fn session_writer_with_redaction_secret_absent_from_disk() {
 // 3. EventSink (buffer → flush) path via EventSink::record + flush
 // ---------------------------------------------------------------------------
 
-/// EventSink::record + flush follows the same store.write() path.
+/// `EventSink::record` plus `flush` follows the same `store.write()` path.
 /// Verifies that without redaction the secret survives the buffered flush.
 #[test]
 fn event_sink_flush_without_redaction_secret_visible_on_disk() {
@@ -168,7 +168,7 @@ fn event_sink_flush_without_redaction_secret_visible_on_disk() {
     );
 }
 
-/// Redacting before record() ensures the buffered flush path is also clean.
+/// Redacting before `record()` ensures the buffered flush path is also clean.
 #[test]
 fn event_sink_flush_with_redaction_secret_absent_from_disk() {
     use braid_ports::EventSink;

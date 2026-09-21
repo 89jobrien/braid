@@ -30,7 +30,7 @@ tags: [braid, context, compaction, summarization, hexagonal]
 
 ### Dependency graph addition
 
-```
+```text
 braid-core → braid-ports (ContextProvider)
 braid-context → braid-ports (Provider, EventSink)
 braid-context → braid-model
@@ -91,7 +91,7 @@ Token estimation: `content.len() / 4`. No external tokenizer dependency.
 
 ## Data Flow
 
-```
+```text
 Session start OR refresh_context tool call
     │
     ▼
@@ -117,6 +117,7 @@ Rendered as system message prefix → injected into ProviderRequest
 Two-stage, applied in order:
 
 ### Stage 1 — Staleness filter
+
 Each source declares `staleness_window`. Chunks older than their source's window are dropped before token counting.
 
 ### Stage 2 — Token budget (two modes)
@@ -128,6 +129,7 @@ Staleness filter only. No further action.
 The assembler calls the `Provider` to summarize the current snapshot into a `ContextSummary`. The summary replaces raw chunks in the snapshot. On each subsequent `refresh_context`, new chunks are appended to the summary content and a new summarization pass runs — a rolling handoff.
 
 The assembler accepts `Option<Arc<dyn Provider>>` at construction:
+
 - `Some(provider)` — uses LLM summarization for long sessions
 - `None` — falls back to oldest-first drop (graceful degradation)
 
@@ -157,6 +159,7 @@ The engine calls `assemble()` at session start and `refresh()` when the `refresh
 ## Testing Strategy
 
 ### Unit tests (`braid-context`)
+
 - `ContextAssembler` with in-memory `ContextSource` stubs
 - Staleness filter: verify chunks beyond window are dropped
 - Token budget trim: verify oldest-first drop when over budget without provider
@@ -164,10 +167,12 @@ The engine calls `assemble()` at session start and `refresh()` when the `refresh
 - Source failure: one stub fails; assembler succeeds with remaining source
 
 ### Contract tests
+
 - Any `ContextSource` impl must return chunks with valid timestamps and non-zero token estimates
 - `ContextAssembler` must always populate `dropped_chunks` (0 if nothing dropped)
 
 ### Integration test (`#[ignore]`)
+
 - Wires real `DoobSource` + `RepoSource` against the braid repo
 - Requires: doob installed, git repo present
 - Verifies snapshot is non-empty and token estimate is reasonable

@@ -46,7 +46,7 @@ RunOutput {
 
 ## The Loop
 
-```
+```text
 emit SessionStarted
 │
 ├─ initialize SessionState { messages, pending_tool_calls: [], turn_count: 0, max_turns }
@@ -79,7 +79,7 @@ return RunOutput
 
 `SimpleLoopPlanner` implements the default agent loop:
 
-```
+```text
 next_action(state):
     if turn_count >= max_turns → Finish (with last provider response)
     if turn_count > 0 AND no last_provider_response → Error (stuck)
@@ -90,7 +90,7 @@ next_action(state):
 
 A typical minimal session (one-shot prompt, no tools):
 
-```
+```text
 SessionStarted
   turn 0: CallProvider → ProviderResponded  (response has no ToolUse)
   turn 0: Finish
@@ -99,7 +99,7 @@ SessionCompleted
 
 A session with one tool call:
 
-```
+```text
 SessionStarted
   turn 0: CallProvider → ProviderResponded  (response has ToolUse)
   turn 0: ExecuteTool  → ToolCalled, ToolCompleted

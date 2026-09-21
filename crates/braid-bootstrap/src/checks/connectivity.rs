@@ -1,3 +1,5 @@
+//! Probes local Ollama and remote `OpenAI` API connectivity.
+
 use super::{Check, CheckResult, CheckStatus};
 
 pub struct OllamaConnectivityCheck;

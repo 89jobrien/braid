@@ -1,3 +1,5 @@
+//! Provider-neutral chat roles, messages, and multimodal content parts.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

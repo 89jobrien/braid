@@ -1,3 +1,5 @@
+//! Interactive terminal entry point for session inspection and agent chat.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 mod catalog;
 mod chat;

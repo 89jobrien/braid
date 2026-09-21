@@ -1,3 +1,5 @@
+//! Checks whether required provider credentials are present in the environment.
+
 use super::{Check, CheckResult, CheckStatus};
 
 pub struct OpenAiKeyCheck;

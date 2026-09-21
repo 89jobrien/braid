@@ -5,18 +5,21 @@ TSI is a global command-line interface for the Braid project that provides conve
 ## Installation
 
 ### Quick Install
+
 ```bash
 # From the braid project root
 ./scripts/install-tsi.sh
 ```
 
 ### Symlink Install (for development)
+
 ```bash
 # Creates a symlink instead of copying (useful during development)
 ./scripts/install-tsi.sh --symlink
 ```
 
 ### Manual Install
+
 ```bash
 # Copy the script to your local bin directory
 cp scripts/tsi ~/.local/bin/tsi
@@ -78,6 +81,7 @@ tsi --verbose run "Debug this issue"
 ## Configuration
 
 TSI reads configuration from:
+
 - Environment variables (e.g., `OPENAI_API_KEY`)
 - Command line arguments
 - Project defaults
@@ -110,6 +114,7 @@ TSI reads configuration from:
 ## Integration
 
 TSI is designed to work seamlessly with:
+
 - **uv**: Python package management and execution
 - **Cargo**: Rust build system and package manager  
 - **Git**: Version control workflows
@@ -118,6 +123,7 @@ TSI is designed to work seamlessly with:
 ## Troubleshooting
 
 ### Command not found
+
 ```bash
 # Check if ~/.local/bin is in PATH
 echo $PATH | grep -q "$HOME/.local/bin" && echo "✓ PATH OK" || echo "✗ Add ~/.local/bin to PATH"
@@ -128,6 +134,7 @@ source ~/.zshrc
 ```
 
 ### Build failures
+
 ```bash
 # Check environment
 tsi doctor
@@ -139,6 +146,7 @@ tsi build
 ```
 
 ### Provider issues
+
 ```bash
 # Check OpenAI setup
 echo $OPENAI_API_KEY | cut -c1-10  # Should show key prefix

@@ -1,3 +1,5 @@
+//! Provider adapters for `OpenAI`-compatible APIs and deterministic tests.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod openai;
 

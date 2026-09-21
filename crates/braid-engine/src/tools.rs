@@ -1,3 +1,5 @@
+//! Provides simple tool executors used by the runtime and tests.
+
 use anyhow::Result;
 use braid_model::{ToolCall, ToolResult};
 
@@ -10,6 +12,7 @@ pub struct StaticTool {
 }
 
 impl StaticTool {
+    /// Creates a tool that returns the same output for every call.
     pub fn new(name: impl Into<String>, output: impl Into<String>) -> Self {
         Self {
             name: name.into(),

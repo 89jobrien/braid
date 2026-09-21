@@ -1,3 +1,5 @@
+//! Redacts macOS and Linux user-home path prefixes.
+
 use regex::Regex;
 
 use crate::rule::RedactionRule;
@@ -8,6 +10,7 @@ pub struct HomePathRule {
 }
 
 impl HomePathRule {
+    /// Creates a rule matching conventional macOS and Linux home directories.
     pub fn new() -> Self {
         Self {
             pattern: Regex::new(r"/(Users|home)/[A-Za-z0-9._-]+/").expect("valid regex"),

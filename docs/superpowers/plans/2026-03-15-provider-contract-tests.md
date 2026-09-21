@@ -34,10 +34,10 @@
 ### Task 1: Add ToolDefinition to braid-model
 
 **Files:**
+
 - Modify: `crates/braid-model/src/tool.rs`
 - Modify: `crates/braid-model/src/lib.rs`
 - Test: `crates/braid-model/tests/serde_roundtrip.rs`
-
 - [ ] **Step 1: Write the failing test for ToolDefinition serde roundtrip**
 
 Add to `crates/braid-model/tests/serde_roundtrip.rs`:
@@ -104,12 +104,12 @@ git commit -m "feat(model): add ToolDefinition type with serde roundtrip test"
 **Depends on:** Task 1 (ToolDefinition must exist and be re-exported)
 
 **Files:**
+
 - Modify: `crates/braid-model/src/provider.rs`
 - Modify: `crates/braid-model/tests/serde_roundtrip.rs`
 - Modify: `crates/braid-core/src/engine.rs` (update construction sites)
 - Modify: `crates/braid-providers/tests/provider_contract.rs` (update construction site)
 - Modify: `crates/braid-cli/src/main.rs` (update construction site in doctor)
-
 - [ ] **Step 1: Write the failing test — ProviderRequest with tools roundtrip**
 
 Update the existing `provider_request_roundtrip` test in `crates/braid-model/tests/serde_roundtrip.rs` to include the `tools` field:
@@ -171,6 +171,7 @@ pub struct ProviderRequest {
 Every site that constructs `ProviderRequest` must add `tools: vec![]`. These are:
 
 **`crates/braid-core/src/engine.rs:102`** — in `Engine::run` match arm:
+
 ```rust
 let response = self.provider.complete(ProviderRequest { messages, tools: vec![] })?;
 ```
@@ -178,6 +179,7 @@ let response = self.provider.complete(ProviderRequest { messages, tools: vec![] 
 **`crates/braid-core/src/engine.rs` tests** — `TestProvider::complete`, `ToolCallingProvider::complete`, `InfiniteToolProvider::complete`, `NeverProvider::complete` all receive `ProviderRequest` but don't construct it, so no change needed there.
 
 **`crates/braid-providers/tests/provider_contract.rs`** — the existing `verify_provider_contract` function at line 7:
+
 ```rust
 let request = ProviderRequest {
     messages: vec![Message {
@@ -191,8 +193,10 @@ let request = ProviderRequest {
 ```
 
 **`crates/braid-cli/src/main.rs`** — two sites:
+
 1. `cmd_run` at line 82 (inside `RunInput` — this passes `messages` to `Engine::run` which constructs `ProviderRequest` internally, so no change here)
 2. `doctor::check_openai_connectivity` at line 169:
+
 ```rust
 let request = ProviderRequest {
     messages: vec![Message {
@@ -222,6 +226,7 @@ git commit -m "feat(model): add tools field to ProviderRequest"
 ### Task 3: Add base_url and timeout to OpenAiProvider
 
 **Files:**
+
 - Modify: `crates/braid-providers/src/openai.rs`
 
 - [ ] **Step 1: Write the failing test — ollama constructor creates provider**
@@ -275,6 +280,7 @@ Expected: FAIL — no method `ollama` / no field `base_url`
 Modify `crates/braid-providers/src/openai.rs`:
 
 Add `base_url` field to struct:
+
 ```rust
 #[derive(Debug, Clone)]
 pub struct OpenAiProvider {
@@ -286,6 +292,7 @@ pub struct OpenAiProvider {
 ```
 
 Build a client with 30s timeout (place this as a free function above the `impl OpenAiProvider` block):
+
 ```rust
 fn build_client() -> reqwest::blocking::Client {
     reqwest::blocking::Client::builder()
@@ -296,6 +303,7 @@ fn build_client() -> reqwest::blocking::Client {
 ```
 
 Update existing constructors and add new ones:
+
 ```rust
 impl OpenAiProvider {
     pub fn new(model: impl Into<String>) -> Result<Self> {
@@ -334,6 +342,7 @@ impl OpenAiProvider {
 ```
 
 Add empty-message validation at the top of `complete()`:
+
 ```rust
 fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
     if request.messages.is_empty() {
@@ -344,6 +353,7 @@ fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
 ```
 
 Update the hardcoded URL in `complete()` to use `self.base_url`:
+
 ```rust
 let response = self
     .client
@@ -371,6 +381,7 @@ git commit -m "feat(providers): add base_url, ollama constructor, empty-message 
 ### Task 4: Add tool definition serialization to OpenAiProvider
 
 **Files:**
+
 - Modify: `crates/braid-providers/src/openai.rs`
 
 - [ ] **Step 1: Write the failing test — tool definitions serialized in request body**
@@ -459,6 +470,7 @@ fn build_request_body(&self, messages: &[Message], tools: &[braid_model::ToolDef
 ```
 
 Update `complete()` to use it:
+
 ```rust
 fn complete(&self, request: ProviderRequest) -> Result<ProviderResponse> {
     if request.messages.is_empty() {
@@ -497,9 +509,9 @@ git commit -m "feat(providers): serialize tool definitions in OpenAI request bod
 ### Task 5: Remove MockProvider and update CLI
 
 **Files:**
+
 - Modify: `crates/braid-providers/src/lib.rs`
 - Modify: `crates/braid-cli/src/main.rs`
-
 - [ ] **Step 1: Remove MockProvider from lib.rs**
 
 Replace `crates/braid-providers/src/lib.rs` entirely:
@@ -514,6 +526,7 @@ pub use openai::OpenAiProvider;
 In `crates/braid-cli/src/main.rs`:
 
 Remove the `MockProvider` import:
+
 ```rust
 // Change this:
 use braid_providers::{MockProvider, OpenAiProvider};
@@ -522,6 +535,7 @@ use braid_providers::OpenAiProvider;
 ```
 
 Update `resolve_provider`:
+
 ```rust
 fn resolve_provider(flag: Option<&str>, model: &str) -> Result<Box<dyn Provider>> {
     let provider_name = match flag {
@@ -548,6 +562,7 @@ Update the `Run` command's model default — when using Ollama, the default mode
 Update `doctor` module — replace mock/OpenAI-specific checks:
 
 Remove `check_openai_connectivity` and replace with a more general approach:
+
 ```rust
 mod doctor {
     use anyhow::Result;
@@ -698,6 +713,7 @@ git commit -m "feat: remove MockProvider, add ollama support to CLI"
 ### Task 6: Add tool-calling contract test
 
 **Files:**
+
 - Modify: `crates/braid-providers/tests/provider_contract.rs`
 
 - [ ] **Step 1: Write verify_tool_calling function**
@@ -832,6 +848,7 @@ git commit -m "feat(providers): add tool-calling contract test"
 ### Task 7: Add error-handling contract test
 
 **Files:**
+
 - Modify: `crates/braid-providers/tests/provider_contract.rs`
 
 - [ ] **Step 1: Write verify_error_on_empty_messages function**
@@ -973,6 +990,7 @@ Expected: JSON response with a choices array containing an assistant message
 ### Task 9: Update CI workflow
 
 **Files:**
+
 - Modify: `.gitea/workflows/ci.yml`
 
 - [ ] **Step 1: Update CI workflow**
@@ -1024,6 +1042,7 @@ git push origin main
 - [ ] **Step 3: Verify CI passes**
 
 Check the Gitea CI run:
+
 ```bash
 curl -s -u joe:braid-gitea "http://100.105.75.7:3000/api/v1/repos/joe/braid/actions/runs?limit=1" | python3 -c "import sys,json; runs=json.load(sys.stdin).get('workflow_runs',[]); r=runs[0] if runs else {}; print(f'Run #{r.get(\"id\",\"?\")} status={r.get(\"status\",\"?\")} conclusion={r.get(\"conclusion\",\"?\")}')"
 ```
@@ -1031,6 +1050,7 @@ curl -s -u joe:braid-gitea "http://100.105.75.7:3000/api/v1/repos/joe/braid/acti
 Expected: `status=completed conclusion=success`
 
 If it fails, check logs:
+
 ```bash
 curl -s -u joe:braid-gitea "http://100.105.75.7:3000/api/v1/repos/joe/braid/actions/jobs/N/logs" 2>&1 | grep -E "(error|FAIL|Failure)" | head -20
 ```

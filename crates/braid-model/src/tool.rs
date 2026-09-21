@@ -1,3 +1,5 @@
+//! Tool schemas, invocation payloads, and execution results.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

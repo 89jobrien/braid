@@ -1,3 +1,5 @@
+//! Defines the contract implemented by context data sources.
+
 use anyhow::Result;
 use chrono::Duration;
 
@@ -5,8 +7,11 @@ use chrono::Duration;
 pub use braid_model::{ContextChunk, ContextSnapshot, ContextSummary};
 
 pub trait ContextSource: Send + Sync {
+    /// Returns the stable source identifier stored on captured chunks.
     fn name(&self) -> &'static str;
+    /// Returns the maximum age of chunks accepted from this source.
     fn staleness_window(&self) -> Duration;
+    /// Fetches the source's currently available context chunks.
     fn fetch(&self) -> Result<Vec<ContextChunk>>;
 }
 

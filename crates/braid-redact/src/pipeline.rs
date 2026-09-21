@@ -1,3 +1,5 @@
+//! Applies ordered redaction rules across text and structured runtime data.
+
 use braid_model::{ContentPart, Event, EventKind, Message};
 
 use crate::rule::RedactionRule;
@@ -8,6 +10,7 @@ pub struct RedactionPipeline {
 }
 
 impl RedactionPipeline {
+    /// Creates an empty pass-through pipeline.
     pub fn new() -> Self {
         Self { rules: vec![] }
     }

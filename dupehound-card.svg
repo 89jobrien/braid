@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#0d1117"/>
+<rect x="1.5" y="1.5" width="1197" height="627" rx="14" fill="none" stroke="#30363d" stroke-width="3"/>
+<text x="60" y="96" font-family="JetBrains Mono" font-weight="bold" font-size="34" fill="#e6edf3">braid</text>
+<text x="60" y="142" font-family="JetBrains Mono" font-size="22" fill="#8b949e">2026-03 → 2026-07 · 12 snapshots</text>
+<text x="1140" y="96" font-family="JetBrains Mono" font-weight="800" font-size="64" fill="#3fb950" text-anchor="end">0.4%</text>
+<text x="1140" y="138" font-family="JetBrains Mono" font-size="24" fill="#8b949e" text-anchor="end">slop score · grade A</text>
+<linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="#3fb950" stop-opacity="0.35"/>
+  <stop offset="100%" stop-color="#3fb950" stop-opacity="0.02"/>
+</linearGradient>
+<line x1="60" y1="510" x2="1140" y2="510" stroke="#30363d" stroke-width="2"/>
+<path d="M 60.0 510.0 C 76.4 510.0, 125.5 510.0, 158.2 510.0 C 190.9 510.0, 223.6 510.0, 256.4 510.0 C 289.1 510.0, 321.8 510.0, 354.5 510.0 C 387.3 510.0, 420.0 510.0, 452.7 510.0 C 485.5 510.0, 518.2 510.0, 550.9 510.0 C 583.6 510.0, 616.4 518.1, 649.1 510.0 C 681.8 501.9, 714.5 485.8, 747.3 461.5 C 780.0 437.2, 812.7 380.0, 845.5 364.1 C 878.2 348.1, 910.9 364.5, 943.6 366.0 C 976.4 367.5, 1009.1 386.7, 1041.8 373.0 C 1074.5 359.3, 1123.6 298.8, 1140.0 283.9 L 1140.0 510.0 L 60.0 510.0 Z" fill="url(#fill)"/>
+<path d="M 60.0 510.0 C 76.4 510.0, 125.5 510.0, 158.2 510.0 C 190.9 510.0, 223.6 510.0, 256.4 510.0 C 289.1 510.0, 321.8 510.0, 354.5 510.0 C 387.3 510.0, 420.0 510.0, 452.7 510.0 C 485.5 510.0, 518.2 510.0, 550.9 510.0 C 583.6 510.0, 616.4 518.1, 649.1 510.0 C 681.8 501.9, 714.5 485.8, 747.3 461.5 C 780.0 437.2, 812.7 380.0, 845.5 364.1 C 878.2 348.1, 910.9 364.5, 943.6 366.0 C 976.4 367.5, 1009.1 386.7, 1041.8 373.0 C 1074.5 359.3, 1123.6 298.8, 1140.0 283.9" fill="none" stroke="#3fb950" stroke-width="4" stroke-linecap="round"/>
+
+<text x="60" y="556" font-family="JetBrains Mono" font-weight="bold" font-size="30" fill="#e6edf3">no significant duplication growth</text>
+
+<text x="60" y="588" font-family="JetBrains Mono" font-size="20" fill="#8b949e">dupehound — sniffs out the code your AI wrote twice · fast · offline · no AI required</text>
+</svg>

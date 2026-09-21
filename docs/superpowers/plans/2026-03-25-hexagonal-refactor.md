@@ -13,12 +13,14 @@
 ## File Map
 
 **Create:**
+
 - `crates/braid-ports/Cargo.toml`
 - `crates/braid-ports/src/lib.rs`
 - `crates/braid-providers/src/mock.rs`
 - `crates/braid-observe/src/memory.rs`
 
 **Modify:**
+
 - `Cargo.toml` — add `braid-ports` to workspace members
 - `crates/braid-core/Cargo.toml` — add `braid-ports` dep
 - `crates/braid-core/src/lib.rs` — re-export port traits from braid-ports
@@ -45,10 +47,10 @@
 ## Task 1: Create `braid-ports`
 
 **Files:**
+
 - Create: `crates/braid-ports/Cargo.toml`
 - Create: `crates/braid-ports/src/lib.rs`
 - Modify: `Cargo.toml`
-
 - [ ] **Step 1: Add braid-ports to workspace**
 
 Edit `Cargo.toml` — add `"crates/braid-ports"` to the `members` array:
@@ -223,12 +225,12 @@ git commit -m "feat(braid-ports): add inner-ring port traits crate"
 ## Task 2: Update `braid-core`
 
 **Files:**
+
 - Modify: `crates/braid-core/Cargo.toml`
 - Modify: `crates/braid-core/src/lib.rs`
 - Modify: `crates/braid-core/src/tools.rs`
 - Modify: `crates/braid-core/src/registry.rs`
 - Modify: `crates/braid-core/src/engine.rs`
-
 - [ ] **Step 1: Add braid-ports dep to braid-core**
 
 Edit `crates/braid-core/Cargo.toml`:
@@ -813,11 +815,11 @@ git commit -m "feat(braid-core): Engine<P,T,S,R> with EventSink+Redactor ports; 
 ## Task 3: Update `braid-providers`
 
 **Files:**
+
 - Modify: `crates/braid-providers/Cargo.toml`
 - Modify: `crates/braid-providers/src/openai.rs`
 - Modify: `crates/braid-providers/src/lib.rs`
 - Create: `crates/braid-providers/src/mock.rs`
-
 - [ ] **Step 1: Swap deps in Cargo.toml**
 
 Replace `crates/braid-providers/Cargo.toml`:
@@ -968,11 +970,11 @@ git commit -m "feat(braid-providers): import Provider from braid-ports; add Mock
 ## Task 4: Update `braid-hooks`
 
 **Files:**
+
 - Modify: `crates/braid-hooks/Cargo.toml`
 - Modify: `crates/braid-hooks/src/contract.rs`
 - Modify: `crates/braid-hooks/src/executor.rs`
 - Modify: `crates/braid-hooks/src/lib.rs`
-
 - [ ] **Step 1: Swap deps in Cargo.toml**
 
 Replace `crates/braid-hooks/Cargo.toml`:
@@ -1067,9 +1069,9 @@ git commit -m "feat(braid-hooks): import Hook/ToolExecutor from braid-ports; dro
 ## Task 5: Update `braid-redact`
 
 **Files:**
+
 - Modify: `crates/braid-redact/Cargo.toml`
 - Modify: `crates/braid-redact/src/pipeline.rs`
-
 - [ ] **Step 1: Add braid-ports dep**
 
 Edit `crates/braid-redact/Cargo.toml` — add `braid-ports`:
@@ -1154,11 +1156,11 @@ git commit -m "feat(braid-redact): implement Redactor port on RedactionPipeline"
 ## Task 6: Update `braid-observe`
 
 **Files:**
+
 - Modify: `crates/braid-observe/Cargo.toml`
 - Modify: `crates/braid-observe/src/store.rs`
 - Create: `crates/braid-observe/src/memory.rs`
 - Modify: `crates/braid-observe/src/lib.rs`
-
 - [ ] **Step 1: Update Cargo.toml**
 
 Replace `crates/braid-observe/Cargo.toml`:
@@ -1459,6 +1461,7 @@ git commit -m "feat(braid-observe): implement EventSink+SessionStorage ports; ad
 ## Task 7: Update `braid-cli`
 
 **Files:**
+
 - Modify: `crates/braid-cli/src/main.rs`
 
 This is the composition root. The goal is to wire `Engine<P, T, S, R>` explicitly, drop `with_redactor`, use `Arc<SessionStore>` as the shared event sink, and remove the now-dead post-run redaction loop.

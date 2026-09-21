@@ -1,3 +1,5 @@
+//! Parses component manifests and resolves their command and prompt files.
+
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -44,6 +46,7 @@ pub struct ComponentManifest {
 }
 
 impl ComponentManifest {
+    /// Loads `component.toml` from a directory and validates all referenced files.
     pub fn load(dir: &Path) -> Result<Self> {
         let manifest_path = dir.join("component.toml");
         let content = std::fs::read_to_string(&manifest_path)

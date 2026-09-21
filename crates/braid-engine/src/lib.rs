@@ -1,3 +1,5 @@
+//! Core agent runtime, planner, and tool-dispatch infrastructure.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod engine;
 pub mod planner;

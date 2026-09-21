@@ -1,3 +1,5 @@
+//! Checks workspace health by running `cargo check --workspace`.
+
 use super::{Check, CheckResult, CheckStatus};
 use std::process::Command as Cmd;
 

@@ -1,3 +1,5 @@
+//! Checks whether the per-user Braid configuration directory exists.
+
 use super::{Check, CheckResult, CheckStatus};
 
 pub struct BraidConfigDirCheck;

@@ -1,3 +1,5 @@
+//! Collects recent commits and working-tree statistics from a Git repository.
+
 use anyhow::Result;
 use braid_model::ContextChunk;
 use chrono::Duration;
@@ -15,12 +17,14 @@ pub struct RepoSource {
 }
 
 impl RepoSource {
+    /// Creates a source rooted at the current directory.
     pub fn new() -> Self {
         Self {
             root: PathBuf::from("."),
         }
     }
 
+    /// Creates a source rooted at the given repository path.
     pub fn with_root(root: impl Into<PathBuf>) -> Self {
         Self { root: root.into() }
     }

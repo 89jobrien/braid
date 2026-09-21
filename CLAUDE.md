@@ -73,7 +73,7 @@ Strategy: take `--theirs` for conflicted files, then add whichever half is missi
 
 ### Data Flow
 
-```
+```text
 CLI → Engine::run(RunInput { session_id, messages, max_turns }, &SimpleLoopPlanner)
         Loop (driven by Planner::next_action → Action):
           ├─ CallProvider  → Provider::complete(ProviderRequest) → extract tool calls

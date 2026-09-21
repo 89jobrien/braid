@@ -1,3 +1,5 @@
+//! Selects provider, tool, or completion actions from the current session state.
+
 use anyhow::{Result, bail};
 use braid_model::{Message, ProviderResponse, ToolCall};
 
@@ -21,6 +23,7 @@ pub enum Action {
 
 /// Decides what the engine should do next based on session state.
 pub trait Planner {
+    /// Chooses the next engine action for the supplied session state.
     fn next_action(&self, state: &SessionState) -> Result<Action>;
 }
 

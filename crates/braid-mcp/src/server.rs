@@ -1,3 +1,5 @@
+//! Serves MCP JSON-RPC requests over Content-Length-framed standard I/O.
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

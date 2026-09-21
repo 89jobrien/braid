@@ -10,14 +10,14 @@ tags: [rust, workspace, spec, platform, architecture]
 
 Concrete spec for the new Rust workspace that will implement **Braid** from scratch. This note defines the initial file tree, crate boundaries, and the role of each crate.
 
-# Goals
+## Goals
 
 - One Rust-first workspace
 - Hard architectural boundaries between runtime, hooks, MCP, observability, redaction, context, and bootstrap
 - Minimal vertical slice first, then staged expansion
 - Old repos treated as idea donors only
 
-# Proposed File Tree
+## Proposed File Tree
 
 ```text
 braid/
@@ -151,9 +151,9 @@ braid/
     └── fixtures/
 ```
 
-# Project Extraction Map
+## Project Extraction Map
 
-## Primary Donors
+### Primary Donors
 
 - `looprs` -> `braid-core`, `braid-model`, `braid-components`
   Extract: loop/session state machine, command-skill-rule wiring, provider-neutral tool execution, streaming/event boundaries, and the useful parts of the component loading model.
@@ -174,7 +174,7 @@ braid/
 - `dotfiles` and `pj` -> `braid-bootstrap`, `braid-cli`
   Extract: machine doctor/install flows, environment discovery, operator command ergonomics, and the front-door workflow for local development/runtime control.
 
-## Secondary Donors
+### Secondary Donors
 
 - `neocode` -> `braid-core`, `braid-context`
   Extract: deterministic patch/validate loop, small-diff discipline, compaction pressure, and skepticism about uncontrolled agent output.
@@ -197,20 +197,21 @@ braid/
 - `steve` -> `braid-components`
   Extract: manifests, prompt/template packaging, and component inventory structure without carrying over warehouse sprawl.
 
-## Constrained Donors
+### Constrained Donors
 
 - `maestro` -> `braid-core`, `braid-hooks`, `braid-bootstrap`
   Extract only generic ideas: long-running session control, runtime isolation patterns, operator guardrails, and local/dev environment orchestration. Do not import work-specific product logic, APIs, or platform assumptions.
 - Inventory-only work repos like `topdoc`, `ToptalVaultObsidian`, and `intvwr`
   Extract only proven patterns already captured in the work-repo extract notes: service boundaries, sync/validation gates, critique-revision loops, and scoring/evaluation structure.
 
-# Crate Descriptions
+## Crate Descriptions
 
-## `braid-cli`
+### `braid-cli`
 
 Primary binary and operator front door.
 
 Responsibilities:
+
 - parse CLI commands
 - start sessions
 - invoke tools/workflows
@@ -218,15 +219,17 @@ Responsibilities:
 - remain thin over `braid-core`
 
 Should not own:
+
 - provider logic
 - hook logic
 - event indexing
 
-## `braid-core`
+### `braid-core`
 
 The runtime heart of the system.
 
 Responsibilities:
+
 - tool loop execution
 - session lifecycle
 - command/skill/agent/rule dispatch
@@ -234,17 +237,19 @@ Responsibilities:
 - execution policies that are intrinsic to the runtime
 
 Should absorb ideas from:
+
 - `looprs`
 - `cod`
 - `goder`
 - `neocode`
 - `slash`
 
-## `braid-model`
+### `braid-model`
 
 Canonical shared domain model.
 
 Responsibilities:
+
 - event envelope
 - tool request/response shapes
 - provider-neutral inference types
@@ -252,63 +257,73 @@ Responsibilities:
 - shared IDs and metadata
 
 Rule:
+
 - all other crates should depend on this instead of inventing parallel domain types
 
-## `braid-providers`
+### `braid-providers`
 
 Provider abstraction and routing layer.
 
 Responsibilities:
+
 - provider adapters
 - model selection/routing
 - retries/backoff
 - mock providers for tests
 
 Should absorb ideas from:
+
 - `goder`
 - `cod`
 - `lisa`
 
-## `braid-hooks`
+### `braid-hooks`
 
 Externalized policy and guard layer in Rust.
 
 Responsibilities:
+
 - pre/post tool hook contract
 - guard registry
 - standalone hook binaries if needed
 - shell/tool/file safety policies
 
 Should absorb ideas from:
+
 - `hooks`
 - `ctx`
 - `threesheets`
 
 Rule:
+
 - hooks enforce and observe; they do not become the main runtime
 
-## `braid-mcp`
+### `braid-mcp`
 
 Stable MCP-facing tool layer.
 
 Responsibilities:
+
 - MCP server
 - tool registration
 - adapter boundaries for external/local systems
 - typed tool results
 
 Should absorb ideas from:
+
 - `personal-mcp`
 - `mcp-joecc`
 
 Rule:
+
 - tool exposure only, not orchestration
 
-## `braid-observe`
+### `braid-observe`
 
 Observability and replay system.
 
 Responsibilities:
+
 - ingest events and transcripts
 - normalize multiple event shapes
 - replay/rich inspection
@@ -316,6 +331,7 @@ Responsibilities:
 - indexing and audit support
 
 Should absorb ideas from:
+
 - `devloop`
 - `message-extractor`
 - `inflection`
@@ -324,76 +340,88 @@ Should absorb ideas from:
 - `tbh`
 
 Rule:
+
 - normalization, replay, and indexing should stay internally separated even if they live in one crate first
 
-## `braid-redact`
+### `braid-redact`
 
 Privacy boundary and reusable sanitization library.
 
 Responsibilities:
+
 - PII/secret redaction
 - path sanitization
 - stable obfuscation helpers
 - redaction profiles/levels
 
 Should absorb ideas from:
+
 - `obfsck`
 
 Rule:
+
 - keep this usable as a dependency by `braid-observe`, `braid-mcp`, and `braid-core`
 
-## `braid-context`
+### `braid-context`
 
 Context shaping and local task import.
 
 Responsibilities:
+
 - context compaction
 - bounded snapshots
 - import state from local task/taskboard tools
 - task/context transformation for runtime use
 
 Should absorb ideas from:
+
 - `doob`
 - `kan`
 - `threesheets`
 - `neocode`
 - `joecc`
 
-## `braid-bootstrap`
+### `braid-bootstrap`
 
 Machine and operator bootstrap layer.
 
 Responsibilities:
+
 - doctor/install flows
 - secrets/runtime/tool setup
 - machine capability checks
 - operator workflows previously spread across shell scripts
 
 Should absorb ideas from:
+
 - `dotfiles`
 - `pj`
 
 Rule:
+
 - wrap external tooling deliberately; do not recreate unstructured shell sprawl in Rust
 
-## `braid-components`
+### `braid-components`
 
 Reusable content/component system.
 
 Responsibilities:
+
 - load commands/skills/prompts/templates
 - validate component manifests
 - register and query components
 - support external component libraries later
 
 Should absorb ideas from:
+
 - `steve`
 - `slash`
 
 Rule:
+
 - this is a registry/loader, not an endless warehouse
 
-# Initial Dependency Direction
+## Initial Dependency Direction
 
 ```text
 braid-model
@@ -417,7 +445,7 @@ braid-redact
 └── braid-mcp
 ```
 
-# First Implementation Slice
+## First Implementation Slice
 
 The first runnable slice should be:
 
@@ -427,6 +455,7 @@ The first runnable slice should be:
 4. `braid-cli`
 
 Capabilities:
+
 - one session type
 - one provider
 - one tool contract
@@ -434,11 +463,12 @@ Capabilities:
 - one event envelope
 
 Only after that:
+
 - `braid-hooks`
 - `braid-mcp`
 - `braid-redact`
 
-# Non-Goals For V1
+## Non-Goals For V1
 
 - rebuilding every old UI
 - carrying over work-specific product logic
@@ -446,13 +476,13 @@ Only after that:
 - full bootstrap parity with `dotfiles`
 - full observability UI before the event model is stable
 
-# Criticisms / Improvement Areas
+## Criticisms / Improvement Areas
 
 - This spec is intentionally broad enough to cover the whole target program, which means it can still become a dumping ground unless the V1 slice is enforced hard.
 - Some boundaries may later deserve separate workspaces rather than separate crates, but that should be driven by pressure from a working system, not by premature purity.
 - The main risk is still overbuilding: if you start implementing all crates at once, you will reproduce the old ecosystem’s parallel-center-of-gravity problem inside one repo.
 
-# Links
+## Links
 
 - [Braid - Rust Workspace Blueprint](./Braid%20-%20Rust%20Workspace%20Blueprint.md)
 - [Braid - Crate Implementation Checklist](./Braid%20-%20Crate%20Implementation%20Checklist.md)

@@ -1,3 +1,5 @@
+//! Session lifecycle and tool-execution events emitted by the runtime.
+
 use serde::{Deserialize, Serialize};
 
 use crate::SessionId;

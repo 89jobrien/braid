@@ -43,13 +43,14 @@
 ## Task 1: Workspace + crate scaffold
 
 **Files:**
+
 - Modify: `Cargo.toml` (workspace root)
 - Create: `crates/braid-bootstrap/Cargo.toml`
 - Create: `crates/braid-bootstrap/src/lib.rs`
-
 - [ ] **Step 1: Add `toml` to workspace deps and `braid-bootstrap` to members**
 
 In `/Users/joe/dev/braid/Cargo.toml`:
+
 ```toml
 # In [workspace] members, add:
   "crates/braid-bootstrap",
@@ -94,6 +95,7 @@ pub mod setup;
 ```bash
 cargo check --workspace
 ```
+
 Expected: compiles (empty modules will need stubs — add them in next tasks).
 
 - [ ] **Step 5: Commit**
@@ -108,6 +110,7 @@ git commit -m "feat(braid-bootstrap): scaffold crate and workspace wiring"
 ## Task 2: Core check types
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/checks/mod.rs`
 
 - [ ] **Step 1: Write tests first**
@@ -162,6 +165,7 @@ mod tests {
 ```bash
 cargo nextest run -p braid-bootstrap
 ```
+
 Expected: compile error — types not defined yet.
 
 - [ ] **Step 3: Write the types**
@@ -196,6 +200,7 @@ pub trait Check: Send + Sync {
 ```bash
 cargo nextest run -p braid-bootstrap
 ```
+
 Expected: 2 tests pass.
 
 - [ ] **Step 5: Commit**
@@ -210,9 +215,9 @@ git commit -m "feat(braid-bootstrap): add Check trait, CheckResult, CheckStatus"
 ## Task 3: Toolchain + key checks
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/checks/toolchain.rs`
 - Create: `crates/braid-bootstrap/src/checks/keys.rs`
-
 - [ ] **Step 1: Write tests for `RustToolchainCheck`**
 
 `crates/braid-bootstrap/src/checks/toolchain.rs`:
@@ -333,6 +338,7 @@ mod tests {
 ```bash
 cargo nextest run -p braid-bootstrap
 ```
+
 Expected: all pass.
 
 - [ ] **Step 4: Commit**
@@ -347,6 +353,7 @@ git commit -m "feat(braid-bootstrap): RustToolchainCheck, OpenAiKeyCheck"
 ## Task 4: Connectivity checks
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/checks/connectivity.rs`
 
 - [ ] **Step 1: Write `OllamaConnectivityCheck` and `OpenAiConnectivityCheck`**
@@ -436,6 +443,7 @@ impl Check for OpenAiConnectivityCheck {
 ```bash
 cargo check -p braid-bootstrap
 ```
+
 Expected: compiles (no unit tests for network calls — tested via integration).
 
 - [ ] **Step 3: Commit**
@@ -450,10 +458,10 @@ git commit -m "feat(braid-bootstrap): OllamaConnectivityCheck, OpenAiConnectivit
 ## Task 5: Tool checks + workspace + config dir
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/checks/tools.rs`
 - Create: `crates/braid-bootstrap/src/checks/workspace.rs`
 - Create: `crates/braid-bootstrap/src/checks/config_dir.rs`
-
 - [ ] **Step 1: Write `tools.rs`**
 
 ```rust
@@ -650,6 +658,7 @@ Note: `tempfile` is a dev-dep — this test only runs via `cargo nextest`.
 ```bash
 cargo nextest run -p braid-bootstrap
 ```
+
 Expected: all tests pass.
 
 - [ ] **Step 5: Commit**
@@ -664,6 +673,7 @@ git commit -m "feat(braid-bootstrap): tool checks, workspace check, config dir c
 ## Task 6: `doctor.rs` — run_checks()
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/doctor.rs`
 
 - [ ] **Step 1: Write the module**
@@ -701,6 +711,7 @@ pub fn run_checks() -> Vec<CheckResult> {
 ```bash
 cargo check -p braid-bootstrap
 ```
+
 Expected: clean compile.
 
 - [ ] **Step 3: Commit**
@@ -715,6 +726,7 @@ git commit -m "feat(braid-bootstrap): doctor::run_checks collects all checks"
 ## Task 7: `render.rs` — TerminalRenderer
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/render.rs`
 
 - [ ] **Step 1: Write tests first**
@@ -797,6 +809,7 @@ mod tests {
 ```bash
 cargo nextest run -p braid-bootstrap
 ```
+
 Expected: all tests pass.
 
 - [ ] **Step 3: Commit**
@@ -811,6 +824,7 @@ git commit -m "feat(braid-bootstrap): TerminalRenderer with ANSI output"
 ## Task 8: `config.rs` — BraidConfig
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/config.rs`
 
 - [ ] **Step 1: Write tests first**
@@ -904,6 +918,7 @@ mod tests {
 ```bash
 cargo nextest run -p braid-bootstrap
 ```
+
 Expected: all tests pass.
 
 - [ ] **Step 3: Commit**
@@ -918,6 +933,7 @@ git commit -m "feat(braid-bootstrap): BraidConfig with toml serialization and lo
 ## Task 9: `setup.rs`
 
 **Files:**
+
 - Create: `crates/braid-bootstrap/src/setup.rs`
 
 - [ ] **Step 1: Write tests first**
@@ -989,6 +1005,7 @@ mod tests {
 ```bash
 cargo nextest run -p braid-bootstrap
 ```
+
 Expected: all tests pass.
 
 - [ ] **Step 3: Commit**
@@ -1003,12 +1020,13 @@ git commit -m "feat(braid-bootstrap): setup::run — idempotent dir + config cre
 ## Task 10: Wire into `braid-cli`
 
 **Files:**
+
 - Modify: `crates/braid-cli/Cargo.toml`
 - Modify: `crates/braid-cli/src/main.rs`
-
 - [ ] **Step 1: Add dependency to `braid-cli/Cargo.toml`**
 
 Add to `[dependencies]`:
+
 ```toml
 braid-bootstrap = { path = "../braid-bootstrap" }
 ```
@@ -1016,12 +1034,14 @@ braid-bootstrap = { path = "../braid-bootstrap" }
 - [ ] **Step 2: Update `main.rs` — remove `mod doctor`, add `Setup` subcommand**
 
 In the `Command` enum, add:
+
 ```rust
 /// Set up local braid environment (~/.braid/)
 Setup,
 ```
 
 Replace `cmd_doctor()`:
+
 ```rust
 fn cmd_doctor() -> Result<()> {
     let results = braid_bootstrap::doctor::run_checks();
@@ -1031,6 +1051,7 @@ fn cmd_doctor() -> Result<()> {
 ```
 
 Add `cmd_setup()`:
+
 ```rust
 fn cmd_setup() -> Result<()> {
     let home = std::env::var("HOME").context("HOME not set")?;
@@ -1040,6 +1061,7 @@ fn cmd_setup() -> Result<()> {
 ```
 
 In `main()` match arm:
+
 ```rust
 Command::Setup => cmd_setup(),
 ```
@@ -1051,6 +1073,7 @@ Remove the entire `mod doctor { ... }` block (lines 190–285 in the current fil
 ```bash
 cargo check --workspace
 ```
+
 Expected: clean compile.
 
 - [ ] **Step 4: Run all tests**
@@ -1058,6 +1081,7 @@ Expected: clean compile.
 ```bash
 cargo nextest run --workspace
 ```
+
 Expected: all tests pass.
 
 - [ ] **Step 5: Run clippy**
@@ -1065,6 +1089,7 @@ Expected: all tests pass.
 ```bash
 cargo clippy --workspace -- -D warnings
 ```
+
 Expected: no warnings.
 
 - [ ] **Step 6: Commit**

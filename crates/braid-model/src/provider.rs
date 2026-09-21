@@ -1,3 +1,5 @@
+//! Provider request and response payloads used by the runtime port.
+
 use serde::{Deserialize, Serialize};
 
 use crate::message::Message;

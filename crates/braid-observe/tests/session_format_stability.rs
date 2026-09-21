@@ -114,8 +114,8 @@ fn ingest_to_render_pipeline_produces_stable_output() {
 // Meta-absent render (in-progress / writer-crashed session)
 // ---------------------------------------------------------------------------
 
-/// When a session has no meta.json (e.g. writer crashed before finish()),
-/// render_session must still produce valid output from the event list alone.
+/// When a session has no `meta.json` (e.g. writer crashed before `finish()`),
+/// `render_session` must still produce valid output from the event list alone.
 ///
 /// This is a safety contract: partial sessions must always be inspectable.
 #[test]
@@ -234,7 +234,7 @@ fn all_ingesters_render_without_error() {
 // Format evolution: unknown event kinds survive store round-trip and render
 // ---------------------------------------------------------------------------
 
-/// An unknown EventKind (future schema addition) written to the store must
+/// An unknown `EventKind` (future schema addition) written to the store must
 /// survive load and render without error — the render must show it as "Unknown".
 ///
 /// This locks in the forward-compat contract for the render path.

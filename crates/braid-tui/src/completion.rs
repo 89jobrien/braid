@@ -1,3 +1,5 @@
+//! Manages slash-command, agent, and context-variable completion menus.
+
 use crate::catalog::{Catalog, EntryKind};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -8,6 +10,7 @@ pub enum Trigger {
 }
 
 impl Trigger {
+    /// Maps a supported input sigil to its completion trigger.
     pub const fn from_char(c: char) -> Option<Self> {
         match c {
             '/' => Some(Self::Slash),
@@ -17,6 +20,7 @@ impl Trigger {
         }
     }
 
+    /// Returns the input character that opens this completion category.
     pub const fn sigil(&self) -> char {
         match self {
             Self::Slash => '/',
@@ -25,6 +29,7 @@ impl Trigger {
         }
     }
 
+    /// Returns the heading displayed above this completion category.
     pub const fn title(&self) -> &'static str {
         match self {
             Self::Slash => "Commands",
@@ -42,6 +47,7 @@ pub struct CompletionState {
 }
 
 impl CompletionState {
+    /// Opens a completion menu populated for the selected trigger.
     pub fn open(trigger: Trigger, catalog: &Catalog) -> Self {
         let items = Self::build_items(&trigger, catalog, "");
         Self {
@@ -52,12 +58,14 @@ impl CompletionState {
         }
     }
 
+    /// Appends one filter character and rebuilds matching items.
     #[allow(dead_code)]
     pub fn push(&mut self, c: char, catalog: &Catalog) {
         self.filter.push(c);
         self.rebuild(catalog);
     }
 
+    /// Removes one filter character, returning `false` when the menu should close.
     #[allow(dead_code)]
     pub fn pop(&mut self, catalog: &Catalog) -> bool {
         if self.filter.is_empty() {
@@ -68,12 +76,14 @@ impl CompletionState {
         true
     }
 
+    /// Moves selection up without passing the first item.
     pub const fn move_up(&mut self) {
         if self.selected > 0 {
             self.selected -= 1;
         }
     }
 
+    /// Moves selection down without passing the last item.
     pub const fn move_down(&mut self) {
         if self.selected + 1 < self.items.len() {
             self.selected += 1;
@@ -87,6 +97,7 @@ impl CompletionState {
             .map(|item| format!("{}{} ", self.trigger.sigil(), item))
     }
 
+    /// Rebuilds matches and clamps selection to the resulting item count.
     pub fn rebuild(&mut self, catalog: &Catalog) {
         self.items = Self::build_items(&self.trigger, catalog, &self.filter);
         self.selected = self.selected.min(self.items.len().saturating_sub(1));

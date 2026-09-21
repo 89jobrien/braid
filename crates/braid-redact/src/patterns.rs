@@ -1,3 +1,5 @@
+//! Regex-based rules for credential formats and secret environment assignments.
+
 use regex::Regex;
 
 use crate::rule::RedactionRule;
@@ -8,6 +10,7 @@ pub struct SecretPatternRule {
 }
 
 impl SecretPatternRule {
+    /// Creates a rule covering supported API key and authorization token formats.
     pub fn new() -> Self {
         Self {
             patterns: vec![
@@ -70,6 +73,7 @@ pub struct EnvVarRule {
 }
 
 impl EnvVarRule {
+    /// Creates a rule matching assignments to common secret variable names.
     pub fn new() -> Self {
         Self {
             pattern: Regex::new(

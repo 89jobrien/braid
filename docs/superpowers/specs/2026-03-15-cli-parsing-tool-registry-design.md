@@ -57,6 +57,7 @@ enum Command {
 ### Provider Resolution
 
 For `braid run`:
+
 1. If `--provider mock`, use `MockProvider`.
 2. If `--provider openai`, use `OpenAiProvider` with the given `--model`. Fail if `OPENAI_API_KEY` not set.
 3. If `--provider` not specified: use `openai` if `OPENAI_API_KEY` is set, else `mock`.
@@ -116,7 +117,7 @@ impl ToolExecutor for ToolRegistry {
 
 ### Output Format
 
-```
+```text
 rust toolchain ... ok (1.88.0)
 OPENAI_API_KEY ... set
 openai connectivity ... ok
@@ -124,7 +125,8 @@ workspace health ... ok
 ```
 
 Or on failure:
-```
+
+```text
 rust toolchain ... FAIL (found 1.78.0, need >= 1.88)
 OPENAI_API_KEY ... not set
 openai connectivity ... skipped (no API key)

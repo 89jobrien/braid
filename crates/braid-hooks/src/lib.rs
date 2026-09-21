@@ -1,3 +1,5 @@
+//! Policy hooks and an executor wrapper for gating tool calls.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod contract;
 pub mod executor;

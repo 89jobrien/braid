@@ -1,3 +1,5 @@
+//! Connects harness chat input and completion triggers to background engine runs.
+
 use std::sync::Arc;
 use std::sync::mpsc;
 
@@ -110,6 +112,7 @@ fn resolve_provider(model: &str) -> Result<Box<dyn Provider>> {
     }
 }
 
+/// Runs one prompt through the fully wired engine and returns its first text response.
 pub fn run_engine(prompt: String, store: &Arc<SessionStore>, model: &str) -> Result<String> {
     let provider = resolve_provider(model)?;
 

@@ -17,9 +17,9 @@
 ### Task 1: Add ToolRegistry to braid-core
 
 **Files:**
+
 - Create: `crates/braid-core/src/registry.rs`
 - Modify: `crates/braid-core/src/lib.rs`
-
 - [ ] **Step 1: Write tests for ToolRegistry**
 
 Create `crates/braid-core/src/registry.rs` with the struct and tests first:
@@ -134,18 +134,20 @@ git commit -m "feat: add ToolRegistry to braid-core"
 ### Task 2: Add clap dependency and CLI skeleton
 
 **Files:**
+
 - Modify: `Cargo.toml` (workspace root)
 - Modify: `crates/braid-cli/Cargo.toml`
 - Modify: `crates/braid-cli/src/main.rs`
-
 - [ ] **Step 1: Add clap workspace dependency**
 
 In root `Cargo.toml`, add to `[workspace.dependencies]`:
+
 ```toml
 clap = { version = "4", features = ["derive"] }
 ```
 
 In `crates/braid-cli/Cargo.toml`, add to `[dependencies]`:
+
 ```toml
 clap.workspace = true
 ```

@@ -1,3 +1,5 @@
+//! Optional task metadata associated with an agent run.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]

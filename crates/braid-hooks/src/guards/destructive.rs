@@ -1,3 +1,5 @@
+//! Blocks tool inputs containing known destructive command patterns.
+
 use crate::contract::{Hook, HookContext, HookVerdict};
 use anyhow::Result;
 
@@ -7,6 +9,7 @@ pub struct DestructiveCommandGuard {
 }
 
 impl DestructiveCommandGuard {
+    /// Creates a guard with Braid's default destructive-command patterns.
     pub fn new() -> Self {
         Self {
             patterns: vec![

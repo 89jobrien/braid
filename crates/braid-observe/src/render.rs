@@ -1,3 +1,5 @@
+//! Renders persisted session events as a stable text timeline.
+
 use std::io::Write;
 
 use anyhow::Result;
@@ -5,6 +7,7 @@ use braid_model::{Event, EventKind};
 
 use crate::store::SessionMeta;
 
+/// Writes a session header and indexed event timeline to `out`.
 pub fn render_session(
     events: &[Event],
     meta: Option<&SessionMeta>,

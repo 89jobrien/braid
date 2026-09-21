@@ -1,3 +1,5 @@
+//! Owns TUI application state and the Elm-style update loop.
+
 use std::sync::Arc;
 use std::sync::mpsc;
 
@@ -88,6 +90,7 @@ pub struct AppModel {
 }
 
 impl AppModel {
+    /// Loads sessions and components, then initializes the harness input model.
     pub fn new(store: Arc<SessionStore>, model_name: String) -> anyhow::Result<Self> {
         let sessions = store.list()?;
         let mut state = AppState::new(sessions);

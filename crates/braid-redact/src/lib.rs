@@ -1,3 +1,5 @@
+//! Ordered redaction rules for secrets, environment values, and home paths.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod path;
 pub mod patterns;

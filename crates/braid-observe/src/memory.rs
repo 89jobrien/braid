@@ -1,3 +1,5 @@
+//! In-memory session storage available to tests through `test-support`.
+
 #[cfg(feature = "test-support")]
 mod inner {
     use anyhow::Result;
@@ -13,6 +15,7 @@ mod inner {
     }
 
     impl InMemorySessionStorage {
+        /// Creates empty in-memory session storage.
         pub fn new() -> Self {
             Self::default()
         }

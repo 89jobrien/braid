@@ -1,3 +1,5 @@
+//! Adapts `ContextAssembler` to the stateful `ContextProvider` port.
+
 use anyhow::Result;
 use braid_model::ContextSnapshot;
 use braid_ports::ContextProvider;
@@ -13,6 +15,7 @@ pub struct ContextAssemblerProvider {
 }
 
 impl ContextAssemblerProvider {
+    /// Wraps an assembler with empty rolling-snapshot state.
     pub const fn new(assembler: ContextAssembler) -> Self {
         Self {
             assembler,

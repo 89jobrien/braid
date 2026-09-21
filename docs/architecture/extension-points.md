@@ -42,7 +42,7 @@ Existing implementation: `SimpleLoopPlanner` (default tool-call loop, max 20 tur
 
 ## Engine Builder
 
-```
+```text
 Engine::new(tool_executor, provider)         // required
     .with_redactor(|msg| ...)                // optional: transform messages before provider
     .with_event_callback(|event| ...)        // optional: react to events synchronously
@@ -116,7 +116,7 @@ Built-in ingesters: `BraidIngester` (native JSONL pass-through), `ClaudeCodeInge
 
 ## Wiring Diagram
 
-```
+```text
              ┌─────────────────────────────┐
              │        Engine<T, P>         │
              │                             │

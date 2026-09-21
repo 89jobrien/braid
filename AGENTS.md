@@ -41,7 +41,7 @@ block, not individual functions or the whole crate.
 
 ## Workspace Layout
 
-```
+```text
 braid/
 ├── crates/
 │   ├── braid-model/      # Canonical domain types (leaf crate)
@@ -96,7 +96,7 @@ the root. All domain types live in `braid-model`; all traits (`Provider`, `Plann
 
 ### Runtime Data Flow
 
-```
+```text
 CLI → Engine::run(RunInput { session_id, messages, max_turns }, &SimpleLoopPlanner)
         Loop (Planner::next_action → Action):
           ├─ CallProvider  → Provider::complete() → extract tool calls
@@ -111,6 +111,7 @@ CLI → Engine::run(RunInput { session_id, messages, max_turns }, &SimpleLoopPla
 (id/name/input), `Transcript`, `SessionPhase`.
 
 **Hard boundaries:**
+
 - Redaction (`braid-redact`) ≠ observability (`braid-observe`)
 - MCP (`braid-mcp`) ≠ orchestration (core domain)
 - CLI delegates to core; core never references CLI
@@ -134,7 +135,7 @@ CLI → Engine::run(RunInput { session_id, messages, max_turns }, &SimpleLoopPla
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 <type>(<scope>): <description>
 ```
 

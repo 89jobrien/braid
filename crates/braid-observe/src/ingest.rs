@@ -1,3 +1,5 @@
+//! Normalizes external JSONL transcripts into persisted Braid session events.
+
 use std::path::Path;
 
 use anyhow::Result;
@@ -7,6 +9,7 @@ use crate::store::SessionStore;
 
 /// Port: ingest events from an external source into the store.
 pub trait Ingester {
+    /// Imports events from `source` and returns the persisted session identifier.
     fn ingest(&self, source: &Path, store: &SessionStore) -> Result<SessionId>;
 }
 
@@ -231,9 +234,9 @@ mod tests {
         assert!(has_tool_called, "expected ToolCalled for read_file");
     }
 
-    /// Forward-compat round-trip: EventKind::Unknown must survive ingestion → storage → replay
-    /// without dropping any fields. BraidIngester accepts native JSONL including the Unknown
-    /// variant; ReplaySession must surface it with its payload intact.
+    /// Forward-compat round-trip: `EventKind::Unknown` must survive ingestion → storage → replay
+    /// without dropping any fields. `BraidIngester` accepts native JSONL including the unknown
+    /// variant; `ReplaySession` must surface it with its payload intact.
     #[test]
     fn unknown_event_kind_round_trips_through_ingestion_and_replay() {
         use crate::replay::ReplaySession;

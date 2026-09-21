@@ -1,3 +1,5 @@
+//! Verifies that the installed Rust compiler meets Braid's minimum version.
+
 use super::{Check, CheckResult, CheckStatus};
 use std::process::Command as Cmd;
 

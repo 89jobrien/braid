@@ -1,3 +1,5 @@
+//! Defines the persisted bootstrap configuration and its defaults.
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -41,6 +43,7 @@ impl Default for BraidConfig {
 }
 
 impl BraidConfig {
+    /// Reads and parses a TOML configuration file.
     pub fn load(path: &Path) -> Result<Self> {
         let content = std::fs::read_to_string(path)?;
         Ok(toml::from_str(&content)?)

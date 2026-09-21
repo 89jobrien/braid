@@ -1,3 +1,5 @@
+//! Applies registered policy hooks around tool execution.
+
 use anyhow::Result;
 use braid_model::{SessionId, ToolCall, ToolResult};
 use braid_ports::ToolExecutor;
@@ -13,6 +15,7 @@ pub struct HookedExecutor<T: ToolExecutor> {
 }
 
 impl<T: ToolExecutor> HookedExecutor<T> {
+    /// Wraps a tool executor with hooks evaluated for the given session.
     pub const fn new(inner: T, registry: HookRegistry, session_id: SessionId) -> Self {
         Self {
             inner,

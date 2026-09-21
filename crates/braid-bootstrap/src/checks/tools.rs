@@ -1,3 +1,5 @@
+//! Checks required and optional command-line dependencies.
+
 use super::{Check, CheckResult, CheckStatus};
 use std::process::Command as Cmd;
 

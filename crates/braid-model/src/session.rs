@@ -1,3 +1,5 @@
+//! Session identity and lifecycle phase types.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

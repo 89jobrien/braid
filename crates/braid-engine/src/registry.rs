@@ -1,3 +1,5 @@
+//! Registers named tool executors and dispatches calls to them.
+
 use anyhow::Result;
 use braid_model::{ToolCall, ToolResult};
 use braid_ports::ToolExecutor;
@@ -9,20 +11,24 @@ pub struct ToolRegistry {
 }
 
 impl ToolRegistry {
+    /// Creates an empty tool registry.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Associates a name with a tool executor, replacing any existing entry.
     pub fn register(&mut self, name: impl Into<String>, tool: Box<dyn ToolExecutor>) {
         self.tools.insert(name.into(), tool);
     }
 
+    /// Returns registered tool names in sorted order.
     pub fn list(&self) -> Vec<&str> {
         let mut names: Vec<&str> = self.tools.keys().map(String::as_str).collect();
         names.sort_unstable();
         names
     }
 
+    /// Returns the executor registered under `name`.
     pub fn get(&self, name: &str) -> Option<&dyn ToolExecutor> {
         self.tools.get(name).map(Box::as_ref)
     }

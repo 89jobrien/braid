@@ -1,3 +1,5 @@
+//! Session event ingestion, persistence, replay, and rendering.
+
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 pub mod ingest;
 pub mod render;

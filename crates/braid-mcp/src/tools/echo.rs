@@ -1,3 +1,5 @@
+//! Defines the MCP echo tool schema.
+
 use braid_model::ToolDefinition;
 use serde_json::json;
 

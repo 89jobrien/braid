@@ -1,12 +1,16 @@
+//! Formats bootstrap diagnostic results for terminal output.
+
 use crate::checks::{CheckResult, CheckStatus};
 
 pub struct TerminalRenderer;
 
 impl TerminalRenderer {
+    /// Writes the ANSI-colored diagnostic report to standard output.
     pub fn render(results: &[CheckResult]) {
         print!("{}", Self::render_plain(results));
     }
 
+    /// Builds an ANSI-colored, line-oriented diagnostic report.
     pub fn render_plain(results: &[CheckResult]) -> String {
         use std::fmt::Write as _;
         let mut out = String::new();

@@ -17,23 +17,26 @@
 ### Task 1: Add serde_json workspace dependency and write serde round-trip tests
 
 **Files:**
+
 - Modify: `Cargo.toml` (workspace root)
 - Modify: `crates/braid-model/Cargo.toml`
 - Create: `crates/braid-model/tests/serde_roundtrip.rs`
-
 - [ ] **Step 1: Add serde_json to workspace and braid-model**
 
 In root `Cargo.toml`, add to `[workspace.dependencies]`:
+
 ```toml
 serde_json = "1"
 ```
 
 In `crates/braid-model/Cargo.toml`, add to `[dependencies]`:
+
 ```toml
 serde_json.workspace = true
 ```
 
 And add `[dev-dependencies]`:
+
 ```toml
 [dev-dependencies]
 serde_json.workspace = true
@@ -158,10 +161,10 @@ git commit -m "test: add serde round-trip tests for all braid-model types"
 ### Task 2: Add new message types to braid-model
 
 **Files:**
+
 - Create: `crates/braid-model/src/message.rs`
 - Create: `crates/braid-model/src/transcript.rs`
 - Modify: `crates/braid-model/src/lib.rs`
-
 - [ ] **Step 1: Create message.rs with Role, ContentPart, Message**
 
 Create `crates/braid-model/src/message.rs`:
@@ -243,11 +246,11 @@ git commit -m "feat: add Message, ContentPart, Role, TokenCount, Transcript to b
 ### Task 3: Update ProviderRequest/ProviderResponse to use Message types
 
 **Files:**
+
 - Modify: `crates/braid-model/src/provider.rs`
 - Modify: `crates/braid-core/src/engine.rs`
 - Modify: `crates/braid-providers/src/lib.rs`
 - Modify: `crates/braid-cli/src/main.rs`
-
 - [ ] **Step 1: Update provider.rs**
 
 Replace contents of `crates/braid-model/src/provider.rs`:
@@ -568,13 +571,14 @@ git commit -m "refactor: update Provider types to use structured Message instead
 ### Task 5: Add OpenAiProvider to braid-providers
 
 **Files:**
+
 - Modify: `crates/braid-providers/Cargo.toml`
 - Create: `crates/braid-providers/src/openai.rs`
 - Modify: `crates/braid-providers/src/lib.rs`
-
 - [ ] **Step 1: Add dependencies to braid-providers**
 
 Add to `crates/braid-providers/Cargo.toml` under `[dependencies]`:
+
 ```toml
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde_json.workspace = true
@@ -805,6 +809,7 @@ git commit -m "feat: add OpenAiProvider using chat completions API"
 ### Task 6: Wire OpenAI provider into CLI
 
 **Files:**
+
 - Modify: `crates/braid-cli/src/main.rs`
 
 - [ ] **Step 1: Update CLI to select provider via env var**

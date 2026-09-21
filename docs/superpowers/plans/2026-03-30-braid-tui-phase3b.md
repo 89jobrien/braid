@@ -28,10 +28,10 @@
 ## Task 1: Scaffold the crate
 
 **Files:**
+
 - Create: `crates/braid-tui/Cargo.toml`
 - Create: `crates/braid-tui/src/main.rs`
 - Modify: `Cargo.toml` (root)
-
 - [ ] **Step 1: Create `crates/braid-tui/Cargo.toml`**
 
 ```toml
@@ -87,9 +87,9 @@ git commit -m "feat(braid-tui): scaffold crate with ratatui + crossterm deps"
 ## Task 2: `AppState` and key binding state machine
 
 **Files:**
+
 - Create: `crates/braid-tui/src/app.rs`
 - Create: `crates/braid-tui/src/keys.rs`
-
 - [ ] **Step 1: Write failing state machine tests**
 
 Create `crates/braid-tui/src/keys.rs`:
@@ -329,11 +329,13 @@ fn main() -> anyhow::Result<()> {
 Create stubs for `app.rs` and `ui.rs` so it compiles:
 
 `crates/braid-tui/src/app.rs`:
+
 ```rust
 // stub
 ```
 
 `crates/braid-tui/src/ui.rs`:
+
 ```rust
 // stub
 ```
@@ -358,6 +360,7 @@ git commit -m "feat(braid-tui): add AppState and key binding state machine with 
 ## Task 3: `app.rs` — event loop and session loading
 
 **Files:**
+
 - Modify: `crates/braid-tui/src/app.rs`
 
 - [ ] **Step 1: Write the app state integration test**
@@ -475,6 +478,7 @@ git commit -m "feat(braid-tui): add app session loading and key dispatch with te
 ## Task 4: `ui.rs` — ratatui rendering
 
 **Files:**
+
 - Modify: `crates/braid-tui/src/ui.rs`
 
 - [ ] **Step 1: Implement the render function**
@@ -733,9 +737,9 @@ git commit -m "feat(braid-tui): implement ratatui render functions (session list
 ## Task 5: Wire the event loop in `main.rs`
 
 **Files:**
+
 - Modify: `crates/braid-tui/src/main.rs`
 - Modify: `crates/braid-tui/src/app.rs`
-
 - [ ] **Step 1: Add the `run` function to `app.rs`**
 
 Add to `crates/braid-tui/src/app.rs` (after existing code, before `#[cfg(test)]`):
@@ -899,11 +903,11 @@ cargo run -p braid-tui
 ```
 
 Expected:
+
 - Session list shows the session just created
 - Timeline shows SessionStarted, ProviderResponded, SessionCompleted
 - Enter on ProviderResponded expands the detail pane with JSON payload
 - `q` quits cleanly
-
 - [ ] **Step 5: Final commit**
 
 ```bash

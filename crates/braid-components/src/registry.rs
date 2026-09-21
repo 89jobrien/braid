@@ -1,3 +1,5 @@
+//! Discovers and indexes filesystem-backed Braid components.
+
 use crate::manifest::ComponentManifest;
 use anyhow::{Context, Result};
 use braid_ports::{ComponentInfo, ComponentRegistry};
