@@ -19,7 +19,7 @@ use braid_providers::OpenAiProvider;
 use braid_redact::{EnvVarRule, HomePathRule, RedactionPipeline, SecretPatternRule};
 
 #[derive(Parser)]
-#[command(name = "braid")]
+#[command(name = "braid", version)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
